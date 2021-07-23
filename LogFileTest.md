@@ -10,7 +10,7 @@ Read model run control from model config sheet.
 
 Read model output control from model config sheet.
 
-End of file or formatting error while reading the classification file in column 20. Check if all classifications are present. If yes, you are good to go!
+End of file or formatting error while reading the classification file in column 15. Check if all classifications are present. If yes, you are good to go!
 
 Define model classifications and select items for model classifications according to information provided by config file.
 
