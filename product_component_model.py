@@ -127,6 +127,59 @@ class ProductComponentModel(object):
 
         self.pdf_cm = pdf_cm # optional
         self.sf_cm  = sf_cm # optional
+        
+
+    def compute_stock_change_pr(self):
+        """ Determine stock change for product from time series for stock. Formula: stock_change(t) = stock(t) - stock(t-1)."""
+        try:
+            self.ds_pr = np.zeros(len(self.s_pr))
+            self.ds_pr[0] = self.s_pr[0]
+            self.ds_pr[1::] = np.diff(self.s_pr)
+            return self.ds_pr
+        except:
+            # Could not determine Stock change of product. The stock is not defined.
+            return None     
+
+
+    def compute_stock_change_cm(self):
+        """ Determine stock change for component from time series for stock. Formula: stock_change(t) = stock(t) - stock(t-1)."""
+        try:
+            self.ds_cm = np.zeros(len(self.s_cm))
+            self.ds_cm[0] = self.s_cm[0]
+            self.ds_cm[1::] = np.diff(self.s_cm)
+            return self.ds_cm
+        except:
+            # Could not determine Stock change of component. The stock is not defined.
+            return None     
+        
+    def check_stock_balance_pr(self):
+        """ Check wether inflow, outflow, and stock are balanced for main product. 
+        If possible, the method returns the vector 'Balance', where Balance = inflow - outflow - stock_change"""
+        try:
+            Balance = self.i_pr - self.o_pr - self.compute_stock_change_pr()
+            return Balance
+        except:
+            # Could not determine balance. At least one of the variables is not defined.
+            return None
+
+    def check_stock_balance_cm(self):
+        """ Check wether inflow, outflow, and stock are balanced for the component. 
+        If possible, the method returns the vector 'Balance', where Balance = inflow - outflow - stock_change"""
+        try:
+            Balance = self.i_cm - self.o_cm - self.compute_stock_change_cm()
+            return Balance
+        except:
+            # Could not determine balance. At least one of the variables is not defined.
+            return None
+        
+    def check_stock_pr_cm(self):
+        """ Check if the stock of product and component are the same"""
+        try:
+            Balance = self.s_pr - self.s_cm 
+            return Balance
+        except:
+            # Could not determine balance. At least one of the variables is not defined.
+            return None
 
     def compute_sf_pr(self): # survival functions
         """
@@ -446,7 +499,12 @@ class ProductComponentModel(object):
                 # 4) Determining the values for the component
                 self.sc_cm = self.sc_pr
                 self.oc_cm = self.oc_pr 
+                self.s_cm = self.s_pr
                 self.i_cm = self.i_pr
+                # Calculating total values
+                self.o_pr = self.oc_pr.sum(axis=1)
+                self.o_cm = self.oc_cm.sum(axis=1)
+                    
                 return self.sc_pr, self.sc_cm, self.i_pr, self.i_cm, self.oc_pr, self.oc_cm
             else:
                 raise Exception('No lifetime specified')
@@ -466,40 +524,38 @@ class ProductComponentModel(object):
         '''
         if self.s_pr is not None:
             if self.lt_pr is not None:
-                if self.r is not None:  
+                if self.r is not None: 
                     self.sc_pr = np.zeros((len(self.t), len(self.t)))
                     self.oc_pr = np.zeros((len(self.t), len(self.t)))
                     self.i_pr = np.zeros(len(self.t))
-                    self.sc_cm = np.zeros((len(self.t), len(self.t)))
-                    self.oc_cm = np.zeros((len(self.t), len(self.t)))
-                    self.i_cm = np.zeros(len(self.t))
-                    self.ds_pr = np.concatenate((np.array([0]), np.diff(self.s_pr)))
 
+                    self.i_cm = np.zeros(len(self.t))
                     # construct the sf of a product of cohort tc remaining in the stock in year t
                     self.compute_sf_pr() # Computes sf if not present already.
                     if self.sf_pr[0, 0] != 0: # Else, inflow is 0.
                         self.i_pr[0] = self.s_pr[0] / self.sf_pr[0, 0]
-                        self.i_cm[0] = self.i_pr[0]
-                    self.sc_cm[:, 0] = self.i_cm[0] * self.sf_pr[:, 0] # Future decay of age-cohort of year 0.
-                    self.oc_cm[0, 0] = self.i_cm[0] - self.sc_cm[0, 0]
                     self.sc_pr[:, 0] = self.i_pr[0] * self.sf_pr[:, 0] # Future decay of age-cohort of year 0.
                     self.oc_pr[0, 0] = self.i_pr[0] - self.sc_pr[0, 0]
-                    # all other years:            
+                    # all other years:
                     for m in range(1, len(self.t)):  # for all years m, starting in second year
                         # 1) Compute outflow from previous age-cohorts up to m-1
                         self.oc_pr[m, 0:m] = self.sc_pr[m-1, 0:m] - self.sc_pr[m, 0:m] # outflow table is filled row-wise, for each year m.
-                        self.oc_cm[m, 0:m] = self.oc_pr[m, 0:m]*(1+self.r) # outflow table is filled row-wise, for each year m. We multiply with the replacement rate
                         # 2) Determine inflow from mass balance:
                         
                         if self.sf_pr[m,m] != 0: # Else, inflow is 0.
-                            self.i_pr[m] = (self.s_pr[m] - self.sc_pr[m, :].sum()) #/ self.sf_pr[m,m] # allow for outflow during first year by rescaling with 1/sf[m,m]
-                            self.i_cm[m] = self.ds_pr[m] +  self.oc_cm.sum(axis=1)[m]
+                            self.i_pr[m] = (self.s_pr[m] - self.sc_pr[m, :].sum()) / self.sf_pr[m,m] # allow for outflow during first year by rescaling with 1/sf[m,m]
                         # 3) Add new inflow to stock and determine future decay of new age-cohort
                         self.sc_pr[m::, m] = self.i_pr[m] * self.sf_pr[m::, m]
                         self.oc_pr[m, m]   = self.i_pr[m] * (1 - self.sf_pr[m, m])
-                        self.sc_cm[m::, m] = self.i_cm[m] * self.sf_pr[m::, m]
-                        self.oc_cm[m, m]   = (self.i_cm[m] * (1 - self.sf_pr[m, m]))*(1+self.r)
-                    return self.sc_pr, self.sc_cm, self.i_pr, self.i_cm, self.oc_pr, self.oc_cm
+                    # 4) Determining the values for the component
+                    self.s_cm = self.s_pr
+                    self.i_cm = self.i_pr * (1 + self.r)
+                    self.o_cm = self.i_cm - self.compute_stock_change_cm()
+
+                    # Calculating total values
+                    self.o_pr = self.oc_pr.sum(axis=1)
+
+                    return self.sc_pr, self.i_pr, self.i_cm, self.oc_pr
                 else:
                     raise Exception('No replacement rate specified')
                     return None, None, None, None, None, None
@@ -562,7 +618,11 @@ class ProductComponentModel(object):
                         self.i_pr[m] = self.ds_pr[m] + self.oc_pr.sum(axis=1)[m] 
                         self.i_cm[m] = self.i_pr[m]
                         self.sc_pr[m,m] = self.i_pr[m]
-                    return self.sc_pr, self.sc_cm, self.i_pr, self.i_cm, self.oc_pr, self.oc_cm
+                    self.o_pr = self.oc_pr.sum(axis=1)
+                    self.o_cm = self.oc_cm.sum(axis=1)
+                    self.sc_cm = self.sc_pr
+                    self.s_cm = self.s_pr
+                    return self.sc_pr, self.sc_cm 
                 else:
                     raise Exception('No component lifetime specified')
                     return None, None, None, None, None, None
@@ -614,19 +674,18 @@ class ProductComponentModel(object):
                         for m in range(1, len(self.t)):  # for all years m, starting in second year
                             # 1) Compute outflow from previous age-cohorts up to m-1
                             if self.sf_pr[m,m] != 0 and self.sf_cm[m,m] != 0: # Else, inflow is 0.
-                                self.oc_cm[m, 0:m] = self.sc_pr[m-1, 0:m]/self.sf_cm[m-1,0:m] * abs((self.sf_cm[m, 0:m] - self.sf_cm[m-1, 0:m]))# FIXME: Truedev gives a warning for some values
+                                self.oc_cm[m, 0:m] = self.sc_cm[m-1, 0:m]/self.sf_cm[m-1,0:m] * abs((self.sf_cm[m, 0:m] - self.sf_cm[m-1, 0:m]))# FIXME: Truedev gives a warning for some values, TODO: Double-check if use of sc_cm is correct here rather than sc_pr
                                 self.oc_pr[m, 0:m] = (self.sc_pr[m-1, 0:m] - self.oc_cm[m, 0:m])/self.sf_pr[m-1,0:m] * abs((self.sf_pr[m, 0:m] - self.sf_pr[m-1, 0:m]))  # Calculating outflows attributed to product failures
                                 self.sc_pr[m,0:m] = self.sc_pr[m-1,:m] - self.oc_pr[m, 0:m] - self.oc_cm[m, 0:m] # Computing real stock
+                                self.sc_cm[m,0:m] = self.sc_cm[m-1,0:m] - self.oc_cm[m,0:m]
                                 # defining the share of components that is useful TODO: Is this really sf_cm we need to use?
                                 reuse[m,:m] = self.oc_pr[m,0:m] * self.sf_cm[m+self.tau_cm, 0:m]
                                 self.oc_cm[m,0:m] = self.oc_cm[m, 0:m] - reuse[m,0:m] +  self.oc_pr[m, 0:m]
                                 self.oc_pr[m,0:m] = self.oc_cm[m, 0:m] + reuse[m,0:m] 
-
                             self.i_pr[m] = self.ds_pr[m] + self.oc_pr.sum(axis=1)[m] 
                             self.i_cm[m] = self.ds_pr[m] + self.oc_cm.sum(axis=1)[m]
                             self.sc_pr[m,m] = self.i_pr[m]
-                            # TODO: Need to add stock by cohort of batteries
-
+                            self.sc_cm[m,m] = self.i_cm[m]
                         return self.sc_pr, self.sc_cm, self.i_pr, self.i_cm, self.oc_pr, self.oc_cm
                     else:
                         raise Exception('No delay specified')
@@ -867,18 +926,17 @@ class ProductComponentModel(object):
                                         self.oc_cm[m, c] = (self.sc_cm[m-1, c]- self.oc_pr[m, c])/self.sf_cm[m-1,c] * abs((self.sf_cm[m, c] - self.sf_cm[m-1, c]))# Calculating outflows attributed to component failures 
                                         # Defining the amount of products eligible for component replacement 
                                         replacement[m,c] = self.sf_pr[m+self.tau_pr, c] 
-                                        reuse[m,c] = self.sf_cm[m+self.tau_cm, c]
+                                        reuse[m,c] = self.oc_pr[m,c] * self.sf_cm[m+self.tau_cm, c]
                                         # Correcting outflows
                                         self.oc_pr[m, c] = self.oc_pr[m, c]+ self.oc_cm[m, c]  *(1- replacement[m,c])
                                         # The component outflows are equal to the component failures plus the product failures minus the amount of components reused
-                                        self.oc_cm[m, c] = self.oc_cm[m, c] + self.sc_pr[m-1, c] /self.sf_pr[m-1,c] * abs((self.sf_pr[m, c] - self.sf_pr[m-1, c])) * (1-  reuse[m,c])
+                                        self.oc_cm[m, c] =self.oc_cm[m, c] + (self.sc_pr[m-1, c] /self.sf_pr[m-1,c] * abs((self.sf_pr[m, c] - self.sf_pr[m-1, c]))) -  reuse[m,c]
                                         self.sc_pr[m,c] = self.sc_pr[m-1,c] - self.oc_pr[m, c]  # Computing real stock
                                         self.sc_cm[m,c] = self.sc_cm[m-1,c] - self.oc_cm[m,c]
                                     self.i_pr[m] = self.ds_pr[m] + self.oc_pr.sum(axis=1)[m] 
                                     self.i_cm[m] = self.ds_pr[m] + self.oc_cm.sum(axis=1)[m]
                                     self.sc_pr[m,m] = self.i_pr[m]
                                     self.sc_cm[m,m] = self.i_cm[m]
-
                             return self.sc_pr, self.sc_cm, self.i_pr, self.i_cm, self.oc_pr, self.oc_cm
                         else:
                             raise Exception('No component delay specified')

@@ -167,14 +167,14 @@ ParameterDict['Battery_chemistry_shares']= msc.Parameter(Name = 'Battery_chemist
 
 
 
-# ParameterDict['Materials']= msc.Parameter(Name = 'Materials',
-#                                                              ID = 3,
-#                                                              P_Res = None,
-#                                                              MetaData = None,
-#                                                              Indices = 'g,b,p,e', #t=time, h=units
-#                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/materialContent/matContent_motorEnergy_vehicleSize_batteryChemistry.npy'), # in kg 
-#                                                              Uncert=None,
-#                                                              Unit = '%')
+ParameterDict['Material_content']= msc.Parameter(Name = 'Materials',
+                                                             ID = 3,
+                                                             P_Res = None,
+                                                             MetaData = None,
+                                                             Indices = 'g,s,b,e', #t=time, h=units
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/material_content.npy'), # in kg 
+                                                             Uncert=None,
+                                                             Unit = '%')
 
 # ParameterDict['Capacity']= msc.Parameter(Name = 'Capacity',
 #                                                              ID = 3,
@@ -195,59 +195,24 @@ ParameterDict['Battery_chemistry_shares']= msc.Parameter(Name = 'Battery_chemist
 #                                                              Uncert=None,
 #                                                              Unit = '%')
 
-# ParameterDict['Battery_Weight']= msc.Parameter(Name = 'Battery_Weight',
-#                                                              ID = 3,
-#                                                              P_Res = None,
-#                                                              MetaData = None,
-#                                                              Indices = 'g,s,b', #t=time, h=units
-#                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/batteryWeight/batteryWeight_motorEnergy_segment_batteryChemistry.npy'),
-#                                                              Uncert=None,
-#                                                              Unit = '%')
+ParameterDict['Reuse_rate']= msc.Parameter(Name = 'Reuse',
+                                                             ID = 3,
+                                                             P_Res = None,
+                                                             MetaData = None,
+                                                             Indices = 'R,b,t', #t=time, h=units
+                                                             Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/recyclingRate/recycingRate_batteryChemistry_batteryPart_recyclingProcess_reuseScenario.npy'),
+                                                             Uncert=None,
+                                                             Unit = '%')
 
-# ParameterDict['Battery_Parts']= msc.Parameter(Name = 'Parts',
-#                                                              ID = 3,
-#                                                              P_Res = None,
-#                                                              MetaData = None,
-#                                                              Indices = 'g,s,b,p', #t=time, h=units
-#                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/norwegian_model/batteryParts/batteryParts_motorEnergy_batteryChemistry.npy'),
-#                                                              Uncert=None,
-#                                                              Unit = '%')
+ParameterDict['Recycling_efficiency']= msc.Parameter(Name = 'Efficiency',
+                                                              ID = 3,
+                                                              P_Res = None,
+                                                              MetaData = None,
+                                                              Indices = 'e,h', #t=time, h=units
+                                                              Values = np.load(os.getcwd()+'/data/scenario_data/recycling_efficiency.npy'),
+                                                              Uncert=None,
+                                                              Unit = '%')
 
-# ParameterDict['Recycling_rate']= msc.Parameter(Name = 'Recycling',
-#                                                              ID = 3,
-#                                                              P_Res = None,
-#                                                              MetaData = None,
-#                                                              Indices = 'R,b,p,h,t', #t=time, h=units
-#                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/recyclingRate/recycingRate_batteryChemistry_batteryPart_recyclingProcess_reuseScenario.npy'),
-#                                                              Uncert=None,
-#                                                              Unit = '%')
-
-# ParameterDict['SLB_recycling_rate']= msc.Parameter(Name = 'SLB Recycling',
-#                                                              ID = 3,
-#                                                              P_Res = None,
-#                                                              MetaData = None,
-#                                                              Indices = 'r,b,h,t', #t=time, h=units
-#                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/recyclingRate/recyclingRateSLB_region_chemistry_recyclingProcess.npy'),
-#                                                              Uncert=None,
-#                                                              Unit = '%')
-
-# ParameterDict['Recycling_efficiency']= msc.Parameter(Name = 'Efficiency',
-#                                                              ID = 3,
-#                                                              P_Res = None,
-#                                                              MetaData = None,
-#                                                              Indices = 'e,h', #t=time, h=units
-#                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/recycling_efficiencies/recyclingEfficiency_recyclingProcess.npy'),
-#                                                              Uncert=None,
-#                                                              Unit = '%')
-
-# ParameterDict['Daily_availability']= msc.Parameter(Name = 'Daily_availability',
-#                                                              ID = 3,
-#                                                              P_Res = None,
-#                                                              MetaData = None,
-#                                                              Indices = 's,d', #t=time, h=units
-#                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/vehicleAvailability/vehicle_availability.npy'),
-#                                                              Uncert=None,
-#                                                              Unit = '%')
 
 # ParameterDict['Storage_demand']= msc.Parameter(Name = 'Storage_demand',
 #                                                              ID = 3,
@@ -299,13 +264,15 @@ MaTrace_System.FlowDict['B_3_4'] = msc.Flow(Name = 'Outflows from use phase to E
 MaTrace_System.FlowDict['B_4_5'] = msc.Flow(Name = 'Used LIBs for health assessment and dismantling', P_Start = 4, P_End = 5,
                                             Indices = 'z,S,a,g,s,b,t,c', Values=None)
 MaTrace_System.FlowDict['B_5_6'] = msc.Flow(Name = 'Used LIBs as second life ', P_Start = 5, P_End = 6,
-                                            Indices = 'z,S,a,g,s,b,t,c', Values=None)
+                                            Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
+MaTrace_System.FlowDict['B_1_6'] = msc.Flow(Name = 'New LIBs for stationary storage ', P_Start = 5, P_End = 6,
+                                            Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 MaTrace_System.FlowDict['B_5_8'] = msc.Flow(Name = 'Spent LIBs directly to recycling', P_Start = 5, P_End = 8,
-                                            Indices = 'z,S,a,g,s,b,t,c', Values=None)
+                                            Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 MaTrace_System.FlowDict['B_6_7'] = msc.Flow(Name = 'Spent LIBs after second life to ELB collector', P_Start = 6, P_End = 7,
-                                            Indices = 'z,S,a,g,s,b,t,c', Values=None)
+                                            Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 MaTrace_System.FlowDict['B_7_8'] = msc.Flow(Name = 'Spent LIBs after second life to to recycling', P_Start = 7, P_End = 8,
-                                            Indices = 'z,S,a,g,s,b,t,c', Values=None)
+                                            Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 # Initializing stocks at transport stage
 MaTrace_System.StockDict['B_3']   = msc.Stock(Name = 'LIBs in EV in-use stock', P_Res = 3, Type = 0,
                                               Indices = 'z,S,a,g,s,b,t', Values=None)
@@ -315,40 +282,40 @@ MaTrace_System.StockDict['dB_3']  = msc.Stock(Name = 'LIBs in EV stock change', 
                                               Indices = 'z,S,a,g,s,b,t,c', Values=None)
 # Initializing stocks of SLBs at stationary storage stage
 MaTrace_System.StockDict['B_6_SLB']   = msc.Stock(Name = 'SLBs in stationary storage', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,g,s,b,t', Values=None)
+                                              Indices = 'z,S,a,R,g,s,b,t', Values=None)
 MaTrace_System.StockDict['B_C_6_SLB']   = msc.Stock(Name = 'SLBs in stationary storage', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,g,s,b,t,c', Values=None)
+                                              Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 MaTrace_System.StockDict['dB_6_SLB']  = msc.Stock(Name = 'Stock change of SLBs in stationary storage', P_Res = 6, Type = 1,
-                                              Indices = 'z,S,a,g,s,b,t,c', Values=None)
+                                              Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 # Initializing stocks of NSB at stationary storage stage
 MaTrace_System.StockDict['B_6_NSB']   = msc.Stock(Name = 'NSB in stationary storage', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,g,s,b,t', Values=None)
+                                              Indices = 'z,S,a,R,g,s,b,t', Values=None)
 MaTrace_System.StockDict['B_C_6_NSB']   = msc.Stock(Name = 'NSB in stationary storage', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,g,s,b,t,c', Values=None)
+                                              Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 MaTrace_System.StockDict['dB_6_NSB']  = msc.Stock(Name = 'Stock change of NSB in stationary storage', P_Res = 6, Type = 1,
-                                              Indices = 'z,S,a,g,s,b,t,c', Values=None)
+                                              Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 
 # Initialize elements layer
 MaTrace_System.FlowDict['E_0_1'] = msc.Flow(Name = 'Raw materials needed for batteries', P_Start = 0, P_End = 1,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,R,b,e,h,t', Values=None)
 MaTrace_System.FlowDict['E_1_2'] = msc.Flow(Name = 'Batteries from battery manufacturer to vehicle producer', P_Start = 1, P_End = 2,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,g,s,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_2_3'] = msc.Flow(Name = 'Batteries from battery manufacturer to vehicle producer', P_Start = 2, P_End = 3,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,g,s,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_3_4'] = msc.Flow(Name = 'Outflows from use phase to ELV collection and dismantling', P_Start = 3, P_End = 4,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_4_5'] = msc.Flow(Name = 'Used LIBs for health assessment and dismantling', P_Start = 4, P_End = 5,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_5_6'] = msc.Flow(Name = 'Used LIBs as second life ', P_Start = 5, P_End = 6,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,R,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_5_8'] = msc.Flow(Name = 'Spent LIBs directly to recycling', P_Start = 5, P_End = 8,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,R,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_6_7'] = msc.Flow(Name = 'Spent LIBs after second life to ELB collector', P_Start = 6, P_End = 7,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,R,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_7_8'] = msc.Flow(Name = 'Spent LIBs after second life to to recycling', P_Start = 7, P_End = 8,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,R,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_8_1'] = msc.Flow(Name = 'Recycled materials materials for battery production', P_Start = 8, P_End = 1,
-                                            Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                            Indices = 'z,S,a,R,b,e,h,t', Values=None)
 # Initializing stocks at transport stage
 MaTrace_System.StockDict['E_3']   = msc.Stock(Name = 'LIBs in EV in-use stock', P_Res = 3, Type = 0,
                                               Indices = 'z,S,a,g,s,b,e,t', Values=None)
@@ -358,18 +325,18 @@ MaTrace_System.StockDict['dE_3']  = msc.Stock(Name = 'LIBs in EV stock change', 
                                               Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
 # Initializing stocks of SLBs at stationary storage stage
 MaTrace_System.StockDict['E_6_SLB']   = msc.Stock(Name = 'SLBs in stationary storage', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,g,s,b,e,t', Values=None)
+                                              Indices = 'z,S,a,R,b,e,t', Values=None)
 MaTrace_System.StockDict['E_C_6_SLB']   = msc.Stock(Name = 'SLBs in stationary storage', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                              Indices = 'z,S,a,R,b,e,t,c', Values=None)
 MaTrace_System.StockDict['dE_6_SLB']  = msc.Stock(Name = 'Stock change of SLBs in stationary storage', P_Res = 6, Type = 1,
-                                              Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                              Indices = 'z,S,a,R,b,e,t,c', Values=None)
 # Initializing stocks of NSB at stationary storage stage
 MaTrace_System.StockDict['E_6_NSB']   = msc.Stock(Name = 'NSB in stationary storage', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,g,s,b,e,t', Values=None)
+                                              Indices = 'z,S,a,R,g,b,e,t', Values=None)
 MaTrace_System.StockDict['E_C_6_NSB']   = msc.Stock(Name = 'NSB in stationary storage', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                              Indices = 'z,S,a,R,g,b,e,t,c', Values=None)
 MaTrace_System.StockDict['dE_6_NSB']  = msc.Stock(Name = 'Stock change of NSB in stationary storage', P_Res = 6, Type = 1,
-                                              Indices = 'z,S,a,g,s,b,e,t,c', Values=None)
+                                              Indices = 'z,S,a,R,g,b,e,t,c', Values=None)
 
 # Initializing energy layer
 MaTrace_System.StockDict['C_3']   = msc.Stock(Name = 'Total capacity of EV stock', P_Res = 3, Type = 0,
@@ -392,657 +359,432 @@ MaTrace_System.StockDict['Pow_6_NSB']   = msc.Stock(Name = 'Power of NSBs', P_Re
 MaTrace_System.Initialize_FlowValues()  # Assign empty arrays to flows according to dimensions.
 MaTrace_System.Initialize_StockValues() # Assign empty arrays to flows according to dimensions.
 
+### Define lifetimes to be used in the model
+'''
+Since we are interested in the reuse of batteries, it is important that we understand the technical
+limitations of the batteries as a good themselves, rather than batteries for transport. 
+The battery lifetime in our case is defined to reflect the amount of time a battery will be
+technically functional, while the vehicle lifetime will relate to how long it will be used 
+for transportation puropses. Thus, we can assume a lifetime of the battery that is longer than the
+conventional warranty of 10 years and use a vehicle lifetime that is closer to the vehicle 
+lifetimes of conventional ICEs.
 
+We also define a delay tau_cm to define the share of batteries that can be reused. This can be 
+changed depending on the conditions, but a minimum remaining lifetime of 3 years seems like a reasonable
+amount of time considering that SLBs could potentially be relatively cheap since they are considered 
+waste, or in some business models are actually still the property of the OEMs. 
+
+The Model_slb module is defined here to use the battery survival function as a proxy to the share
+of batteries that can be reused.
+'''
+lt_bat = np.array([20])
+sd_bat = np.array([5])
+
+lt_car = np.array([16])
+sd_car = np.array([4])
+# Define minimum amount of useful time
+tau_bat = 3
+# Define SLB model
+Model_slb                                                       = pcm.ProductComponentModel(t = range(0,Nt),  lt_cm = {'Type': 'Normal', 'Mean': lt_bat, 'StdDev': sd_bat}, tau_cm=tau_bat)
+# Compute the survival curve of the batteries with the additional lenght for the last tau years
+Model_slb.compute_sf_cm_tau()
+# Defining abttery pdf
+pdf_battery = np.zeros((Nt, Nt))
+for t in range(1,Nt):
+    for c in range(t):
+        pdf_battery[t,c] = abs((Model_slb.sf_cm[t,c]- Model_slb.sf_cm[t-1,c]))
+
+'''
+I implemented now already all scenarios, but it takes about a  minute to compute. So for debugging it 
+makes sense to delete the nested for loops and just use:
+z = 1 # BAU stock scenario
+g = 1 # BEVs
+S = 1 # Sustainable development scenario
+'''
+print('Running model')
 for z in range(Nz):
         for g in range(0,Ng):
             for S in range(NS):
                 # In this case we assume that the product and component have the same lifetimes and set the delay as 3 years for both goods
-                Model                                                     = pcm.ProductComponentModel(t = range(0,Nt), s_pr = MaTrace_System.ParameterDict['Vehicle_stock'].Values[z,:]/1000, lt_pr = {'Type': 'Normal', 'Mean': np.array([16]), 'StdDev': np.array([4]) }, \
-                    lt_cm = {'Type': 'Normal', 'Mean': np.array([16]), 'StdDev': np.array([4])}, tau_cm = 3, tau_pr=3)
-                S_C_car, S_C_bat, I_car, I_bat, O_C_car, O_C_bat                = Model.case_6()
+                Model                                                     = pcm.ProductComponentModel(t = range(0,Nt), s_pr = MaTrace_System.ParameterDict['Vehicle_stock'].Values[z,:]/1000, lt_pr = {'Type': 'Normal', 'Mean': lt_car, 'StdDev': lt_car }, \
+                    lt_cm = {'Type': 'Normal', 'Mean': lt_bat, 'StdDev': sd_bat}, tau_cm = 3, tau_pr=10)
+                Model.case_3()
                 # Vehicles layer
-                MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:]           = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:] ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],S_C_car.copy()))
+                MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:]           = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:] ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_pr.copy()))
                 MaTrace_System.StockDict['S_3'].Values[z,S,g,:,:]               = np.einsum('stc->st', MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:])
-                MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:]                = np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:],np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],I_car.copy()))
-                MaTrace_System.FlowDict['V_3_4'].Values[z,S,g,:,:,:]            = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:],np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , O_C_car.copy()))
+                MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:,:]                = np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:],np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.i_pr.copy()))
+                MaTrace_System.FlowDict['V_3_4'].Values[z,S,g,:,:,:]            = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:],np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , Model.oc_pr.copy()))
 
-                # LIBs layer, we calculate the stocks anew but this time via the battery dynamics S_C_bat
+                ###  LIBs layer, we calculate the stocks anew but this time via the battery dynamics S_C_bat
                 MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:]       = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:] \
-                    ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],S_C_bat.copy())))
+                    ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_cm.copy())))
                 MaTrace_System.StockDict['B_3'].Values[z,S,:,g,:,:,:]           = np.einsum('asbtc->asbt', MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:])
                 # Calculating battery inflow in the vehicles
                 MaTrace_System.FlowDict['B_2_3'].Values[z,S,:,g,:,:,:]          = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:,:])
                 # Calculating batteryy demand to battery manufacturer including reuse and replacements
-                # TODO: Since battery replacements and reuse are allowed, this flow will be larger than the amount of vehicles entering the fleet. 
+                #       Use Model.case_3() instead. This considers two different lifetimes, but replacements and reuse are not allowed.
                 #       If we keep this definition, we need to add two additional flows B_1_3 and B_4_3
-                # FIXME: At the moment this process is not mass balanced due to the issue stated above. To change this without adjusting the system, 
-                #        use Model.case_3() instead. This considers two different lifetimes, but replacements and reuse are not allowed.
-                MaTrace_System.FlowDict['B_1_2'].Values[z,S,:,g,:]            = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:], \
-                    np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],I_bat.copy())))
-                # Calculating the outflows based on the battery demand. Here again, this flow will be larger than the number of vehicles due to battery replacements
+                MaTrace_System.FlowDict['B_1_2'].Values[z,S,:,g,:,:,:]            = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:], \
+                    np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.i_cm.copy())))
+                # Calculating the outflows based on the battery demand. Here again, this flow will be larger than the number of vehicles due to battery replacements, if allowed.
+                # At the moment: LIB flows = EV flows
                 MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,g,:,:,:,:]        = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:], \
-                    np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , O_C_bat.copy())))
+                    np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , Model.oc_cm.copy())))
                 MaTrace_System.FlowDict['B_4_5'].Values[z,S,:,g,:,:,:,:]      = MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,g,:,:,:,:]
+                '''
+                We calculate the flows of batteries into reuse. Strictly speaking, only the modules are reused and the casing and other components
+                go dorectly into recycling. However, since we are only interested in the materials in the battery cells, this does not play a role. 
                 
-                # Elements layer: This layer needs to be re-done completely, as the logic differs from my previous approach
-               
+                It makes sense to consider all batteries that flow out of the vehicle fleet, including the battery failures. This is because the 
+                requirements for the battery to be considered "functional" are higher in transport than in stationary application, i.e. a battery
+                considered failed for transport may still be fine for stationary storage. 
 
-# # Calculating capacities
-# MaTrace_System.StockDict['C_3'].Values[:,:,:,:,:]  = np.einsum('btc,zSagsbtc->zSagt', MaTrace_System.ParameterDict['Degradation'].Values[:,:,:], np.einsum('zSagsbptc, bpc->zSagsbptc', MaTrace_System.StockDict['B_C_3'].Values[:,:,:,r,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]))
-# #MaTrace_System.StockDict['C_6'].Values[:,:,:,:,:]  = np.einsum('btc, zSaRbtc->zSaRt', MaTrace_System.ParameterDict['Degradation'].Values[:,:,:], np.einsum('zSaRbptc, bpc->zSaRbptc', MaTrace_System.StockDict['B_C_6'].Values[:,:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]))  #= msc.Stock(Name = 'xEV in-use stock', P_Res = 6, Type = 0,
+                The reuse parameter does not indicate the share of batteries that are reused. Rather, it is a condition to reflect decisions on which battery chemistries to 
+                reuse. LFP scenario for instance will define that only LFP chemistries are considered for reuse, but the health assessment still needs to happen. 
+                '''
+                for t in range(Nt):
+                    for c in range(t):
+                        # Calculate inflows to SLB:
+                        MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,t,c]  = np.einsum('Rb,asb->aRsb', MaTrace_System.ParameterDict['Reuse_rate'].Values[:,:,t], \
+                            MaTrace_System.FlowDict['B_4_5'].Values[z,S,:,g,:,:,t,c] * Model_slb.sf_cm[t+tau_bat,c]) 
+                        # Calculate outflows using the battery pdf: Consider inflow of new batteries here also
+                '''
+                We will treat the new batteries and second life batteries as separate flows in the model, as the NBS flows are driven by the energy layer. 
+                The flows of SLBs are established first in this section and NSB calculated separately below. 
+                '''
+                for t in range(1,Nt):
+                    MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,t,0:t]   = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,t,0:t] * pdf_battery[t,0:t]
+                # Calculate stock change
+                MaTrace_System.StockDict['dB_6_SLB'].Values[z,S,:,:,g,:,:,:,:]    = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,:,:] + MaTrace_System.FlowDict['B_1_6'].Values[z,S,:,:,g,:,:,:,:] - MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,:,:]
+                # Calculate the stock
+                for a in range(Na):
+                    for b in range(Nb):
+                        for R in range(NR):
+                            for s in range(Ns):
+                                for t in range(Nt):
+                                    MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,a,R,g,s,b,t,:]     += MaTrace_System.StockDict['dB_6_SLB'].Values[z,S,a,R,g,s,b,t,:]
+                                    MaTrace_System.StockDict['B_6_SLB'].Values[z,S,a,R,g,s,b,t]         += MaTrace_System.StockDict['dB_6_SLB'].Values[z,S,a,R,g,s,b,t,:].sum()
+                # Calculate amount of battery parts to recycling after reuse TODO: Add NSB flow here
+                MaTrace_System.FlowDict['B_7_8'].Values[z,S,:,:,g,:,:,:,:]                      = MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,:,:]
+                # Calculate battery parts going directly to recycling: Total outflows minus reuse
+                for R in range(NR):
+                    MaTrace_System.FlowDict['B_5_8'].Values[z,S,:,R,g,:,:,:,:]                  =  MaTrace_System.FlowDict['B_4_5'].Values[z,S,:,g,:,:,:,:] \
+                         - MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,R,g,:,:,:,:]
+                
+                # # Elements layer: 
+                # '''
+                # Here we calculate the material flows for Ni, Co, Li, P, C, Mn, which are materials exclusively in modules.
+                # Since we are only interested in the cell materials, we define the material content based on the size of the battery 
+                # independently of whether that battery has been dismantled or not (cell material content does not change in this process).
+                # See material_content.ipynb for a detailed description and data for the calculations. 
 
+                # We aggregate the cohorts to have the total flows, as the cohort composition is not interesting in the 
+                # context of materials. 
+                # '''
+                # MaTrace_System.StockDict['E_C_3'].Values[z,S,:,g,:,:,:,:,:]     = np.einsum('sbe, asbtc->asbetc', MaTrace_System.ParameterDict['Material_content'].Values[g,:,:,:], MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:])
+                # MaTrace_System.StockDict['E_3'].Values[z,S,:,g,:,:,:,:]         = np.einsum('asbetc->asbet', MaTrace_System.StockDict['E_C_3'].Values[z,S,:,g,:,:,:,:,:])
+                # # Calculate inflows
+                # MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,g,:,:,:,:]        = np.einsum('sbe,asbt->asbet',MaTrace_System.ParameterDict['Material_content'].Values[g,:,:,:], MaTrace_System.FlowDict['B_1_2'].Values[z,S,:,g,:,:,:])
+                # MaTrace_System.FlowDict['E_2_3'].Values[z,S,:,g,:,:,:,:]        = MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,g,:,:,:,:]
+                # # Calculate outflows
+                # MaTrace_System.FlowDict['E_3_4'].Values[z,S,:,:,:,:]        = np.einsum('gsbe,agsbtc->abet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,:,:,:,:,:])
+                # MaTrace_System.FlowDict['E_4_5'].Values[z,S,:,:,:,:]        = MaTrace_System.FlowDict['E_3_4'].Values[z,S,:,:,:,:]
+                # # Calculate flows at second life: Aggregate segments as no longer relevant
+                # MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,:,:,:,:]        = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,:,:,:,:,:])
+                # MaTrace_System.FlowDict['E_6_7'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,:,:,:,:,:])
+                # # Calculate material stock? Slows down model and not necessarily insightful
+                # # Calculate recycling flows
+                # for R in range(NR):
+                #     MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,R,:,:,:]      = MaTrace_System.FlowDict['E_4_5'].Values[z,S,:,:,:,:] - MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,R,:,:,:]
+                # MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_7_8'].Values[z,S,:,:,:,:,:,:,:])
+                # # Calculate recovered materials for different recycling technologies and corresponding promary material demand
+                # MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,:,:,:,:,:]        = np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]) +\
+                #     np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,:,:,:,:])
+                # # Calculate demand for primary materials
+                # for R in range(NR):
+                #     for h in range(Nh):
+                #         MaTrace_System.FlowDict['E_0_1'].Values[z,S,:,R,:,:,h,:]    = np.einsum('agsbet->abet', MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,R,:,:,h,:]
 
-
-# ### To calculate power, we multiply the number of vehicles by 7kW. For SLB, we assume that 100kWh of batteries can have a 10kW power output. 
-# MaTrace_System.StockDict['Pow_3'].Values[:,:,:,:]  = np.einsum('zSgst->zSgt',MaTrace_System.StockDict['S_3'].Values[:,:,:,:,:])/7
-# MaTrace_System.StockDict['Pow_6'].Values[:,:,:,:]  = MaTrace_System.StockDict['C_6'].Values[:,:,:,:,:] / 6 
-# ### Calculating the real availability of vehicles
-# #MaTrace_System.StockDict['Con_3'].Values[:,:,:,:,:,:] = np.einsum('zSagt, s->zSagdt',MaTrace_System.StockDict['C_3'].Values[:,:,:,r,:,:], MaTrace_System.ParameterDict['Daily_availability'].Values[:,:])
-# #MaTrace_System.StockDict['Pcon_3'].Values[:,:,r,:,:,:] = np.einsum('zSgt, sd->zSgdt',MaTrace_System.StockDict['Pow_3'].Values[:,:,r,:,:], MaTrace_System.ParameterDict['Daily_availability'].Values[:,:])
-
-
-# print('Solving recycling loop')
-
-# # Solving material layer #FIXME: Add the r argument to avoid the einsum over all regions
-# MaTrace_System.FlowDict['E_5_6'].Values[:,:,:,:,r,:,:,:,:]      = np.einsum('zSaRgsbptc,gbpe->zSaRbpet', MaTrace_System.FlowDict['P_5_6'].Values[:,:,:,:,r,:,:,:,:,:,:], MaTrace_System.ParameterDict['Materials'].Values[:,:,:,:])
-# MaTrace_System.FlowDict['E_5_8'].Values[:,:,:,:,r,:,:,:,:,:]    = np.einsum('zSaRgsbphtc,gbpe->zSaRbpeht',MaTrace_System.FlowDict['P_5_8'].Values[:,:,:,:,r,:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Materials'].Values[:,:,:,:])
-# MaTrace_System.FlowDict['E_6_7'].Values[:,:,:,:,r,:,:,:] = np.einsum('zSaRbpt, gbpe->zSaRept', MaTrace_System.FlowDict['P_6_7'].Values[:,:,:,:,r,:,:,:], MaTrace_System.ParameterDict['Materials'].Values[:,:,:,:]) # z,S,a,R,r,e,t
-# MaTrace_System.FlowDict['P_7_8'].Values[:,:,:,:,r,:,:,:,:] = np.einsum('zSaRbpt,bht->zSaRbpht ', MaTrace_System.FlowDict['P_6_7'].Values[:,:,:,:,r,:,:], MaTrace_System.ParameterDict['SLB_recycling_rate'].Values[r,:,:,:]) # FIXME: SLB recycling rate needs fixing
-# MaTrace_System.FlowDict['E_7_8'].Values[:,:,:,:,r,:,:,:,:,:] = np.einsum('zSaRbpht,gbpe->zSaRbpeht ', MaTrace_System.FlowDict['P_7_8'].Values[:,:,:,:,r,:,:,:,:], MaTrace_System.ParameterDict['Materials'].Values[:,:,:,:]) # FIXME: Since the materials array is per battery, we need to change that parameter to be a fraction per battery part. Otherwise we cannot work with those values.
-# MaTrace_System.FlowDict['E_8_1'].Values[:,:,:,:,r,:,:,:,:] = np.einsum('eh, zSaRbpeht->zSaRpeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], (MaTrace_System.FlowDict['E_7_8'].Values[:,:,:,:,r,:,:,:,:,:] + MaTrace_System.FlowDict['E_5_8'].Values[:,:,:,:,r,:,:,:,:,:]))
-# MaTrace_System.FlowDict['E_8_0'].Values[:,:,:,:,r,:,:,:,:] = np.einsum('zSaRbpeht->zSaRpeht', MaTrace_System.FlowDict['E_7_8'].Values[:,:,:,:,r,:,:,:,:,:]) + np.einsum('zSaRbpeht->zSaRpeht', MaTrace_System.FlowDict['E_5_8'].Values[:,:,:,:,r,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[:,:,:,:,r,:,:,:,:]
-# # Solving recycling loop
-
-# for R in range(NR):
-#     MaTrace_System.FlowDict['E_primary_Inflows'].Values[:,:,:,R,:,:,:,:] = np.einsum('zSargsbpet->zSarept', MaTrace_System.FlowDict['E_1_3'].Values[:,:,:,:,:,:,:,:,:,:]) -  np.einsum('zSarpeht->zSarept', MaTrace_System.FlowDict['E_8_1'].Values[:,:,:,R,:,:,:,:,:]) # 'z,S,a,r,g,s,b,p,e,t
-
-
-# # Exporting vehicle flows
+'''
+I suggest that for the moment, before we spend too much time visualizing the results in a fancy way,
+we use the scenario_visualizations.py tool to gain an overview of the model results. We can then decide 
+what is insightful and meaningful as a figure and can create those figures for the manuscript. 
+'''
+print('Exporting results')
+# Exporting vehicle flows
+# results = os.path.join(os.getcwd(), 'results')
 # #np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/inflows/inflow_array', np.einsum('zSrgt->zSrt', MaTrace_System.FlowDict['Inflows'].Values[:,:,:,:,:]), allow_pickle=True)
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/vehicle_stock_array', np.einsum('zSrgst->zSrgt', MaTrace_System.StockDict['S_3'].Values[:,:,:,:,:,:]), allow_pickle=True)
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/vehicle_outflow_array', np.einsum('zSrgstc->zSrgt', MaTrace_System.FlowDict['F_3_4'].Values[:,:,:,:,:,:,:]), allow_pickle=True)
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/vehicle_inflow_array', np.einsum('zSrgst->zSrgt', MaTrace_System.FlowDict['F_1_3_t'].Values[:,:,:,:,:,:]), allow_pickle=True)
+# np.save(results+'/arrays/vehicle_stock_array', np.einsum('zSgst->zSgt', MaTrace_System.StockDict['S_3'].Values[:,:,:,:,:]), allow_pickle=True)
+# np.save(results+'/arrays/vehicle_outflow_array', np.einsum('zSgstc->zSgt', MaTrace_System.FlowDict['V_3_4'].Values[:,:,:,:,:,:]), allow_pickle=True)
+# np.save(results+'/arrays/vehicle_inflow_array', np.einsum('zSgst->zSgt', MaTrace_System.FlowDict['V_2_3'].Values[:,:,:,:,:]), allow_pickle=True)
 
 # # Exporting battery flows
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_inflow_array', np.einsum('zSargsbpt->zSarbpt', MaTrace_System.FlowDict['P_1_3'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) # z,S,a,r,g,s,b,p,t
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_outflow_array', np.einsum('zSargsbpt->zSarbpt', MaTrace_System.FlowDict['P_3_4'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) # z,S,a,r,g,s,b,p,t
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_reuse_array', np.einsum('zSaRrgsbptc->zSaRrbpt', MaTrace_System.FlowDict['P_5_6'].Values[:,:,:,:,:,:,:,:,:,:,:]), allow_pickle=True) # z,S,a,R,r,g,s,b,p,t,c
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_reuse_to_recycling_array',  MaTrace_System.FlowDict['P_6_7'].Values[:,:,:,:,:,:,:,:], allow_pickle=True) # zSaRrbpt
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_recycling_array',  np.einsum('zSaRrgsbphtc->zSaRrbpt' ,MaTrace_System.FlowDict['P_5_8'].Values[:,:,:,:,:,:,:,:,:,:,:,:]), allow_pickle=True)
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/slb_stock_array', MaTrace_System.StockDict['P_6'].Values[:,:,:,:,:,:,:,:], allow_pickle=True) # z,S,a,R,r,g,s,b,p,t,c
+# np.save(results+'/arrays/battery_inflow_array', np.einsum('zSagsbt->zSagbt', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:]), allow_pickle=True) 
+# np.save(results+'/arrays/battery_outflow_array', np.einsum('zSagsbtc->zSabt', MaTrace_System.FlowDict['B_3_4'].Values[:,:,:,:,:,:,:,:]), allow_pickle=True) 
+# np.save(results+'/arrays/battery_reuse_array', np.einsum('zSaRgsbtc->zSaRbt', MaTrace_System.FlowDict['B_5_6'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) 
+# np.save(results+'/arrays/battery_reuse_to_recycling_array',  np.einsum('zSaRgsbtc->zSaRbt',MaTrace_System.FlowDict['B_7_8'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) 
+# np.save(results+'/arrays/battery_recycling_array',  np.einsum('zSaRgsbtc->zSaRbt',MaTrace_System.FlowDict['B_5_8'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True)
+# np.save(results+'/arrays/slb_stock_array', np.einsum('zSaRgsbt->zSaRbt',MaTrace_System.StockDict['B_6_SLB'].Values[:,:,:,:,:,:,:,:]), allow_pickle=True) 
 
 
 # # Exporting material flows
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_inflow_array',  MaTrace_System.FlowDict['E_primary_Inflows'].Values[:,:,:,:,:,:,:,:], allow_pickle=True) # zSaRrpet
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_outflow_array', np.einsum('zSargsbpet->zSarept', MaTrace_System.FlowDict['E_3_4'].Values[:,:,:,:,:,:,:,:,:,:]), allow_pickle=True) # z,S,a,r,g,s,b,p,e,t
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_reuse_array', np.einsum('zSaRrbpet->zSaRrept', MaTrace_System.FlowDict['E_5_6'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) # z,S,a,R,r,g,s,b,p,e,t,c
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_reuse_to_recycling_array',  MaTrace_System.FlowDict['E_6_7'].Values[:,:,:,:,:,:,:,:], allow_pickle=True) # zSaRrpet
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_recycling_array',  np.einsum('zSaRrbpeht->zSaRrept' ,MaTrace_System.FlowDict['E_5_8'].Values[:,:,:,:,:,:,:,:,:,:]), allow_pickle=True)
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_recycled_process_array', np.einsum('zSaRrpeht->zSaRrept', MaTrace_System.FlowDict['E_8_1'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True)
-# np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_losses_array', np.einsum('zSaRrpeht->zSaRrept', MaTrace_System.FlowDict['E_8_0'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True)
-
-# ### Exporting Equinor data
-# np.save('/Users/fernaag/Box/BATMAN/Partners/Equinor/material_demand_NCX', np.einsum('rgsbpet->et', MaTrace_System.FlowDict['E_1_3'].Values[1,1,0,:,:,:,:,:,:,70:]/1000000)) # Demand
-# np.save('/Users/fernaag/Box/BATMAN/Partners/Equinor/material_demand_LFP', np.einsum('rgsbpet->et', MaTrace_System.FlowDict['E_1_3'].Values[1,1,1,:,:,:,:,:,:,70:]/1000000)) # Demand
-# np.save('/Users/fernaag/Box/BATMAN/Partners/Equinor/average_recycled_content',  (np.einsum('rpeht->et', MaTrace_System.FlowDict['E_8_1'].Values[1,1,0,1,:,:,:,:,70:])/1000000 / np.einsum('rgsbpet->et', MaTrace_System.FlowDict['E_1_3'].Values[1,1,0,:,:,:,:,:,:,70:]/1000000) + \
-#         np.einsum('rpeht->et', MaTrace_System.FlowDict['E_8_1'].Values[1,1,1,1,:,:,:,:,70:]/1000000)/np.einsum('rgsbpet->et', MaTrace_System.FlowDict['E_1_3'].Values[1,1,1,:,:,:,:,:,:,70:]/1000000))/2*100) # Maximum available materials
-# # Set color cycles
-# #MaTrace_System.FlowDict['E_8_1'] = msc.Flow(Name = 'Secondary materials for battery produciton', P_Start = 8, P_End = 1,
-# #                                            Indices = 'z,S,a,R,r,p,e,h,t', Values=None)
+# np.save(results+'/arrays/material_inflow_array',  np.einsum('zSagsbet->zSaet',MaTrace_System.FlowDict['E_1_2'].Values), allow_pickle=True) 
+# np.save(results+'/arrays/material_outflow_array', np.einsum('zSabet->zSaet', MaTrace_System.FlowDict['E_3_4'].Values), allow_pickle=True) 
+# np.save(results+'/arrays/material_reuse_array', np.einsum('zSaRbet->zSaRet', MaTrace_System.FlowDict['E_5_6'].Values), allow_pickle=True) 
+# np.save(results+'/arrays/material_reuse_to_recycling_array',  np.einsum('zSaRbet->zSaRet',MaTrace_System.FlowDict['E_7_8'].Values), allow_pickle=True) 
+# np.save(results+'/arrays/material_recycling_array',  np.einsum('zSaRbet->zSaRet' ,MaTrace_System.FlowDict['E_5_8'].Values), allow_pickle=True)
+# np.save(results+'/arrays/material_recycled_process_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_8_1'].Values), allow_pickle=True)
 
 
-from cycler import cycler
-import seaborn as sns
-custom_cycler = cycler(color=sns.color_palette('Paired', 20)) #'Set2', 'Paired', 'YlGnBu'
-results = os.path.join(os.getcwd(), 'results')
-for j, z in enumerate(IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items):
-    for i, S in enumerate(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items):
-        ### Stock per DT
-        fig, ax = plt.subplots(figsize=(8,7))
-        ax.set_prop_cycle(custom_cycler)
-        ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                    np.einsum('gst->gt',MaTrace_System.StockDict['S_3'].Values[j,i,:,:,55::]/1000000))
-        #ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Vehicle_stock'].Values[i,r,55::])
-        ax.set_ylabel('Nr. of Vehicles [billion]',fontsize =18)
-        right_side = ax.spines["right"]
-        right_side.set_visible(False)
-        top = ax.spines["top"]
-        top.set_visible(False)
-        ax.legend(MaTrace_System.IndexTable['Classification']['Drive_train'].Items, loc='upper left',prop={'size':15})
-        ax.set_title('Stock per drive train {} scenario'.format(S), fontsize=20)
-        ax.set_xlabel('Year',fontsize =16)
-        #ax.set_ylim([0,5])
-        ax.tick_params(axis='both', which='major', labelsize=18)
-        fig.savefig(results+'/{}/{}/Stock_per_DT'.format(z,S))       
-
-        fig, ax = plt.subplots(figsize=(8,7))
-        ax.set_prop_cycle(custom_cycler)
-        ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                    np.einsum('gstc->gt', MaTrace_System.FlowDict['V_3_4'].Values[j,i,:,:,55::,:]/1000)) 
-        ax.set_ylabel('Outflows [million]',fontsize =18)
-        right_side = ax.spines["right"]
-        right_side.set_visible(False)
-        top = ax.spines["top"]
-        top.set_visible(False)
-        ax.legend(MaTrace_System.IndexTable['Classification']['Drive_train'].Items, loc='upper left',prop={'size':15})
-        ax.set_title('Vehicle outflows per drive train {} scenario'.format(S), fontsize=20)
-        ax.set_xlabel('Year',fontsize =18)
-        ax.tick_params(axis='both', which='major', labelsize=15)
-        fig.savefig(results+'/{}/{}/Outflows_per_DT'.format(z,S))
-
-
-        ### Inflows per DT
-        fig, ax = plt.subplots(figsize=(8,7))
-        ax.set_prop_cycle(custom_cycler)
-        ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-                    np.einsum('gst->gt', MaTrace_System.FlowDict['V_2_3'].Values[j,i,:,:,55:]/1000))
-        ax.set_ylabel('Nr. of Vehicles [million]',fontsize =16)
-        right_side = ax.spines["right"]
-        right_side.set_visible(False)
-        top = ax.spines["top"]
-        top.set_visible(False)
-        ax.legend(MaTrace_System.IndexTable['Classification']['Drive_train'].Items, loc='upper left',prop={'size':15})
-        ax.set_title('Inflows per drive train {} scenario'.format(S), fontsize=16)
-        ax.set_xlabel('Year',fontsize =16)
-        ax.tick_params(axis='both', which='major', labelsize=15)
-        fig.savefig(results+'/{}/{}/Inflows_per_DT'.format(z,S))
-
-        # ### SLB stock
-        # for a,k in enumerate(IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items):
-        #     fig, ax = plt.subplots(figsize=(8,7))
-        #     ax.set_prop_cycle(custom_cycler)
-        #     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-        #                 [np.einsum('pt->t',MaTrace_System.StockDict['P_6'].Values[j,i,a,0,r,b,:,55::]/1000000) for b in np.einsum('jiaRrbpt->b', MaTrace_System.StockDict['P_6'].Values).nonzero()[0].tolist()])
-        #     #ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Vehicle_stock'].Values[i,r,55::]) #z,S,a,R,r,b,p,t
-        #     ax.set_ylabel('Modules [kt]',fontsize =18)
-        #     right_side = ax.spines["right"]
-        #     right_side.set_visible(False)
-        #     top = ax.spines["top"]
-        #     top.set_visible(False)
-        #     ax.legend([MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items[i] for i in np.einsum('jiaRrbpt->b', MaTrace_System.StockDict['P_6'].Values).nonzero()[0].tolist()], loc='upper left',prop={'size':15})
-        #     ax.set_title('SLB sotck per chemistry {} {} scenario'.format(S, k), fontsize=20)
-        #     ax.set_xlabel('Year',fontsize =16)
-        #     #ax.set_ylim([0,5])
-        #     ax.tick_params(axis='both', which='major', labelsize=18)
-        #     fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/SLB_stock_chemistry_{}'.format(z,S,k))
-
-        # ### Stock in weight per material
-        for a, b in enumerate(IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items):
-        #     np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/arrays/Ni_demand_{}_scenario'.format(z,S,b), np.einsum('rgsbpet->et', MaTrace_System.FlowDict['E_1_3'].Values[j,i,a,:,:,:,:,:,:,:])/1000000)
-        #     fig, ax = plt.subplots(figsize=(8,7))
-        #     ax.set_prop_cycle(custom_cycler)
-        #     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-        #                 np.moveaxis(np.einsum('rgsbpet->et', MaTrace_System.StockDict['E_3'].Values[j,i,a,:,:,:,:,:,:,55:]),0,1))
-        #     right_side = ax.spines["right"]
-        #     right_side.set_visible(False)
-        #     top = ax.spines["top"]
-        #     top.set_visible(False)
-        #     ax.set_ylabel('Weight [Mt]',fontsize =18)
-        #     ax.legend(MaTrace_System.IndexTable['Classification']['Element'].Items, loc='upper left',prop={'size':15})
-        #     ax.set_title('Material stock {} scenario'.format(b), fontsize=20)
-        #     ax.set_xlabel('Year',fontsize =18)
-        #     ax.tick_params(axis='both', which='major', labelsize=15)
-        #     fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Material_stock_{}_scenario'.format(z,S, b))
-
-        #     # Material inflows
-        #     fig, ax = plt.subplots(figsize=(8,7))
-        #     ax.set_prop_cycle(custom_cycler)
-        #     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-        #                 np.moveaxis(np.einsum('rgsbpet->et', MaTrace_System.FlowDict['E_1_3'].Values[j,i,a,:,:,:,:,:,:,55:]/1000000), 1,0))
-        #     right_side = ax.spines["right"]
-        #     right_side.set_visible(False)
-        #     top = ax.spines["top"]
-        #     top.set_visible(False)
-        #     ax.set_ylabel('Weight [Mt]',fontsize =18)
-        #     ax.legend(MaTrace_System.IndexTable['Classification']['Element'].Items, loc='upper left',prop={'size':15})
-        #     ax.set_title('Material demand {} scenario'.format(b), fontsize=20)
-        #     ax.set_xlabel('Year',fontsize =18)
-        #     ax.tick_params(axis='both', which='major', labelsize=15)
-        #     fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Material_demand_{}_scenario'.format(z,S, b))
-
-        #     # Weight stock
-        #     fig, ax = plt.subplots(figsize=(8,7))
-        #     ax.set_prop_cycle(custom_cycler)
-        #     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-        #                 np.moveaxis(np.einsum('rgsbpet->et', MaTrace_System.FlowDict['E_1_3'].Values[j,i,a,:,:,:,:,:,:,55:]/1000000), 1,0))
-        #     right_side = ax.spines["right"]
-        #     right_side.set_visible(False)
-        #     top = ax.spines["top"]
-        #     top.set_visible(False)
-        #     ax.set_ylabel('Weight [Mt]',fontsize =18)
-        #     ax.legend(MaTrace_System.IndexTable['Classification']['Element'].Items, loc='upper left',prop={'size':15})
-        #     ax.set_title('Material demand {} scenario'.format(b), fontsize=20)
-        #     ax.set_xlabel('Year',fontsize =18)
-        #     ax.tick_params(axis='both', which='major', labelsize=15)
-        #     fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Material_demand_{}_scenario'.format(z,S, b))
-
-            ### Stock per chemistry BEV
-            fig, ax = plt.subplots(figsize=(8,7))
-            ax.set_prop_cycle(custom_cycler)
-            ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], 
-                        [np.einsum('rst->t', MaTrace_System.StockDict['B_3'].Values[j,i,:,1,:,k,70:]/1000) for k in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()], linewidth=0)
-            ax.set_ylabel('Nr. of Vehicles [million]',fontsize =16)
-            right_side = ax.spines["right"]
-            right_side.set_visible(False)
-            top = ax.spines["top"]
-            top.set_visible(False)
-            ax.legend([MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items[k] for k in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()], loc='upper left',prop={'size':10})
-            ax.set_title('BEV stock by chemistry {} scenario'.format(b), fontsize=16)
-            ax.set_xlabel('Year',fontsize =16)
-            ax.tick_params(axis='both', which='major', labelsize=15)
-            fig.savefig(results+'/{}/{}/Stock_BEV_per_chemistry_{}_scenario'.format(z,S,b))
-
-            ### chemistry BEV shares
-            fig, ax = plt.subplots(figsize=(8,7))
-            ax.set_prop_cycle(custom_cycler)
-            ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], 
-                        [np.einsum('t->t', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,i,70:]) for i in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()]) # We only select the chemistries that are included in the given model run
-            ax.set_ylabel('Share [%]',fontsize =16)
-            right_side = ax.spines["right"]
-            right_side.set_visible(False)
-            top = ax.spines["top"]
-            top.set_visible(False)
-            ax.legend([MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items[i] for i in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()], loc='best',prop={'size':10})
-            ax.set_title('Chemistry shares {} scenario'.format(b), fontsize=16)
-            ax.set_xlabel('Year',fontsize =16)
-            ax.tick_params(axis='both', which='major', labelsize=15)
-            fig.savefig(results+'/{}/{}/Chemistry_shares_{}_scenario'.format(z,S,b))
-
-            
-#         # Stock range
+# from cycler import cycler
+# import seaborn as sns
+# custom_cycler = cycler(color=sns.color_palette('Paired', 20)) #'Set2', 'Paired', 'YlGnBu'
+# for j, z in enumerate(IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items):
+#     for i, S in enumerate(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items):
+#         ### Stock per DT
 #         fig, ax = plt.subplots(figsize=(8,7))
 #         ax.set_prop_cycle(custom_cycler)
-#         for e in range(Ne):
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('gsbpt->t', MaTrace_System.StockDict['E_3'].Values[j,1,0,:,:,:,:,:,e,70:]), np.einsum('rgsbpt->t', MaTrace_System.StockDict['E_3'].Values[j,1,1,:,:,:,:,:,e,70:]), alpha=0.4)
+#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+#                     np.einsum('gst->gt',MaTrace_System.StockDict['S_3'].Values[j,i,:,:,55::]/1000000))
+#         #ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Vehicle_stock'].Values[i,r,55::])
+#         ax.set_ylabel('Nr. of Vehicles [billion]',fontsize =18)
 #         right_side = ax.spines["right"]
 #         right_side.set_visible(False)
 #         top = ax.spines["top"]
 #         top.set_visible(False)
-#         ax.set_ylabel('Weight [Mt]',fontsize =18)
-#         ax.legend(MaTrace_System.IndexTable['Classification']['Element'].Items, loc='upper left',prop={'size':15})
-#         ax.set_title('Material stock {} scenario'.format(z + ' ' + S), fontsize=20)
+#         ax.legend(MaTrace_System.IndexTable['Classification']['Drive_train'].Items, loc='upper left',prop={'size':15})
+#         ax.set_title('Stock per drive train {} scenario'.format(S), fontsize=20)
+#         ax.set_xlabel('Year',fontsize =16)
+#         #ax.set_ylim([0,5])
+#         ax.tick_params(axis='both', which='major', labelsize=18)
+#         fig.savefig(results+'/{}/{}/Stock_per_DT'.format(z,S))       
+
+#         fig, ax = plt.subplots(figsize=(8,7))
+#         ax.set_prop_cycle(custom_cycler)
+#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+#                     np.einsum('gstc->gt', MaTrace_System.FlowDict['V_3_4'].Values[j,i,:,:,55::,:]/1000)) 
+#         ax.set_ylabel('Outflows [million]',fontsize =18)
+#         right_side = ax.spines["right"]
+#         right_side.set_visible(False)
+#         top = ax.spines["top"]
+#         top.set_visible(False)
+#         ax.legend(MaTrace_System.IndexTable['Classification']['Drive_train'].Items, loc='upper left',prop={'size':15})
+#         ax.set_title('Vehicle outflows per drive train {} scenario'.format(S), fontsize=20)
 #         ax.set_xlabel('Year',fontsize =18)
 #         ax.tick_params(axis='both', which='major', labelsize=15)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Material_stock_range_{}_scenario'.format(z, S,z + S))
+#         fig.savefig(results+'/{}/{}/Outflows_per_DT'.format(z,S))
+
+
+#         ### Inflows per DT
+#         fig, ax = plt.subplots(figsize=(8,7))
+#         ax.set_prop_cycle(custom_cycler)
+#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#                     np.einsum('gst->gt', MaTrace_System.FlowDict['V_2_3'].Values[j,i,:,:,55:]/1000))
+#         ax.set_ylabel('Nr. of Vehicles [million]',fontsize =16)
+#         right_side = ax.spines["right"]
+#         right_side.set_visible(False)
+#         top = ax.spines["top"]
+#         top.set_visible(False)
+#         ax.legend(MaTrace_System.IndexTable['Classification']['Drive_train'].Items, loc='upper left',prop={'size':15})
+#         ax.set_title('Inflows per drive train {} scenario'.format(S), fontsize=16)
+#         ax.set_xlabel('Year',fontsize =16)
+#         ax.tick_params(axis='both', which='major', labelsize=15)
+#         fig.savefig(results+'/{}/{}/Inflows_per_DT'.format(z,S))
+
         
-#         # Inflow range
-#         fig, ax = plt.subplots(figsize=(8,7))
-#         ax.set_prop_cycle(custom_cycler)
-#         for e in range(Ne):
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,0,:,:,:,:,:,e,70:]/1000000), np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000), alpha=0.4)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.set_ylabel('Weight [Mt]',fontsize =18)
-#         ax.legend(MaTrace_System.IndexTable['Classification']['Element'].Items, loc='upper left',prop={'size':15})
-#         ax.set_title('Material demand {} scenario'.format(z + ' ' + S), fontsize=20)
-#         ax.set_xlabel('Year',fontsize =18)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Material_inflow_range_{}_scenario'.format(z, S,z +' '+ S))
 
-#         # Material comparison For C, Al, Ni, Cu. Total, potential
-#         fig, ax = plt.subplots(figsize=(8,7))
-#         ax.set_prop_cycle(custom_cycler)
-#         material_set1 = np.array([1,2,7,8])
-#         for e in material_set1:
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,0,:,:,:,:,:,e,70:]/1000000), np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000), alpha=0.6)
-#         ax.legend(['Graphite', 'Al', 'Ni', 'Cu'], loc='upper left',prop={'size':15})
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.set_ylabel('Weight [Mt]',fontsize =18)
-#         ax.set_prop_cycle(custom_cycler)
-#         for e in material_set1:
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_3_4'].Values[j,1,0,:,:,:,:,:,e,70:])/1000000, np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_3_4'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000), alpha=0.6, hatch='-')
-#         ax.set_title('Secondary material vs demand {} scenario'.format(z + ' ' + S), fontsize=20)
-#         ax.set_xlabel('Year',fontsize =18)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Material_comparison_range_{}_scenario'.format(z, S,z + S))
+#         for a, b in enumerate(IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items):
+#             ### Stock per chemistry BEV
+#             fig, ax = plt.subplots(figsize=(8,7))
+#             ax.set_prop_cycle(custom_cycler)
+#             ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], 
+#                         [np.einsum('st->t', MaTrace_System.StockDict['B_3'].Values[j,i,a,1,:,k,70:]/1000) for k in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()], linewidth=0)
+#             ax.set_ylabel('Nr. of Vehicles [million]',fontsize =16)
+#             right_side = ax.spines["right"]
+#             right_side.set_visible(False)
+#             top = ax.spines["top"]
+#             top.set_visible(False)
+#             ax.legend([MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items[k] for k in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()], loc='upper left',prop={'size':10})
+#             ax.set_title('BEV stock by chemistry {} scenario'.format(b), fontsize=16)
+#             ax.set_xlabel('Year',fontsize =16)
+#             ax.tick_params(axis='both', which='major', labelsize=15)
+#             fig.savefig(results+'/{}/{}/Stock_BEV_per_chemistry_{}_scenario'.format(z,S,b))
 
-#         # Material comparison for Li, Co, Si,  P, Mn
-#         fig, ax = plt.subplots(figsize=(8,7))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax2 = ax.twiny()
-#         material_set2 = np.array([0,3,5,6,9])
-#         for i,e in enumerate(material_set2):
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,0,:,:,:,:,:,e,70:]/1000000), np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000), color=plt.rcParams['axes.prop_cycle'].by_key()['color'][3+i] ,alpha=0.6)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.set_ylabel('Weight [Mt]',fontsize =18)
-#         ax.legend(['Li', 'Si', 'Mn', 'Co'], loc='upper left',prop={'size':15})
-#         # for i, e in enumerate(material_set2):
-#         #     ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_3_4'].Values[j,1,0,:,:,:,:,:,e,70:])/1000000, np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_3_4'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000), hatch='-', color=plt.rcParams['axes.prop_cycle'].by_key()['color'][3+i], alpha=0.6)
-#         ax.set_title('Secondary material vs demand {} scenario'.format(z + ' ' + S), fontsize=20)
-#         ax.set_xlabel('Year',fontsize =18)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Material_comparison_range_{}_scenario_set2'.format(z, S,z + S))
+#             ### chemistry BEV shares
+#             fig, ax = plt.subplots(figsize=(8,7))
+#             ax.set_prop_cycle(custom_cycler)
+#             ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], 
+#                         [np.einsum('t->t', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,i,70:]) for i in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()]) # We only select the chemistries that are included in the given model run
+#             ax.set_ylabel('Share [%]',fontsize =16)
+#             right_side = ax.spines["right"]
+#             right_side.set_visible(False)
+#             top = ax.spines["top"]
+#             top.set_visible(False)
+#             ax.legend([MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items[i] for i in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()], loc='best',prop={'size':10})
+#             ax.set_title('Chemistry shares {} scenario'.format(b), fontsize=16)
+#             ax.set_xlabel('Year',fontsize =16)
+#             ax.tick_params(axis='both', which='major', labelsize=15)
+#             fig.savefig(results+'/{}/{}/Chemistry_shares_{}_scenario'.format(z,S,b))
+
+#             # Inflows by chemistry
+#             fig, ax = plt.subplots(figsize=(8,7))
+#             ax.set_prop_cycle(custom_cycler)
+#             ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], 
+#                         [np.einsum('st->t', MaTrace_System.FlowDict['B_2_3'].Values[j,i,a,1,:,x,70:]) for x in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()]) # We only select the chemistries that are included in the given model run
+#             ax.set_ylabel('BEV inflows',fontsize =16)
+#             right_side = ax.spines["right"]
+#             right_side.set_visible(False)
+#             top = ax.spines["top"]
+#             top.set_visible(False)
+#             ax.legend([MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items[i] for i in np.einsum('bt->b', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,70:]).nonzero()[0].tolist()], loc='best',prop={'size':10})
+#             ax.set_title('BEV inflows {} {} {}'.format(z,S,b), fontsize=16)
+#             ax.set_xlabel('Year',fontsize =16)
+#             ax.tick_params(axis='both', which='major', labelsize=15)
+#             fig.savefig(results+'/{}/{}/BEV_inflows_{}_scenario'.format(z,S,b))
+
+#             ### Material demand
+#             fig, ax = plt.subplots(figsize=(8,7))
+#             ax.set_prop_cycle(custom_cycler)
+#             ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#                         np.einsum('sbet->et',MaTrace_System.FlowDict['E_1_2'].Values[j,i,a,1,:,:,:,55:]))
+#             ax.set_ylabel('Amount of materials',fontsize =16)
+#             right_side = ax.spines["right"]
+#             right_side.set_visible(False)
+#             top = ax.spines["top"]
+#             top.set_visible(False)
+#             ax.legend(MaTrace_System.IndexTable['Classification']['Element'].Items, loc='upper left',prop={'size':15})
+#             ax.set_title('Total material demand {} {} {}'.format(z,S,b), fontsize=16)
+#             ax.set_xlabel('Year',fontsize =16)
+#             ax.tick_params(axis='both', which='major', labelsize=15)
+#             fig.savefig(results+'/{}/{}/Material_demand_{}'.format(z,S, b))
+#             for R, r in enumerate(IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items):
+#                 ### Batteries going to SLB
+#                 fig, ax = plt.subplots(figsize=(8,7))
+#                 ax.set_prop_cycle(custom_cycler)
+#                 ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#                             np.einsum('bet->et',MaTrace_System.FlowDict['E_8_1'].Values[j,i,a,R,:,:,0,55:]))
+#                 ax.set_ylabel('Amount of materials',fontsize =16)
+#                 right_side = ax.spines["right"]
+#                 right_side.set_visible(False)
+#                 top = ax.spines["top"]
+#                 top.set_visible(False)
+#                 ax.legend(MaTrace_System.IndexTable['Classification']['Element'].Items, loc='upper left',prop={'size':15})
+#                 ax.set_title('Recycled materials no reuse {} {} {}'.format(z,S,b), fontsize=16)
+#                 ax.set_xlabel('Year',fontsize =16)
+#                 ax.tick_params(axis='both', which='major', labelsize=15)
+#                 fig.savefig(results+'/{}/{}/Recovered_materials_{}_{}'.format(z,S, b,r))
+
+#                 ### Batteries going to reuse
+#                 fig, ax = plt.subplots(figsize=(8,7))
+#                 ax.set_prop_cycle(custom_cycler)
+#                 ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#                             np.einsum('sbtc->bt',MaTrace_System.FlowDict['B_5_6'].Values[j,i,a,R,1,:,:,55:,:]))
+#                 ax.set_ylabel('Amount of materials',fontsize =16)
+#                 right_side = ax.spines["right"]
+#                 right_side.set_visible(False)
+#                 top = ax.spines["top"]
+#                 top.set_visible(False)
+#                 ax.legend(MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items, loc='upper left',prop={'size':15})
+#                 ax.set_title('Reused batteries {} {} {}'.format(z,S,b), fontsize=16)
+#                 ax.set_xlabel('Year',fontsize =16)
+#                 ax.tick_params(axis='both', which='major', labelsize=15)
+#                 fig.savefig(results+'/{}/{}/Reused_batteries_{}_{}'.format(z,S, b,r))
+
+#                 ### Spent LIBs
+#                 fig, ax = plt.subplots(figsize=(8,7))
+#                 ax.set_prop_cycle(custom_cycler)
+#                 ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#                             np.einsum('sbtc->bt',MaTrace_System.FlowDict['B_6_7'].Values[j,i,a,R,1,:,:,55:,:]))
+#                 ax.set_ylabel('Amount of materials',fontsize =16)
+#                 right_side = ax.spines["right"]
+#                 right_side.set_visible(False)
+#                 top = ax.spines["top"]
+#                 top.set_visible(False)
+#                 ax.legend(MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items, loc='upper left',prop={'size':15})
+#                 ax.set_title('Recycled materials {} {} {}'.format(z,S,b), fontsize=16)
+#                 ax.set_xlabel('Year',fontsize =16)
+#                 ax.tick_params(axis='both', which='major', labelsize=15)
+#                 fig.savefig(results+'/{}/{}/Spent_LIBs{}_{}'.format(z,S, b,r))
+
+#                 ### SLB stock
+#                 fig, ax = plt.subplots(figsize=(8,7))
+#                 ax.set_prop_cycle(custom_cycler)
+#                 ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#                             np.einsum('sbt->bt',MaTrace_System.StockDict['B_6_SLB'].Values[j,i,a,R,1,:,:,55:]))
+#                 ax.set_ylabel('Amount of materials',fontsize =16)
+#                 right_side = ax.spines["right"]
+#                 right_side.set_visible(False)
+#                 top = ax.spines["top"]
+#                 top.set_visible(False)
+#                 ax.legend(MaTrace_System.IndexTable['Classification']['Battery_Chemistry'].Items, loc='upper left',prop={'size':15})
+#                 ax.set_title('SLB stock {} {} {}'.format(z,S,b), fontsize=16)
+#                 ax.set_xlabel('Year',fontsize =16)
+#                 ax.tick_params(axis='both', which='major', labelsize=15)
+#                 fig.savefig(results+'/{}/{}/SLB_stock_{}_{}'.format(z,S, b,r))
 
 
-# ### recycled content for Li, Co, Si,  P, Mn
-#         fig, ax = plt.subplots(figsize=(8,7))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax2 = ax.twinx()
-#         ax2.set_prop_cycle(custom_cycler)
-#         material_set2 = np.array([0,3,5,6])
-#         for i,e in enumerate(material_set2):
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,0,:,:,:,:,:,e,70:]/1000000), np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000), color=plt.rcParams['axes.prop_cycle'].by_key()['color'][3+i] ,alpha=0.6)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.set_ylabel('Weight [Mt]',fontsize =18)
-#         ax2.set_ylabel('Recycled content [%]',fontsize =18)
-#         #ax.legend(['Li', 'Si', 'Mn', 'Co'], loc='upper left',prop={'size':15})
-#         ax.set_title('Material demand and recycled content', fontsize=20)
-#         ax.set_xlabel('Year',fontsize =18)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax2.tick_params(axis='both', which='major', labelsize=15)
-#         for i, e in enumerate(material_set2):
-#             ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], (np.einsum('rpht->t', MaTrace_System.FlowDict['E_8_1'].Values[j,1,0,1,:,:,e,:,70:])/1000000 / np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,0,:,:,:,:,:,e,70:]/1000000) + \
-#                 np.einsum('rpht->t', MaTrace_System.FlowDict['E_8_1'].Values[j,1,1,1,:,:,e,:,70:]/1000000)/np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000))/2*100, color=plt.rcParams['axes.prop_cycle'].by_key()['color'][3+i], alpha=0.6)
-#         ax.legend(['Li', 'Si', 'Mn', 'Co'], loc='upper left',prop={'size':15})
-#         ax2.legend(['Rec. Li', 'Rec. Si', 'Rec. Mn', 'Rec. Co'], loc='lower right',prop={'size':15})
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Recycled_content_{}_scenario_set2'.format(z, S,z + S))
 
-# ### recycled content for set 1
+# # Inflows & Outflows range
+# fig, ax = plt.subplots(figsize=(8,7))
+# ax.set_prop_cycle(custom_cycler)
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[0,0,1,:,55:]/1000), 'y--', label='Low STEP')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[1,0,1,:,55:]/1000), 'yx', label='Medium STEP')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[2,0,1,:,55:]/1000), 'y.', label='High STEP')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[0,1,1,:,55:]/1000), 'b--', label='Low SD')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[1,1,1,:,55:]/1000), 'bx', label='Medium SD')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[2,1,1,:,55:]/1000), 'b.', label='High SD')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[0,2,1,:,55:]/1000), 'r--', label='Low Net Zero')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[1,2,1,:,55:]/1000), 'rx', label='Medium Net Zero')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[2,2,1,:,55:]/1000), 'r.', label='High Net Zero')
+# ax.set_ylabel('Nr. of Vehicles [million]',fontsize =16)
+# right_side = ax.spines["right"]
+# right_side.set_visible(False)
+# top = ax.spines["top"]
+# top.set_visible(False)
+# ax.legend(loc='upper left',prop={'size':16})
+# ax.set_title('Yearly new vehicle registrations', fontsize=16)
+# ax.set_xlabel('Year',fontsize =16)
+# ax.tick_params(axis='both', which='major', labelsize=15)
+# ax.set_ylim([0,125])
+# fig.savefig(results+'/overview/Inflows_range')
 
-#         fig, ax = plt.subplots(figsize=(8,7))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax2 = ax.twinx()
-#         ax2.set_prop_cycle(custom_cycler)
-#         material_set1 = np.array([1,2,7,8])
-#         for i,e in enumerate(material_set1):
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,0,:,:,:,:,:,e,70:]/1000000), np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000) ,alpha=0.6)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.set_ylabel('Weight [Mt]',fontsize =18)
-#         ax2.set_ylabel('Recycled content [%]',fontsize =18)
-#         #ax.legend(['Li', 'Si', 'Mn', 'Co'], loc='upper left',prop={'size':15})
-#         ax.set_title('Material demand and recycled content', fontsize=20)
-#         ax.set_xlabel('Year',fontsize =18)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax2.tick_params(axis='both', which='major', labelsize=15)
-#         for i, e in enumerate(material_set1):
-#             ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], (np.einsum('rpht->t', MaTrace_System.FlowDict['E_8_1'].Values[j,1,0,1,:,:,e,:,70:])/1000000 / np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,0,:,:,:,:,:,e,70:]/1000000) + \
-#                 np.einsum('rpht->t', MaTrace_System.FlowDict['E_8_1'].Values[j,1,1,1,:,:,e,:,70:]/1000000)/np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000))/2*100, alpha=0.6)
-#         ax.legend(['Graphite', 'Al', 'Ni', 'Cu'], loc='upper left',prop={'size':15})
-#         ax2.legend(['Rec. Graphite', 'Rec. Al', 'Rec. Ni', 'Rec. Cu'], loc='lower right',prop={'size':15})
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Recycled_content_set1'.format(z, S))
-
-#         # Sensitivity of recycled content
-#         fig, ax = plt.subplots(figsize=(8,7))
-#         ax.set_prop_cycle(custom_cycler)
-#         material_set3 = np.array([0,6,7])
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.set_ylabel('Recycled content [%]',fontsize =18)
-#         #ax.legend(['Li', 'Si', 'Mn', 'Co'], loc='upper left',prop={'size':15})
-#         ax.set_title('Recycled content for NCX and LFP scenarios', fontsize=20)
-#         ax.set_xlabel('Year',fontsize =18)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.plot([2030, 2035], [4, 10], 'x')
-#         ax.plot([2030, 2035], [12, 20], 'x')
-#         ax.plot([2030, 2035], [4, 12], '*')
-#         for i, e in enumerate(material_set3):
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rpht->t', MaTrace_System.FlowDict['E_8_1'].Values[j,1,1,1,:,:,e,:,70:]/1000000)/np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000)*100, \
-#                 np.einsum('rpht->t', MaTrace_System.FlowDict['E_8_1'].Values[j,1,0,1,:,:,e,:,70:]/1000000)/np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,0,:,:,:,:,:,e,70:]/1000000)*100, alpha=0.6)
-#         ax.legend(['Li targets', 'Co targets', 'Ni targets','Li', 'Co', 'Ni',], loc='lower right',prop={'size':15})
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Recycled_content_chemistries'.format(z, S))
-
-#         # Sensitivity to lifetime
-#         fig, ax = plt.subplots(figsize=(8,7))
-#         ax.set_prop_cycle(custom_cycler)
-#         material_set3 = np.array([0,6,7])
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.set_ylabel('Recycled content [%]',fontsize =18)
-#         #ax.legend(['Li', 'Si', 'Mn', 'Co'], loc='upper left',prop={'size':15})
-#         ax.set_title('Recycled content for different lifetimes LFP scen.', fontsize=20)
-#         ax.set_xlabel('Year',fontsize =18)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.plot([2030, 2035], [4, 10], 'x')
-#         ax.plot([2030, 2035], [12, 20], 'x')
-#         ax.plot([2030, 2035], [4, 12], '*')
-#         for i, e in enumerate(material_set3):
-#             ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70:], np.einsum('rpht->t', MaTrace_System.FlowDict['E_8_1'].Values[j,1,1,2,:,:,e,:,70:]/1000000)/np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000)*100, \
-#                 np.einsum('rpht->t', MaTrace_System.FlowDict['E_8_1'].Values[j,1,1,1,:,:,e,:,70:]/1000000)/np.einsum('rgsbpt->t', MaTrace_System.FlowDict['E_1_3'].Values[j,1,1,:,:,:,:,:,e,70:]/1000000)*100, alpha=0.6)
-#         ax.legend(['Li targets', 'Co targets', 'Ni targets','Li', 'Co', 'Ni',], loc='lower right',prop={'size':15})
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/{}/{}/Recycled_content_lifetime'.format(z, S))
-
-#     ########### Energy Layer #############
-#     ### Available capacity
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Day'].Items, 
-#                     MaTrace_System.StockDict['Con_3'].Values[j,i,0,r,1:,:,71]/1000000) #
-#         ax.set_ylabel('Capacity [GWh]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['BEV','HEV', 'PHEV'], loc='best',prop={'size':10})
-#         ax.set_title('Energy availability 2021'.format(b), fontsize=16)
-#         ax.set_xlabel('Year', fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.tick_params(axis='x', which='major', rotation=90)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Energy_availability_{}_{}_scenario_2021'.format(z,S))
-
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Day'].Items, 
-#                     MaTrace_System.StockDict['Con_3'].Values[j,i,0,r,1:,:,100]/1000000) #
-#         ax.set_ylabel('Capacity [GWh]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['BEV', 'HEV','PHEV'], loc='best',prop={'size':10})
-#         ax.set_title('Energy availability 2050'.format(b), fontsize=16)
-#         ax.set_xlabel('Year', fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.tick_params(axis='x', which='major', rotation=90)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Energy_availability_{}_{}_scenario_2050'.format(z,S))
-
-#         ### Available power
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Day'].Items, 
-#                     MaTrace_System.StockDict['Pcon_3'].Values[j,i,r,1:,:,71]/1000000) #
-#         ax.set_ylabel('Power Capacity [GW]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['BEV','HEV', 'PHEV'], loc='best',prop={'size':10})
-#         ax.set_title('Power availability 2021'.format(b), fontsize=16)
-#         ax.set_xlabel('Year',fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.tick_params(axis='x', which='major', rotation=90)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Power_availability_{}_{}_scenario_2021'.format(z,S))
-
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Day'].Items, 
-#                     MaTrace_System.StockDict['Pcon_3'].Values[j,i,r,1:,:,100]/1000000) #
-#         ax.set_ylabel('Power Capacity [GW]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['BEV', 'HEV', 'PHEV'], loc='best',prop={'size':10})
-#         ax.set_title('Power availability 2050'.format(b), fontsize=16)
-#         ax.set_xlabel('Year',fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.tick_params(axis='x', which='major', rotation=90)
-#         fig.show()
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Power_availability_{}_{}_scenario_2050'.format(z,S))
-
-#         ### Maximum available capacity fleet
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[71:], 
-#                     MaTrace_System.StockDict['C_3'].Values[j,i,0,r,1:,71:]/1000000) #
-#         ax.set_ylabel('Capacity [GWh]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['BEV', 'HEV','PHEV'], loc='best',prop={'size':10})
-#         ax.set_title('Energy availability maximum fleet'.format(b), fontsize=16)
-#         ax.set_xlabel('Year', fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.tick_params(axis='x', which='major', rotation=90)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Energy_availability_{}_{}_scenario'.format(z,S))
-
-#         ### Maximum available power fleet
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[71:], 
-#                     MaTrace_System.StockDict['Pow_3'].Values[j,i,r,1:,71:]/1000000) #
-#         ax.set_ylabel('Capacity [GWh]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['BEV', 'HEV','PHEV'], loc='best',prop={'size':10})
-#         ax.set_title('Power availability maximum fleet'.format(b), fontsize=16)
-#         ax.set_xlabel('Year', fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.tick_params(axis='x', which='major', rotation=90)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Power_availability_{}_{}_scenario'.format(z,S))
-
-#         ### Available power SLB
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[71:], 
-#                     MaTrace_System.StockDict['Pow_6'].Values[j,i,0,0,5,71:]/1000) #
-#         ax.set_ylabel('Power Capacity [MW]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['BEV','HEV', 'PHEV'], loc='best',prop={'size':10})
-#         ax.set_title('Power availability SLB'.format(b), fontsize=16)
-#         ax.set_xlabel('Year',fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.tick_params(axis='x', which='major', rotation=90)
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Power_availability_{}_{}_scenario_SLB'.format(z,S))
-
-#         ### Available capacity SLB
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[71:], 
-#                     MaTrace_System.StockDict['C_6'].Values[j,i,0,0,5,71:]/1000000) #
-#         ax.set_ylabel('Energy Capacity [GW]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['BEV', 'HEV', 'PHEV'], loc='best',prop={'size':10})
-#         ax.set_title('Energy availability SLB'.format(b), fontsize=16)
-#         ax.set_xlabel('Year',fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         ax.tick_params(axis='x', which='major', rotation=90)
-#         fig.show()
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Energy_availability_{}_{}_scenario_SLB'.format(z,S))
-
-#         # MaTrace_System.StockDict['C_6'].Values[:,:,:,:,r,:]  = np.einsum('btc, zSaRbptc->zSaRt', MaTrace_System.ParameterDict['Degradation'].Values[:,:,:], np.einsum('zSaRbptc, bpc->zSaRbptc', MaTrace_System.StockDict['P_C_6'].Values[:,:,:,:,r,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]))  #= msc.Stock(Name = 'xEV in-use stock', P_Res = 6, Type = 0,
-#         print(z, S)
-# ### Available capacity SLB
-#         fig, ax = plt.subplots(figsize=(12,8))
-#         ax.set_prop_cycle(custom_cycler)
-#         ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[71:], 
-#                             MaTrace_System.StockDict['C_6'].Values[j,i,1,0,5,71:]/1000000)  
-#         ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[71:], 
-#                             MaTrace_System.StockDict['C_6'].Values[j,i,1,2,5,71:]/1000000) 
-#         ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[71:], 
-#                             MaTrace_System.ParameterDict['Storage_demand'].Values[0,71:])
-#         ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[71:], 
-#                             MaTrace_System.ParameterDict['Storage_demand'].Values[1,71:])  
-#         #ax.fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[71:],MaTrace_System.StockDict['C_6'].Values[j,i,0,2,5,71:]/1000000, MaTrace_System.ParameterDict['Storage_demand'].Values[0,71:], color='lightcoral',alpha=0.8, hatch='/')#
-#         ax.set_ylabel('Energy Capacity [GWh]',fontsize =16)
-#         right_side = ax.spines["right"]
-#         right_side.set_visible(False)
-#         top = ax.spines["top"]
-#         top.set_visible(False)
-#         ax.legend(['SLB from LFP scenario', 'SLB from all reused scenario','Energy storage requirements IRENA_ref', 'Energy storage requirements IRENA_remaped'], loc='best',prop={'size':10})
-#         ax.set_title('Stationary energy storage needs and availability'.format(b), fontsize=16)
-#         ax.set_xlabel('Year',fontsize =16)
-#         ax.tick_params(axis='both', which='major', labelsize=15)
-#         fig.show()
-#         fig.savefig('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/Energy_Layer/Maximum_energy_storage_{}_{}_scenario'.format(z,S))
-
-# Inflows & Outflows range
-fig, ax = plt.subplots(figsize=(8,7))
-ax.set_prop_cycle(custom_cycler)
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[0,0,1,:,55:]/1000), 'y--', label='Low STEP')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[1,0,1,:,55:]/1000), 'yx', label='Medium STEP')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[2,0,1,:,55:]/1000), 'y.', label='High STEP')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[0,1,1,:,55:]/1000), 'b--', label='Low SD')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[1,1,1,:,55:]/1000), 'bx', label='Medium SD')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[2,1,1,:,55:]/1000), 'b.', label='High SD')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[0,2,1,:,55:]/1000), 'r--', label='Low Net Zero')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[1,2,1,:,55:]/1000), 'rx', label='Medium Net Zero')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('st->t', MaTrace_System.FlowDict['V_2_3'].Values[2,2,1,:,55:]/1000), 'r.', label='High Net Zero')
-ax.set_ylabel('Nr. of Vehicles [million]',fontsize =16)
-right_side = ax.spines["right"]
-right_side.set_visible(False)
-top = ax.spines["top"]
-top.set_visible(False)
-ax.legend(loc='upper left',prop={'size':16})
-ax.set_title('Yearly new vehicle registrations', fontsize=16)
-ax.set_xlabel('Year',fontsize =16)
-ax.tick_params(axis='both', which='major', labelsize=15)
-ax.set_ylim([0,125])
-fig.savefig(results+'/overview/Inflows_range')
-
-fig, ax = plt.subplots(figsize=(8,7))
-ax.set_prop_cycle(custom_cycler)
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[0,0,1,:,55:,:]/1000), 'y--', label='Low STEP')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[2,0,1,:,55:,:]/1000), 'y.', label='High STEP')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[1,0,1,:,55:,:]/1000), 'yx', label='Medium STEP')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[0,1,1,:,55:,:]/1000), 'b--', label='Low SD')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[1,1,1,:,55:,:]/1000), 'bx', label='Medium SD')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[2,1,1,:,55:,:]/1000), 'b.', label='High SD')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[0,2,1,:,55:,:]/1000), 'r--', label='Low Net Zero')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[1,2,1,:,55:,:]/1000), 'rx', label='Medium Net Zero')
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
-            np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[2,2,1,:,55:,:]/1000), 'r.', label='High Net Zero')
-ax.set_ylabel('Nr. of Vehicles [million]',fontsize =16)
-right_side = ax.spines["right"]
-right_side.set_visible(False)
-top = ax.spines["top"]
-top.set_visible(False)
-ax.legend(loc='upper left',prop={'size':16})
-ax.set_title('Yearly vehicle outflows', fontsize=16)
-ax.set_xlabel('Year',fontsize =16)
-ax.tick_params(axis='both', which='major', labelsize=15)
-ax.set_ylim([0,125])
-fig.savefig(results+'/overview/Outflows_range')
+# fig, ax = plt.subplots(figsize=(8,7))
+# ax.set_prop_cycle(custom_cycler)
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[0,0,1,:,55:,:]/1000), 'y--', label='Low STEP')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[2,0,1,:,55:,:]/1000), 'y.', label='High STEP')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[1,0,1,:,55:,:]/1000), 'yx', label='Medium STEP')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[0,1,1,:,55:,:]/1000), 'b--', label='Low SD')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[1,1,1,:,55:,:]/1000), 'bx', label='Medium SD')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[2,1,1,:,55:,:]/1000), 'b.', label='High SD')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[0,2,1,:,55:,:]/1000), 'r--', label='Low Net Zero')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[1,2,1,:,55:,:]/1000), 'rx', label='Medium Net Zero')
+# ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55:], 
+#             np.einsum('stc->t', MaTrace_System.FlowDict['V_3_4'].Values[2,2,1,:,55:,:]/1000), 'r.', label='High Net Zero')
+# ax.set_ylabel('Nr. of Vehicles [million]',fontsize =16)
+# right_side = ax.spines["right"]
+# right_side.set_visible(False)
+# top = ax.spines["top"]
+# top.set_visible(False)
+# ax.legend(loc='upper left',prop={'size':16})
+# ax.set_title('Yearly vehicle outflows', fontsize=16)
+# ax.set_xlabel('Year',fontsize =16)
+# ax.tick_params(axis='both', which='major', labelsize=15)
+# ax.set_ylim([0,125])
+# fig.savefig(results+'/overview/Outflows_range')
