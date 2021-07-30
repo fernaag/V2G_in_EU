@@ -133,10 +133,10 @@ def bar_plot(stock_scenario, ev_scenario, chem_scenario):
     ev_scenario = ev_scenario
     chem_scenario = chem_scenario
     fig = go.Figure(go.Bar()) 
-    for i in np.einsum('bt->b', bat_inflow[stock_scenario, ev_scenario, chem_scenario,1, :,60:]).nonzero()[0].tolist():
-        fig.add_trace(go.Bar(x=ev_time, y=bat_inflow[stock_scenario, ev_scenario, chem_scenario, 1,i,60:]  , name=chems_list[i]))
+    for i in np.einsum('bt->b', bat_inflow[stock_scenario, ev_scenario, chem_scenario, :,60:]).nonzero()[0].tolist():
+        fig.add_trace(go.Bar(x=ev_time, y=bat_inflow[stock_scenario, ev_scenario, chem_scenario,i,60:]/1000  , name=chems_list[i]))
     fig.update_layout(barmode='stack', title_text="Battery demand by chemistry", font_size=16)
-    fig.update_yaxes(title_text= 'Number of vehicles')
+    fig.update_yaxes(title_text= 'Inflow of BEVs and PHEVs [M]')
     fig.update_xaxes(title_text= 'Year')
     return fig
 
@@ -159,8 +159,8 @@ def bar_plot(stock_scenario, ev_scenario, chem_scenario, reuse_scenario, recycli
     material = material
     fig = go.Figure(go.Bar()) 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(go.Bar(x=ev_time, y=mat_inflow[stock_scenario, ev_scenario, chem_scenario, material, 60:]  , name="Primary "+ mat_list[material]))
-    fig.add_trace(go.Bar(x=ev_time, y=mat_loop[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, material, recycling_process, 60:]  , name="Recycled " + mat_list[material]))
+    fig.add_trace(go.Bar(x=ev_time, y=mat_inflow[stock_scenario, ev_scenario, chem_scenario, material, 60:]/1000  , name="Primary "+ mat_list[material]))
+    fig.add_trace(go.Bar(x=ev_time, y=mat_loop[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, material, recycling_process, 60:]/1000   , name="Recycled " + mat_list[material]))
     fig.add_trace(go.Scatter(x=ev_time, y=(mat_loop[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, material, recycling_process, 60:]/ \
         mat_inflow[stock_scenario, ev_scenario, chem_scenario, material, 60:])*100, name="Rec. content"),
     secondary_y=True,)
@@ -185,9 +185,9 @@ def bar_plot(stock_scenario, ev_scenario, chem_scenario, reuse_scenario):
     
     fig = go.Figure(go.Bar()) 
     for i in np.einsum('bt->b', slb_stock[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, :,60:]).nonzero()[0].tolist():
-        fig.add_trace(go.Bar(x=ev_time, y=slb_stock[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, i,60:] , name=chems_list[i]))
+        fig.add_trace(go.Bar(x=ev_time, y=slb_stock[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, i,60:] /1000, name=chems_list[i]))
     fig.update_layout(barmode='stack', title_text="Second life battery stock", font_size=16)
-    fig.update_yaxes(title_text= 'Weight of modues [tonnes]')
+    fig.update_yaxes(title_text= 'Amount of SLBs [million]')
     fig.update_xaxes(title_text= 'Year')
     return fig
 
