@@ -1,5 +1,5 @@
 
-
+import os
 import json
 import urllib
 import numpy as np
@@ -9,23 +9,24 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
+results = os.path.join(os.getcwd(), 'results')
 
-inflow = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/vehicle_inflow_array.npy') # dims: z,S,r,g,s,t
-outflow = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/vehicle_outflow_array.npy') # dims: z,S,r,g,s,t
+inflow = np.load(results+'/arrays/vehicle_inflow_array.npy') # dims: z,S,r,g,s,t
+outflow = np.load(results+'/arrays/vehicle_outflow_array.npy') # dims: z,S,r,g,s,t
 
-bat_inflow = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_inflow_array.npy') # dims: z,S,a,r,b,p,t
-bat_outflow = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_outflow_array.npy') # dims: z,S,a,r,b,p,t
-bat_reuse = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_reuse_array.npy') # dims: zSaRrbpt
-bat_reuse_to_rec = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_reuse_to_recycling_array.npy') # dims: zSaRrbpt
-bat_rec = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/battery_recycling_array.npy') # zSaRrbpt
+bat_inflow = np.load(results+'/arrays/battery_inflow_array.npy') # dims: z,S,a,r,b,p,t
+bat_outflow = np.load(results+'/arrays/battery_outflow_array.npy') # dims: z,S,a,r,b,p,t
+bat_reuse = np.load(results+'/arrays/battery_reuse_array.npy') # dims: zSaRrbpt
+bat_reuse_to_rec = np.load(results+'/arrays/battery_reuse_to_recycling_array.npy') # dims: zSaRrbpt
+bat_rec = np.load(results+'/arrays/battery_recycling_array.npy') # zSaRrbpt
 
-mat_inflow = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_inflow_array.npy') # dims: zSarept
-mat_outflow = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_outflow_array.npy') # dims: z,S,a,r,g,b,p,t
-mat_reuse = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_reuse_array.npy') # dims: zSaRrbpt
-mat_reuse_to_rec = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_reuse_to_recycling_array.npy') # dims: zSaRrbpt
-mat_rec = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_recycling_array.npy') # zSaRrbpt
-mat_loop = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_recycled_process_array.npy') # zSaRrbpt
-mat_loss = np.load('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/material_losses_array.npy') # zSaRrbpt
+mat_inflow = np.load(results+'/arrays/material_primary_array.npy') # dims: zSarept
+mat_outflow = np.load(results+'/arrays/material_outflow_array.npy') # dims: z,S,a,r,g,b,p,t
+mat_reuse = np.load(results+'/arrays/material_reuse_array.npy') # dims: zSaRrbpt
+mat_reuse_to_rec = np.load(results+'/arrays/material_reuse_to_recycling_array.npy') # dims: zSaRrbpt
+mat_rec = np.load(results+'/arrays/material_recycling_array.npy') # zSaRrbpt
+mat_loop = np.load(results+'/arrays/material_recycled_process_array.npy') # zSaRrbpt
+#mat_loss = np.load(results+'/arrays/material_losses_array.npy') # zSaRrbpt
 
 
 app = dash.Dash(__name__)
@@ -50,7 +51,7 @@ app.layout = html.Div([
             html.P("EV penetration scenario"),
             dcc.Dropdown(
                 id='ev_scenario',
-                options=[{'label': j, 'value': i} for i,j in enumerate(['Stated policies', 'Sustainable development', 'BAU'])],
+                options=[{'label': j, 'value': i} for i,j in enumerate(['Stated policies', 'Sustainable development', 'Net Zero'])],
                 value=1
             )]),
         html.Div([
@@ -61,10 +62,17 @@ app.layout = html.Div([
                 value=0
             )]),
         html.Div([
+            html.P("Recycling process"),
+            dcc.Dropdown(
+                id='recycling_process',
+                options=[{'label': j, 'value': i} for i,j in enumerate(['Direct recycling', 'Hydrometallurgycal', 'Pyrometallurgical'])],
+                value=0
+            )]),
+        html.Div([
             html.P("Reuse scenario"),
             dcc.Dropdown(
                 id='reuse_scenario',
-                options=[{'label': j, 'value': i} for i,j in enumerate(['LFP 70% reused', 'Direct recycling'])],
+                options=[{'label': j, 'value': i} for i,j in enumerate(['LFP reused', 'No reuse', 'All reused'])],
                 value=0
             )])
   ])])
@@ -76,14 +84,16 @@ app.layout = html.Div([
     Input('stock_scenario', 'value'),
     Input('ev_scenario', 'value'),
     Input('chem_scenario', 'value'),
+    Input('recycling_process', 'value'),
     Input('reuse_scenario', 'value'))
 
-def display_sankey(year, stock_scenario, ev_scenario, chem_scenario, reuse_scenario):
+def display_sankey(year, stock_scenario, ev_scenario, chem_scenario, recycling_process,reuse_scenario):
     year = year
     stock_scenario = stock_scenario
     ev_scenario = ev_scenario
     chem_scenario = chem_scenario
     reuse_scenario = reuse_scenario
+    recycling_process =recycling_process
     ### First we add the vehicle layer
     fig = go.Figure(data=[go.Sankey(
     domain={
@@ -102,7 +112,7 @@ def display_sankey(year, stock_scenario, ev_scenario, chem_scenario, reuse_scena
       target = [1, 2,  1, 2, 1,2],
       color = ["aliceblue", "aliceblue","mediumseagreen",  "mediumseagreen", "orange","orange"],
       label = ["New ICE", "EOL ICE", "New BEV", "EOL BEV", "New PHEV", "EOL PHEV"], 
-      value = [inflow[stock_scenario,ev_scenario,5,0,year-1950], outflow[stock_scenario,ev_scenario,5,0,year-1950], inflow[stock_scenario,ev_scenario,5,1,year-1950], outflow[stock_scenario,ev_scenario,5,1,year-1950], inflow[stock_scenario,ev_scenario,5,3,year-1950], outflow[stock_scenario,ev_scenario,5,3,year-1950]], 
+      value = [inflow[stock_scenario,ev_scenario,0,year-1950], outflow[stock_scenario,ev_scenario,0,year-1950], inflow[stock_scenario,ev_scenario,1,year-1950], outflow[stock_scenario,ev_scenario,1,year-1950], inflow[stock_scenario,ev_scenario,3,year-1950], outflow[stock_scenario,ev_scenario,3,year-1950]], 
   )), 
   ### Now we add the battery layer
   go.Sankey(domain={
@@ -169,28 +179,28 @@ def display_sankey(year, stock_scenario, ev_scenario, chem_scenario, reuse_scena
       "Recycled Li-Sulphur" "Recycled LNO",
        "Recycled NCMA", "Recycled NiMH"
       ], 
-      value = [bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,0,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,0,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,1,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,1,0,year-1950],
-      bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,2,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,2,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,3,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,3,0,year-1950],
-      bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,4,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,4,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,5,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,5,0,year-1950], 
-      bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,6,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,6,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,7,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,7,0,year-1950],
-      bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,8,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,8,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,9,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,9,0,year-1950],
-      bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,10,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,10,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,11,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,11,0,year-1950], 
-      bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,12,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,12,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,13,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,13,0,year-1950],
-      bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,14,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,14,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,15,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,15,0,year-1950],
+      value = [bat_inflow[stock_scenario,ev_scenario,chem_scenario,0,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,0,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,1,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,1,year-1950],
+      bat_inflow[stock_scenario,ev_scenario,chem_scenario,2,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,2,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,3,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,3,year-1950],
+      bat_inflow[stock_scenario,ev_scenario,chem_scenario,4,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,4,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,5,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,5,year-1950], 
+      bat_inflow[stock_scenario,ev_scenario,chem_scenario,6,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,6,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,7,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,7,year-1950],
+      bat_inflow[stock_scenario,ev_scenario,chem_scenario,8,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,8,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,9,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,9,year-1950],
+      bat_inflow[stock_scenario,ev_scenario,chem_scenario,10,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,10,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,11,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,11,year-1950], 
+      bat_inflow[stock_scenario,ev_scenario,chem_scenario,12,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,12,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,13,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,13,year-1950],
+      bat_inflow[stock_scenario,ev_scenario,chem_scenario,14,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,14,year-1950], bat_inflow[stock_scenario,ev_scenario,chem_scenario,15,year-1950], bat_outflow[stock_scenario,ev_scenario,chem_scenario,15,year-1950],
       ### Now we add the reuse and recycling flows
-      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950],
-      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950],
-      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], 
-      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950],
-      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950],
-      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,10,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,10,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,11,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,11,0,year-1950], 
-      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,12,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,12,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,13,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,13,0,year-1950],
-      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,14,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,14,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,15,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,15,0,year-1950],
+      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,year-1950],
+      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,year-1950],
+      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,year-1950], 
+      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,6,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,6,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,7,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,7,year-1950],
+      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,8,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,8,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,9,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,9,year-1950],
+      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,10,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,10,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,11,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,11,year-1950], 
+      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,12,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,12,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,13,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,13,year-1950],
+      bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,14,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,14,year-1950], bat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,15,year-1950], bat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,15,year-1950],
       # Now we add the batteries that were recycled directly
-      bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950],
-      bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950],
-      bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,10,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,11,0,year-1950], 
-      bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,12,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,13,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,14,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,15,0,year-1950],
+      bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,year-1950],
+      bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,6,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,7,year-1950],
+      bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,8,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,9,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,10,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,11,year-1950], 
+      bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,12,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,13,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,14,year-1950], bat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,15,year-1950],
       ] # 
   )), ### Now we can add the material layer
   go.Sankey(domain={
@@ -208,86 +218,64 @@ def display_sankey(year, stock_scenario, ev_scenario, chem_scenario, reuse_scena
       color = "lightsteelblue"
     ),
     link = dict(
-      source = [0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0,1, # These correspond to the inflows and outflows
-                2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,2,3,# These are the flows that go from EOL MGT to reuse and from reuse to recycling
-                2,2,2,2,2,2,2,2,2,2, # These are the flows that go directly to recycling
-                4,4,4,4,4,4,4,4,4,4,# Recycling loop from recycled materials
-                4,4,4,4,4,4,4,4,4,4], # Recycling losses
-      target = [1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,1,2,# These correspond to the inflows and outflows
-                3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4,3,4, #These are the flows that go from EOL MGT to reuse and from reuse to recycling
-                4,4,4,4,4,4,4,4,4,4, # These are the flows that go directly to recycling
-                1,1,1,1,1,1,1,1,1,1, # Material recycling loop
-                5,5,5,5,5,5,5,5,5,5], # Losses
+      source = [0,1,0,1,0,1,0,1,0,1,0,1, # These correspond to the inflows and outflows
+                2,3,2,3,2,3,2,3,2,3,2,3,# These are the flows that go from EOL MGT to reuse and from reuse to recycling
+                2,2,2,2,2,2, # These are the flows that go directly to recycling
+                4,4,4,4,4,4,# Recycling loop from recycled materials
+                4,4,4,4,4,4], # Recycling losses
+      target = [1,2,1,2,1,2,1,2,1,2,1,2,# These correspond to the inflows and outflows
+                3,4,3,4,3,4,3,4,3,4,3,4, #These are the flows that go from EOL MGT to reuse and from reuse to recycling
+                4,4,4,4,4,4, # These are the flows that go directly to recycling
+                1,1,1,1,1,1, # Material recycling loop
+                5,5,5,5,5,5], # Losses
       color = ["orchid", "orchid","mediumseagreen",  "mediumseagreen", "indianred","indianred", 
-            "turquoise", "turquoise", 'orchid', 'orchid',
-            'beige', 'beige', 'bisque', 'bisque', 'blue','blue',
-            'blueviolet', 'blueviolet', 'cadetblue', 'cadetblue',
+            "turquoise", "turquoise", 
+            'bisque', 'bisque', 'beige', 'beige',
             "orchid", "orchid","mediumseagreen",  "mediumseagreen", "indianred","indianred", 
-            "turquoise", "turquoise", 'orchid', 'orchid',
-            'beige', 'beige', 'bisque', 'bisque', 'blue','blue',
-            'blueviolet', 'blueviolet', 'cadetblue', 'cadetblue', 
+            "turquoise", "turquoise", 'bisque', 'bisque', 'beige', 'beige', 
             "orchid", "mediumseagreen",  "indianred", 
-            "turquoise",  'orchid',
-            'beige',  'bisque', 'blue',
-            'blueviolet', 'cadetblue',
+            "turquoise",  'bisque',
+            'beige',
             "orchid", "mediumseagreen",  "indianred", 
-            "turquoise",  'orchid',
-            'beige',  'bisque', 'blue',
-            'blueviolet', 'cadetblue',
+            "turquoise",  'bisque',
+            'beige',  
             "orchid", "mediumseagreen",  "indianred", 
-            "turquoise",  'orchid',
-            'beige',  'bisque', 'blue',
-            'blueviolet', 'cadetblue'],
+            "turquoise",  'bisque',
+            'beige'],
       label = ["Li", "EOL Li", "Graphite", "EOL Graphite", 
-      "Al", "EOL Al", "Si", "EOL Si",
       "P", "EOL P", "Mn", "EOL Mn",
       "Co", "EOL Co", "Ni", "EOL Ni",
-      "Cu", "EOL Cu", "Other", "EOL Other",
       "Li in reused batteries", "Li to recycling", "Graphite in reused batteries", "Graphite to recycling", 
-      "Al in reused batteries", "Al to recycling", "Si in reused batteries", "Si to recycling",
       "P in reused batteries", "P to recycling", "Mn in reused batteries", "Mn to recycling",
       "Co in reused batteries", "Co to recycling", "Ni in reused batteries", "Ni to recycling",
-      "Cu in reused batteries", "Cu to recycling", "Other in reused batteries", "Other to recycling",
       "Li to recycling", "Graphite to recycling", 
-      "Al to recycling", "Si to recycling",
       "P to recycling",  "Mn to recycling",
       "Co to recycling",  "Ni to recycling",
-      "Cu to recycling", "Other to recycling", 
       "Recycled Li", "Recycled Graphite", 
-      "Recycled Al", "Recycled Si ",
       "Recycled P",  "Recycled Mn",
       "Recycled Co",  "Recycled Ni",
-      "Recycled Cu", "Recycled Other",
       "Lost Li", "Lost Graphite", 
-      "Lost Al", "Lost Si ",
       "Lost P",  "Lost Mn",
       "Lost Co",  "Lost Ni",
-      "Lost Cu", "Lost Other"
       ], 
-      value = [mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,0,0,year-1950], mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,1,0,year-1950],
-      mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,2,0,year-1950], mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,3,0,year-1950],
-      mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,4,0,year-1950], mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,5,0,year-1950], 
-      mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,6,0,year-1950], mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,7,0,year-1950],
-      mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,8,0,year-1950], mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,9,0,year-1950],
+      value = [mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,recycling_process,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,0,year-1950], mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,recycling_process,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,1,year-1950],
+      mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,recycling_process,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,2,year-1950], mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,recycling_process,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,3,year-1950],
+      mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,recycling_process,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,4,year-1950], mat_inflow[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,recycling_process,year-1950], mat_outflow[stock_scenario,ev_scenario,chem_scenario,5,year-1950], 
       ### Now we add the reuse and recycling flows
-      mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950],
-      mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950],
-      mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], 
-      mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950],
-      mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950],
+      mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,year-1950], mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,year-1950],
+      mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,year-1950], mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,year-1950],
+      mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,year-1950], mat_reuse[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,year-1950], mat_reuse_to_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,year-1950], 
       ### Now we add the flows directly to recycling
-      mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950],
-      mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950],
-      mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950],
+      mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,year-1950],
+      mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,year-1950], mat_rec[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,year-1950], 
       ### Now we add the recycling loop
-      mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950],
-      mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950],
-      mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950],
+      mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,recycling_process,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,recycling_process,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,recycling_process,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,recycling_process,year-1950],
+      mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,recycling_process,year-1950], mat_loop[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,recycling_process,year-1950],
       ### Now we add the material losses
       ### Now we add the recycling loop
-      mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,0,0,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,1,0,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,2,0,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,3,0,year-1950],
-      mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,4,0,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,5,0,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,6,0,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,7,0,year-1950],
-      mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,8,0,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,9,0,year-1950]  
+    #   mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,0,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,1,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,2,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,3,year-1950],
+    #   mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,4,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,5,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,6,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,7,year-1950],
+    #   mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,8,year-1950], mat_loss[stock_scenario,ev_scenario,chem_scenario,reuse_scenario,9,year-1950]  
       ]
   ))])
 
