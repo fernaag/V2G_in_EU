@@ -448,14 +448,23 @@ for z in range(Nz):
                 The flows of SLBs are established first in this section and NSB calculated separately below. 
                 '''
                 # Calculate the stock: inflow driven model
-                for a in range(Na):
-                    for b in range(Nb):
-                        for R in range(NR):
-                            for s in range(Ns):
-                                for t in range(Nt):
-                                    MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,a,R,g,s,b,t,0:t]         += MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,g,s,b,t,0:t]* Model_slb.sf_cm[t,0:t]
+                MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,0,0]     = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,0,0]
+                for t in range(1,Nt):
+                    MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,t,0:t]          = MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t-1,0:t] - MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t,0:t]
+                    MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t::,t]     = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,t::,t]* (1-(abs(np.concatenate(([1],np.diff(Model.sf_cm[t:,t]))))/Model.sf_cm[t:,t]))#Model_slb.sf_cm[t:101,t]#
+                    MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,t,t]              = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,t,t] * ((abs(Model_slb.sf_cm[t,t] - Model_slb.sf_cm[t-1,t])/Model_slb.sf_cm[t,t]))
                 MaTrace_System.StockDict['B_6_SLB'].Values[z,S,:,:,g,:,:,:]             = np.einsum('aRsbtc->aRsbt', MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,:,:])
                 # Calculate stock change
+                # for m in range(1, len(self.t)):  # for all years m, starting in second year
+                #     # 1) Compute outflow from previous age-cohorts up to m-1
+                #     self.oc_pr[m, 0:m] = self.sc_pr[m-1, 0:m] - self.sc_pr[m, 0:m] # outflow table is filled row-wise, for each year m.
+                #     # 2) Determine inflow from mass balance:
+                    
+                #     if self.sf_pr[m,m] != 0: # Else, inflow is 0.
+                #         self.i_pr[m] = (self.s_pr[m] - self.sc_pr[m, :].sum()) / self.sf_pr[m,m] # allow for outflow during first year by rescaling with 1/sf[m,m]
+                #     # 3) Add new inflow to stock and determine future decay of new age-cohort
+                #     self.sc_pr[m::, m] = self.i_pr[m] * self.sf_pr[m::, m]
+                #     self.oc_pr[m, m]   = self.i_pr[m] * (1 - self.sf_pr[m, m])
                 # Values for first year
                 MaTrace_System.StockDict['dB_6_SLB'].Values[z,S,:,:,g,:,:,0,:]          = MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,0,:]
                 # All other values
