@@ -146,7 +146,6 @@ ParameterDict['Drive_train_shares']= msc.Parameter(Name = 'Drive_train_shares',
                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/motorEnergy/motorEnergy_IEA.npy'), # in %
                                                              Uncert=None,
                                                              Unit = '%')
-
 ParameterDict['Segment_shares']= msc.Parameter(Name = 'Segment_shares',
                                                              ID = 3,
                                                              P_Res = None,
