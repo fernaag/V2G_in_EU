@@ -388,6 +388,15 @@ tau_bat = 5
 Model_slb                                                       = pcm.ProductComponentModel(t = range(0,Nt),  lt_cm = {'Type': 'Normal', 'Mean': lt_bat, 'StdDev': sd_bat}, tau_cm=tau_bat)
 # Compute the survival curve of the batteries with the additional lenght for the last tau years
 Model_slb.compute_sf_cm_tau()
+'''
+Define the SLB model in advance. We do not compute everything using the dsm as it only takes i as input
+and takes too long to compute. Instead, we define the functions ourselves using the sf computed with dsm. 
+'''
+lt_slb                               = np.array([6]) # We could have different lifetimes for the different chemistries
+sd_slb                               = np.array([2]) 
+slb_model                        = dsm.DynamicStockModel(t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
+slb_model.compute_sf()
+
 
 '''
 I implemented now already all scenarios, but it takes about a  minute to compute. So for debugging it 
@@ -446,32 +455,24 @@ for z in range(Nz):
                 '''
                 We will treat the new batteries and second life batteries as separate flows in the model, as the NBS flows are driven by the energy layer. 
                 The flows of SLBs are established first in this section and NSB calculated separately below. 
+
+                Since the batteries are moving from being used in transport to being used in stationary storage, the "lifetime" is no longer the same. 
+                In transportation, we define the lifetime to be the time that the battery is still useful for that purpose, which is widely considered
+                to be until it reaches 80% of its initial capacity. The distribution of the lifetime helps us account for batteries that are more 
+                intensely used than others, but by the time of outflow they should all have more or less the same capacity of around 80%. 
+
+                Therefore, the remaining second life can be approximated with a normal distribution that would have an initial capacity of 80% and would
+                follow its own degradation curve.  
                 '''
                 # Calculate the stock: inflow driven model
-                MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,0,0]     = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,0,0]
-                for t in range(1,Nt):
-                    MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,t,0:t]          = MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t-1,0:t] - MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t,0:t]
-                    MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t::,t]     = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,t::,t]* (1-(abs(np.concatenate(([1],np.diff(Model.sf_cm[t:,t]))))/Model.sf_cm[t:,t]))#Model_slb.sf_cm[t:101,t]#
-                    MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,t,t]              = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,t,t] * ((abs(Model_slb.sf_cm[t,t] - Model_slb.sf_cm[t-1,t])/Model_slb.sf_cm[t,t]))
-                MaTrace_System.StockDict['B_6_SLB'].Values[z,S,:,:,g,:,:,:]             = np.einsum('aRsbtc->aRsbt', MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,:,:])
-                # Calculate stock change
-                # for m in range(1, len(self.t)):  # for all years m, starting in second year
-                #     # 1) Compute outflow from previous age-cohorts up to m-1
-                #     self.oc_pr[m, 0:m] = self.sc_pr[m-1, 0:m] - self.sc_pr[m, 0:m] # outflow table is filled row-wise, for each year m.
-                #     # 2) Determine inflow from mass balance:
-                    
-                #     if self.sf_pr[m,m] != 0: # Else, inflow is 0.
-                #         self.i_pr[m] = (self.s_pr[m] - self.sc_pr[m, :].sum()) / self.sf_pr[m,m] # allow for outflow during first year by rescaling with 1/sf[m,m]
-                #     # 3) Add new inflow to stock and determine future decay of new age-cohort
-                #     self.sc_pr[m::, m] = self.i_pr[m] * self.sf_pr[m::, m]
-                #     self.oc_pr[m, m]   = self.i_pr[m] * (1 - self.sf_pr[m, m])
-                # Values for first year
-                MaTrace_System.StockDict['dB_6_SLB'].Values[z,S,:,:,g,:,:,0,:]          = MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,0,:]
-                # All other values
-                for t in range(1,Nt):    
-                    MaTrace_System.StockDict['dB_6_SLB'].Values[z,S,:,:,g,:,:,t,:]      = MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t,:] - MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t-1,:]
-                # Calculate outflows from mass balance
-                MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,:,:]              = MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,:,:] - MaTrace_System.StockDict['dB_6_SLB'].Values[z,S,:,:,g,:,:,:,:]
+                MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,:,:]       = np.einsum('aRsbc,tc->aRsbtc', np.einsum('aRsbtc->aRsbt', MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,:,:]), slb_model.sf)
+                # Calculate outflows
+                MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,1::,:]          = -1 * np.diff(MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,:,:], n=1, axis=4) # difference of older cohorts over time
+                # Allow outflows in the first year
+                for t in range(Nt):
+                    MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,t,t]        = np.einsum('aRsbc->aRsb', MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,g,:,:,t,:]) - MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,t,t]
+                # Calculate total stock
+                MaTrace_System.StockDict['B_6_SLB'].Values[z,S,:,:,g,:,:,:]             = np.einsum('aRsbtc->aRsbt', MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,:,:]) 
                 # Calculate amount of battery parts to recycling after reuse TODO: Add NSB flow here
                 MaTrace_System.FlowDict['B_7_8'].Values[z,S,:,:,g,:,:,:,:]                      = MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,g,:,:,:,:]
                 # Calculate battery parts going directly to recycling: Total outflows minus reuse
