@@ -175,6 +175,15 @@ ParameterDict['Material_content']= msc.Parameter(Name = 'Materials',
                                                              Uncert=None,
                                                              Unit = '%')
 
+ParameterDict['V2G_rate']= msc.Parameter(Name = 'V2G vehicles',
+                                                             ID = 3,
+                                                             P_Res = None,
+                                                             MetaData = None,
+                                                             Indices = 'v,g,t', #t=time, h=units
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/V2G_ratio.npy'), # in kg 
+                                                             Uncert=None,
+                                                             Unit = '%')
+
 # ParameterDict['Capacity']= msc.Parameter(Name = 'Capacity',
 #                                                              ID = 3,
 #                                                              P_Res = None,
@@ -277,6 +286,10 @@ MaTrace_System.StockDict['B_3']   = msc.Stock(Name = 'LIBs in EV in-use stock', 
                                               Indices = 'z,S,a,g,s,b,t', Values=None)
 MaTrace_System.StockDict['B_C_3']   = msc.Stock(Name = 'LIBs EV in-use stock', P_Res = 3, Type = 0,
                                               Indices = 'z,S,a,g,s,b,t,c', Values=None)
+MaTrace_System.StockDict['B_3_V2G']   = msc.Stock(Name = 'V2G ready LIBs in EV in-use stock', P_Res = 3, Type = 0,
+                                              Indices = 'z,S,a,v,g,s,b,t', Values=None)
+MaTrace_System.StockDict['B_C_3_V2G']   = msc.Stock(Name = 'V2G ready LIBs in-use stock', P_Res = 3, Type = 0,
+                                              Indices = 'z,S,a,v,g,s,b,t,c', Values=None)
 MaTrace_System.StockDict['dB_3']  = msc.Stock(Name = 'LIBs in EV stock change', P_Res = 3, Type = 1,
                                               Indices = 'z,S,a,g,s,b,t,c', Values=None)
 # Initializing stocks of SLBs at stationary storage stage
@@ -422,6 +435,9 @@ for z in range(Nz):
                 MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:]       = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:] \
                     ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_cm.copy())))
                 MaTrace_System.StockDict['B_3'].Values[z,S,:,g,:,:,:]           = np.einsum('asbtc->asbt', MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:])
+                ### Calculate share of stock with V2G
+                MaTrace_System.StockDict['B_C_3_V2G'].Values[z,S,:,:,g,:,:,:,:]     = np.einsum('vc,asbtc->avsbtc',MaTrace_System.ParameterDict['V2G_rate'].Values[:,g,:], MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:])
+                MaTrace_System.StockDict['B_3_V2G'].Values[z,S,:,:,g,:,:,:]         = np.einsum('avsbtc->avsbt', MaTrace_System.StockDict['B_C_3_V2G'].Values[z,S,:,:,g,:,:,:,:])
                 # Calculating battery inflow in the vehicles
                 MaTrace_System.FlowDict['B_2_3'].Values[z,S,:,g,:,:,:]          = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:,:])
                 # Calculating batteryy demand to battery manufacturer including reuse and replacements
