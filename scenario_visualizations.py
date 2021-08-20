@@ -15,9 +15,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 results = os.path.join(os.getcwd(), 'results')
-inflow = np.load(results+'/arrays/vehicle_stock_array.npy') # dims: z,S,g,s,t
-outflow = np.load(results+'/arrays/vehicle_stock_array.npy') # dims: z,S,g,s,t
-stock = np.load(results+'/arrays/vehicle_stock_array.npy')
+inflow = np.load(results+'/arrays/vehicle_stock_array.npy') # dims: zSgt
+outflow = np.load(results+'/arrays/vehicle_outflow_array.npy') # dims: zSgt
+stock = np.load(results+'/arrays/vehicle_inflow_array.npy') # dims: zSgt
 
 bat_inflow = np.load(results+'/arrays/battery_inflow_array.npy') # dims: zSabt
 bat_outflow = np.load(results+'/arrays/battery_outflow_array.npy') # dims: zSabt
@@ -26,12 +26,14 @@ bat_reuse_to_rec = np.load(results+'/arrays/battery_reuse_to_recycling_array.npy
 bat_rec = np.load(results+'/arrays/battery_recycling_array.npy') # zSaRbt
 slb_stock = np.load(results+'/arrays/slb_stock_array.npy') # zSaRbt
 
-mat_inflow = np.load(results+'/arrays/material_inflow_array.npy') # dims: zSarept
-mat_outflow = np.load(results+'/arrays/material_outflow_array.npy') # dims: z,S,a,r,g,b,p,t
-mat_reuse = np.load(results+'/arrays/material_reuse_array.npy') # dims: zSaRrbpt
-mat_reuse_to_rec = np.load(results+'/arrays/material_reuse_to_recycling_array.npy') # dims: zSaRrbpt
-mat_rec = np.load(results+'/arrays/material_recycling_array.npy') # zSaRrbpt
+mat_inflow = np.load(results+'/arrays/material_inflow_array.npy') # dims: zSaet
+mat_outflow = np.load(results+'/arrays/material_outflow_array.npy') # dims: zSaet
+mat_reuse = np.load(results+'/arrays/material_reuse_array.npy') # dims: zSaRet
+mat_reuse_to_rec = np.load(results+'/arrays/material_reuse_to_recycling_array.npy') # dims: zSaRet
+mat_rec = np.load(results+'/arrays/material_recycling_array.npy') # zSaRet
 mat_loop = np.load(results+'/arrays/material_recycled_process_array.npy') # zSaReht
+mat_primary = np.load(results+'/arrays/material_primary_array.npy') # zSaReht
+
 
 chems_list = np.array(['LMO/NMC','NCA','LFP','NCM111','NCM217','NCM523','NCM622','NCM622-Graphite (Si)','NCM712-Graphite (Si)','NCM811-Graphite (Si)','NCM955-Graphite (Si)','Li-Air','Li-Sulphur','LNO','NCMA','NiMH'])
 mat_list = np.array(["Li", "Graphite","P", "Mn", "Co",  "Ni"])
@@ -113,9 +115,10 @@ app.layout = html.Div([
 def bar_plot(stock_scenario, ev_scenario):
     stock_scenario = stock_scenario
     ev_scenario = ev_scenario
-    fig = go.Figure(go.Bar(x=time, y=stock[stock_scenario, ev_scenario, 0,:]/1000000, name='ICE'))
-    fig.add_trace(go.Bar(x=time, y=stock[stock_scenario, ev_scenario, 1,:]/1000000, name='BEV'))
-    fig.add_trace(go.Bar(x=time, y=stock[stock_scenario, ev_scenario, 3,:]/1000000, name='PHEV'))
+    fig = go.Figure(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 0,60:]/10, name='ICE'))
+    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 1,60:]/10, name='BEV'))
+    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 2,60:]/10, name='PHEV'))
+    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 3,60:]/10, name='H+'))
     fig.update_layout(barmode='stack', title_text="Global vehicle stock", font_size=16)
     fig.update_yaxes(title_text= 'Number of vehicles [billion]')
     fig.update_xaxes(title_text= 'Year')
@@ -133,10 +136,11 @@ def bar_plot(stock_scenario, ev_scenario, chem_scenario):
     ev_scenario = ev_scenario
     chem_scenario = chem_scenario
     fig = go.Figure(go.Bar()) 
+    # Only plot non-zero chemsitries
     for i in np.einsum('bt->b', bat_inflow[stock_scenario, ev_scenario, chem_scenario, :,60:]).nonzero()[0].tolist():
         fig.add_trace(go.Bar(x=ev_time, y=bat_inflow[stock_scenario, ev_scenario, chem_scenario,i,60:]/1000  , name=chems_list[i]))
     fig.update_layout(barmode='stack', title_text="Battery demand by chemistry", font_size=16)
-    fig.update_yaxes(title_text= 'Inflow of BEVs and PHEVs [M]')
+    fig.update_yaxes(title_text= 'Inflow of EVs [M]')
     fig.update_xaxes(title_text= 'Year')
     return fig
 
@@ -159,8 +163,11 @@ def bar_plot(stock_scenario, ev_scenario, chem_scenario, reuse_scenario, recycli
     material = material
     fig = go.Figure(go.Bar()) 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(go.Bar(x=ev_time, y=mat_inflow[stock_scenario, ev_scenario, chem_scenario, material, 60:]/1000  , name="Primary "+ mat_list[material]))
+    # Plot primary materials
+    fig.add_trace(go.Bar(x=ev_time, y=mat_primary[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, material, recycling_process, 60:]/1000  , name="Primary "+ mat_list[material]))
+    # Stack secondary materials
     fig.add_trace(go.Bar(x=ev_time, y=mat_loop[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, material, recycling_process, 60:]/1000   , name="Recycled " + mat_list[material]))
+    # Add recycled content to secondary y-axis
     fig.add_trace(go.Scatter(x=ev_time, y=(mat_loop[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, material, recycling_process, 60:]/ \
         mat_inflow[stock_scenario, ev_scenario, chem_scenario, material, 60:])*100, name="Rec. content"),
     secondary_y=True,)
@@ -185,7 +192,7 @@ def bar_plot(stock_scenario, ev_scenario, chem_scenario, reuse_scenario):
     
     fig = go.Figure(go.Bar()) 
     for i in np.einsum('bt->b', slb_stock[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, :,60:]).nonzero()[0].tolist():
-        fig.add_trace(go.Bar(x=ev_time, y=slb_stock[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, i,60:] /1000, name=chems_list[i]))
+        fig.add_trace(go.Bar(x=ev_time, y=slb_stock[stock_scenario, ev_scenario, chem_scenario, reuse_scenario, i,60:]*100 , name=chems_list[i]))
     fig.update_layout(barmode='stack', title_text="Second life battery stock", font_size=16)
     fig.update_yaxes(title_text= 'Amount of SLBs [million]')
     fig.update_xaxes(title_text= 'Year')
