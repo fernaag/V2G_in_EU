@@ -115,10 +115,10 @@ app.layout = html.Div([
 def bar_plot(stock_scenario, ev_scenario):
     stock_scenario = stock_scenario
     ev_scenario = ev_scenario
-    fig = go.Figure(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 0,60:]/10, name='ICE'))
-    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 1,60:]/10, name='BEV'))
-    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 2,60:]/10, name='PHEV'))
-    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 3,60:]/10, name='H+'))
+    fig = go.Figure(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 0,60:], name='ICE'))
+    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 1,60:], name='BEV'))
+    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 2,60:], name='PHEV'))
+    fig.add_trace(go.Bar(x=time[60:], y=stock[stock_scenario, ev_scenario, 3,60:], name='H+'))
     fig.update_layout(barmode='stack', title_text="Global vehicle stock", font_size=16)
     fig.update_yaxes(title_text= 'Number of vehicles [billion]')
     fig.update_xaxes(title_text= 'Year')

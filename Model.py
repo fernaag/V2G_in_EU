@@ -1,3 +1,4 @@
+# %% 
 # Load a local copy of the current ODYM branch:
 import sys
 import os
@@ -200,14 +201,23 @@ ParameterDict['Capacity']= msc.Parameter(Name = 'Capacity',
                                                              Unit = '%')
 
 
-# ParameterDict['Degradation']= msc.Parameter(Name = 'Degradation',
-#                                                              ID = 3,
-#                                                              P_Res = None,
-#                                                              MetaData = None,
-#                                                              Indices = 'b,t,c', #t=time, h=units
-#                                                              Values = np.load('/Users/fernaag/Box/BATMAN/Data/Database/data/03_scenario_data/global_model/batteryCapacity/degradation.npy'),
-#                                                              Uncert=None,
-#                                                              Unit = '%')
+ParameterDict['Degradation_fleet']= msc.Parameter(Name = 'Degradation',
+                                                             ID = 3,
+                                                             P_Res = None,
+                                                             MetaData = None,
+                                                             Indices = 'b,t,c', #t=time, h=units
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/degradation.npy'),
+                                                             Uncert=None,
+                                                             Unit = '%')
+
+ParameterDict['Degradation_slb']= msc.Parameter(Name = 'Degradation_slb',
+                                                             ID = 3,
+                                                             P_Res = None,
+                                                             MetaData = None,
+                                                             Indices = 'b,t,c', #t=time, h=units
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/degradation_slb.npy'),
+                                                             Uncert=None,
+                                                             Unit = '%')
 
 ParameterDict['Reuse_rate']= msc.Parameter(Name = 'Reuse',
                                                              ID = 3,
@@ -252,7 +262,7 @@ MaTrace_System = msc.MFAsystem(Name = 'MaTrace_Vehicle_Fleet_Global',
 # Add processes to system and defining flows
 for m in range(0, len(PrL_Number)):
     MaTrace_System.ProcessList.append(msc.Process(Name = PrL_Name[m], ID   = PrL_Number[m]))
-
+# %% 
 # Define the flows of the Vehicle system, and initialise their values:
 MaTrace_System.FlowDict['V_2_3'] = msc.Flow(Name = 'Vehicles flowing into the stock ', P_Start = 2, P_End = 3,
                                             Indices = 'z,S,g,s,t', Values=None)
@@ -357,22 +367,22 @@ MaTrace_System.StockDict['dE_6_NSB']  = msc.Stock(Name = 'Stock change of NSB in
                                               Indices = 'z,S,a,R,g,b,e,t,c', Values=None)
 
 # Initializing energy layer
-MaTrace_System.StockDict['C_3']   = msc.Stock(Name = 'Total capacity of EV stock', P_Res = 3, Type = 0,
-                                              Indices = 'z,S,a,g,t', Values=None)
-MaTrace_System.StockDict['Con_3']   = msc.Stock(Name = 'Capacity of share of EV stock connected to the grid', P_Res = 3, Type = 0,
-                                              Indices = 'z,S,a,g,t', Values=None)
-MaTrace_System.StockDict['Pcon_3']   = msc.Stock(Name = 'Power of share of EV stock connected to the grid', P_Res = 3, Type = 0,
-                                              Indices = 'z,S,g,t', Values=None)
+MaTrace_System.StockDict['C_3']   = msc.Stock(Name = 'Total capacity of V2G-ready EV stock', P_Res = 3, Type = 0,
+                                              Indices = 'z,S,a,v,g,t', Values=None)
+MaTrace_System.StockDict['Con_3']   = msc.Stock(Name = 'Capacity of share of V2G-ready EV stock connected to the grid', P_Res = 3, Type = 0,
+                                              Indices = 'z,S,a,v,g,t', Values=None)
+MaTrace_System.StockDict['Pcon_3']   = msc.Stock(Name = 'Power of share of V2G-ready EV stock connected to the grid', P_Res = 3, Type = 0,
+                                              Indices = 'z,S,a,v,g,t', Values=None)
 MaTrace_System.StockDict['C_6_SLB']   = msc.Stock(Name = 'Capacity of SLBs', P_Res = 6, Type = 0,
                                               Indices = 'z,S,a,R,t', Values=None)
 MaTrace_System.StockDict['C_6_NSB']   = msc.Stock(Name = 'Capacity of NSBs', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,R,t', Values=None)
-MaTrace_System.StockDict['Pow_3']   = msc.Stock(Name = 'Total power of EV stock', P_Res = 3, Type = 0,
-                                              Indices = 'z,S,g,t', Values=None)
+                                              Indices = 'z,S,a,R,v,t', Values=None)
+MaTrace_System.StockDict['Pow_3']   = msc.Stock(Name = 'Total power of V2G-ready EV stock', P_Res = 3, Type = 0,
+                                              Indices = 'z,S,a,v,g,t', Values=None)
 MaTrace_System.StockDict['Pow_6_SLB']   = msc.Stock(Name = 'Power of SLBs', P_Res = 6, Type = 0,
                                               Indices = 'z,S,a,R,t', Values=None)
 MaTrace_System.StockDict['Pow_6_NSB']   = msc.Stock(Name = 'Power of NSBs', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,R,t', Values=None)
+                                              Indices = 'z,S,a,R,v,t', Values=None)
 
 MaTrace_System.Initialize_FlowValues()  # Assign empty arrays to flows according to dimensions.
 MaTrace_System.Initialize_StockValues() # Assign empty arrays to flows according to dimensions.
@@ -427,6 +437,7 @@ z = 1 # BAU stock scenario
 g = 1 # BEVs
 S = 1 # Sustainable development scenario
 '''
+# %% 
 print('Running model')
 # z=1 # Only working with one stock scenario for the moment
 for z in range(Nz):
@@ -517,7 +528,8 @@ for z in range(Nz):
             We aggregate the cohorts to have the total flows, as the cohort composition is not interesting in the 
             context of materials. 
             '''
-            
+# %%
+print('Running element layer')
 for z in range(Nz):
     for g in range(0,Ng):
         for S in range(NS): 
@@ -546,10 +558,41 @@ for z in range(Nz):
                     MaTrace_System.FlowDict['E_0_1'].Values[z,S,:,R,:,:,h,:]    = np.einsum('asbet->abet', MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,R,:,:,h,:]
 
 '''
+Now we define the energy layer, where we need to calculate the capacity in the fleet as a whole, 
+the capacity available for V2G, and the capacity available from stationary storage. Once this
+is calculated, we can compare that to the total demand and compute the necessary additional
+stationary storagr (if any) to satisfy that demand. then the ourflows after stationary storage 
+need to be calculated using a model for that as well. 
+'''
+# %%
+print('Calculating energy layer')
+for z in range(Nz):
+    for g in range(0,Ng):
+        for S in range(NS): 
+            # TODO: Add plug and V2G ratio for the correct calculation of the available capacity
+            MaTrace_System.StockDict['C_3'].Values[z,S,:,:,g,:]         = np.einsum('btc,avbtc->avt', MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,:,:], \
+                np.einsum('avsbtc, sc->avbtc', MaTrace_System.StockDict['B_C_3_V2G'].Values[z,S,:,:,g,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[g,:,:]))
+            # Calculate corresponding power
+            MaTrace_System.StockDict['Pow_3'].Values[z,S,:,:,g,:]       = MaTrace_System.StockDict['C_3'].Values[z,S,:,:,g,:] / 8 # TODO: Define this factor as a parameter
+            # Calculate capacities for second life batteries
+            '''
+            For now I assume that the SLBs are not affected by the V2G scenario. As it is now, we have one scenario to define the reuse
+            flows and one scenario to define the V2G penetration. I think that keeping them separately helps us have flexibility in 
+            the model and explore different combinations. @Dirk: Do you agree with this?
+
+            We use the capacity for the fleet, since it is the fleet batteries that are reused. For the new stationary storage, we 
+            will need to introduce an additional parameter for the capacity and probably also chemistry & degradation. 
+            '''
+            MaTrace_System.StockDict['C_6_SLB'].Values[z,S,:,:,:]       = np.einsum('btc,aRbtc->aRt', MaTrace_System.ParameterDict['Degradation_slb'].Values[:,:,:],\
+                np.einsum('aRsbtc, sc->aRbtc', MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,:,:,g,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[g,:,:]))
+            # Calculate corresponding capacity
+            MaTrace_System.StockDict['Pow_6_SLB'].Values[z,S,:,:,:]     = MaTrace_System.StockDict['C_6_SLB'].Values[z,S,:,:,:] / 6 # TODO: Define this factor as a parameter
+'''
 I suggest that for the moment, before we spend too much time visualizing the results in a fancy way,
 we use the scenario_visualizations.py tool to gain an overview of the model results. We can then decide 
 what is insightful and meaningful as a figure and can create those figures for the manuscript. 
 '''
+# %%
 print('Exporting results')
 # Exporting vehicle flows
 results = os.path.join(os.getcwd(), 'results')
