@@ -143,9 +143,9 @@ ParameterDict['Vehicle_stock']= msc.Parameter(Name = 'Vehicle_stock',
                                                              P_Res = None,
                                                              MetaData = None,
                                                              Indices = 'z,t', #t=time, h=units
-                                                             Values = np.load(os.getcwd()+'/data/scenario_data/stock.npy'), # in millions
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/stock.npy'), # in thousands
                                                              Uncert=None,
-                                                             Unit = '# passenger cars')
+                                                             Unit = 'thousands of passenger cars')
 
 ParameterDict['Drive_train_shares']= msc.Parameter(Name = 'Drive_train_shares',
                                                              ID = 2,
@@ -672,6 +672,7 @@ np.save(results+'/arrays/material_primary_array', np.einsum('zSaRbeht->zSaReht',
 '''
 The following is the code for the figures we show Francois 16.09.21
 '''
+# %%
 from cycler import cycler
 import seaborn as sns
 custom_cycler = cycler(color=sns.color_palette('Accent', 20)) #'Set2', 'Paired', 'YlGnBu'
