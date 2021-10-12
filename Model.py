@@ -425,8 +425,8 @@ the reuse scenarios to prioritize other chemistries and so on.
 lt_bat = np.array([12])
 sd_bat = np.array([3])
 
-lt_car = np.array([16])
-sd_car = np.array([4])
+lt_car = np.array([12])
+sd_car = np.array([3])
 # Define minimum amount of useful time
 tau_bat = 5
 # Define SLB model
@@ -457,9 +457,9 @@ for z in range(Nz):
     for g in range(0,Ng):
         for S in range(NS):
             # In this case we assume that the product and component have the same lifetimes and set the delay as 3 years for both goods
-            Model                                                     = pcm.ProductComponentModel(t = range(0,Nt), s_pr = MaTrace_System.ParameterDict['Vehicle_stock'].Values[z,:]/1000, lt_pr = {'Type': 'Normal', 'Mean': lt_car, 'StdDev': lt_car }, \
+            Model                                                     = pcm.ProductComponentModel(t = range(0,Nt), s_pr = MaTrace_System.ParameterDict['Vehicle_stock'].Values[z,:]/1000, lt_pr = {'Type': 'Normal', 'Mean': lt_car, 'StdDev': sd_car }, \
                 lt_cm = {'Type': 'Normal', 'Mean': lt_bat, 'StdDev': sd_bat}, tau_cm = tau_bat)
-            Model.case_3()
+            Model.case_1()
             # Vehicles layer
             MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:]           = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:] ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_pr.copy()))
             MaTrace_System.StockDict['S_3'].Values[z,S,g,:,:]               = np.einsum('stc->st', MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:])
@@ -594,7 +594,7 @@ For now I assume all NSB are LFP since I don't have material data on teh other c
 '''
 # TODO: Add material content in terms of capacity for NSB
 # TODO: Create new degradation curves for these batteries
-Model_nsb = pcm.ProductComponentModel(t = range(0,Nt),  lt_pr = {'Type': 'Normal', 'Mean': np.array([15]), 'StdDev': np.array([4])})
+Model_nsb = pcm.ProductComponentModel(t = range(0,Nt),  lt_pr = {'Type': 'Normal', 'Mean': np.array([16]), 'StdDev': np.array([4])})
 Model_nsb.compute_sf_pr()
 for z in range(Nz):
     for S in range(NS):
@@ -643,7 +643,7 @@ for z in range(Nz):
             # Calculate recycling flows
             for R in range(NR):
                 MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,R,:,:,:]      = MaTrace_System.FlowDict['E_4_5'].Values[z,S,:,:,:,:] - MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,R,:,:,:]
-                MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,:,:,:]      = np.einsum('gsbe,avEbt->abet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:,:], MaTrace_System.FlowDict['C_1_6'].Values[z,S,:,R,:,:,:])
+                MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,:,:,:]      = np.einsum('gsbe,avEbt->abet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:,:]/100, MaTrace_System.FlowDict['C_1_6'].Values[z,S,:,R,:,:,:])
             MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,:,:,:,:,:])
                 
             # Calculate recovered materials for different recycling technologies and corresponding promary material demand
@@ -652,8 +652,8 @@ for z in range(Nz):
             # Calculate demand for primary materials
             for R in range(NR):
                 for h in range(Nh):
-                    MaTrace_System.FlowDict['E_0_1'].Values[z,S,:,R,:,:,h,:]    = np.einsum('asbet->abet', MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,R,:,:,h,:] #
-                    + MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,:,:,:]
+                    MaTrace_System.FlowDict['E_0_1'].Values[z,S,:,R,:,:,h,:]    = np.einsum('asbet->abet', MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,R,:,:,h,:] + MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,:,:,:]#
+                    
 '''
 I suggest that for the moment, before we spend too much time visualizing the results in a fancy way,
 we use the scenario_visualizations.py tool to gain an overview of the model results. We can then decide 
@@ -728,7 +728,7 @@ ax.text(2005, 100, 'Medium demand', style='italic',
 #ax.set_ylim([0,5])
 ax.tick_params(axis='both', which='major', labelsize=18)
 plt.ylim(0,800)
-material_cycler = cycler(color=['r','g','b','yellow','m','dimgrey', 'coral', 'yellowgreen', 'cornflowerblue', 'palegoldenrod', 'plum', 'lightgrey']) #'Set2', 'Paired', 'YlGnBu'
+material_cycler = cycler(color=['r','g','b','yellow','m','dimgrey', 'indianred', 'yellowgreen', 'cornflowerblue', 'palegoldenrod', 'plum', 'lightgrey']) #'Set2', 'Paired', 'YlGnBu'
 
 # Resource figure for this scenario
 h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
@@ -1105,4 +1105,5 @@ plt.ylim(0,4000)
 # ax.tick_params(axis='both', which='major', labelsize=15)
 # ax.set_ylim([0,125])
 # fig.savefig(results+'/overview/Outflows_range')
+
 # %%
