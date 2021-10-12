@@ -184,6 +184,15 @@ ParameterDict['Material_content']= msc.Parameter(Name = 'Materials',
                                                              Uncert=None,
                                                              Unit = '%')
 
+ParameterDict['Material_content_NSB']= msc.Parameter(Name = 'Materials_NSB',
+                                                             ID = 3,
+                                                             P_Res = None,
+                                                             MetaData = None,
+                                                             Indices = 'g,s,b,e', #t=time, h=units
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/material_content_NSB.npy'), # in kg 
+                                                             Uncert=None,
+                                                             Unit = '%')
+
 ParameterDict['V2G_rate']= msc.Parameter(Name = 'V2G vehicles',
                                                              ID = 3,
                                                              P_Res = None,
@@ -341,6 +350,8 @@ MaTrace_System.FlowDict['E_5_6'] = msc.Flow(Name = 'Used LIBs as second life ', 
 MaTrace_System.FlowDict['E_5_8'] = msc.Flow(Name = 'Spent LIBs directly to recycling', P_Start = 5, P_End = 8,
                                             Indices = 'z,S,a,R,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_6_7'] = msc.Flow(Name = 'Spent LIBs after second life to ELB collector', P_Start = 6, P_End = 7,
+                                            Indices = 'z,S,a,R,b,e,t', Values=None)
+MaTrace_System.FlowDict['E_1_6'] = msc.Flow(Name = 'Spent LIBs after second life to ELB collector', P_Start = 6, P_End = 7,
                                             Indices = 'z,S,a,R,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_7_8'] = msc.Flow(Name = 'Spent LIBs after second life to to recycling', P_Start = 7, P_End = 8,
                                             Indices = 'z,S,a,R,b,e,t', Values=None)
@@ -578,6 +589,8 @@ for z in range(Nz):
 Knowing the V2G and SLB available capacity, we can calculate the demand for new batteries. 
 We can define a degradation curve that is less steep than the one on EV batteries
 since the requirements in this application are lower. This in turn means a longer lifetime. 
+
+For now I assume all NSB are LFP since I don't have material data on teh other chemistries yet.
 '''
 # TODO: Add material content in terms of capacity for NSB
 # TODO: Create new degradation curves for these batteries
@@ -590,15 +603,16 @@ for z in range(Nz):
                 for v in range(Nv):
                     for R in range(NR):
                         for t in range(Nt-1):
-                        # FIXME: For the moment I assume all new batteries are LNO, which is index 13. Inflows equal the gap to satisfy the energy storage needs
+                        # FIXME: For the moment I assume all new batteries are LFP, which is index 2. Inflows equal the gap to satisfy the energy storage needs
+                        # FIXME: Need to add the degradation and adjust this in the material demand
                                 if MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] -  MaTrace_System.StockDict['C_3'].Values[z,S,a,v,:,t].sum(axis=0) \
-                                    - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,:,t].sum(axis=0) - MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,13,t] >0:
-                                    MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,13,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] -  MaTrace_System.StockDict['C_3'].Values[z,S,a,v,:,t].sum(axis=0) \
-                                        - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,:,t].sum(axis=0) - MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,13,t]
+                                    - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,:,t].sum(axis=0) - MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,t] >0:
+                                    MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] -  MaTrace_System.StockDict['C_3'].Values[z,S,a,v,:,t].sum(axis=0) \
+                                        - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,:,t].sum(axis=0) - MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,t]
                                 # Calculate the stock based on those inflows and correct value that will be calculated below
-                               # MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,13,t] = (MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,13,:t] * Model_nsb.sf_pr[t,:t]).sum(axis=0)
+                               # MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,t] = (MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,:t] * Model_nsb.sf_pr[t,:t]).sum(axis=0)
                                 # Calculate the stock remaining for next year so inflows can be accurately computed
-                                MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,13,t] = (MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,13,:t+1] * Model_nsb.sf_pr[t,:t+1]).sum(axis=0)
+                                MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,t] = (MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,:t+1] * Model_nsb.sf_pr[t,:t+1]).sum(axis=0)
                                 
 # %%
 '''
@@ -616,7 +630,7 @@ for z in range(Nz):
         for S in range(NS): 
             MaTrace_System.StockDict['E_C_3'].Values[z,S,:,:,:,:,:,:]     = np.einsum('gsbe, agsbtc->asbetc', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.StockDict['B_C_3'].Values[z,S,:,:,:,:,:,:])
             MaTrace_System.StockDict['E_3'].Values[z,S,:,:,:,:,:]         = np.einsum('asbetc->asbet', MaTrace_System.StockDict['E_C_3'].Values[z,S,:,:,:,:,:,:])
-            # Calculate inflows
+            # Calculate inflows 
             MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]        = np.einsum('gsbe,agsbt->asbet',MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_1_2'].Values[z,S,:,:,:,:,:])
             MaTrace_System.FlowDict['E_2_3'].Values[z,S,:,:,:,:,:]        = MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]
             # Calculate outflows
@@ -629,45 +643,48 @@ for z in range(Nz):
             # Calculate recycling flows
             for R in range(NR):
                 MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,R,:,:,:]      = MaTrace_System.FlowDict['E_4_5'].Values[z,S,:,:,:,:] - MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,R,:,:,:]
+                MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,:,:,:]      = np.einsum('gsbe,avEbt->abet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:,:], MaTrace_System.FlowDict['C_1_6'].Values[z,S,:,R,:,:,:])
             MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,:,:,:,:,:])
+                
             # Calculate recovered materials for different recycling technologies and corresponding promary material demand
             MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,:,:,:,:,:]        = np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]) +\
                 np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,:,:,:,:])
             # Calculate demand for primary materials
             for R in range(NR):
                 for h in range(Nh):
-                    MaTrace_System.FlowDict['E_0_1'].Values[z,S,:,R,:,:,h,:]    = np.einsum('asbet->abet', MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,R,:,:,h,:]
+                    MaTrace_System.FlowDict['E_0_1'].Values[z,S,:,R,:,:,h,:]    = np.einsum('asbet->abet', MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,R,:,:,h,:] #
+                    + MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,:,:,:]
 '''
 I suggest that for the moment, before we spend too much time visualizing the results in a fancy way,
 we use the scenario_visualizations.py tool to gain an overview of the model results. We can then decide 
 what is insightful and meaningful as a figure and can create those figures for the manuscript. 
-'''
-# %%
-print('Exporting results')
-# Exporting vehicle flows
-results = os.path.join(os.getcwd(), 'results')
-#np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/inflows/inflow_array', np.einsum('zSrgt->zSrt', MaTrace_System.FlowDict['Inflows'].Values[:,:,:,:,:]), allow_pickle=True)
-np.save(results+'/arrays/vehicle_stock_array', np.einsum('zSgst->zSgt', MaTrace_System.StockDict['S_3'].Values[:,:,:,:,:]), allow_pickle=True)
-np.save(results+'/arrays/vehicle_outflow_array', np.einsum('zSgstc->zSgt', MaTrace_System.FlowDict['V_3_4'].Values[:,:,:,:,:,:]), allow_pickle=True)
-np.save(results+'/arrays/vehicle_inflow_array', np.einsum('zSgst->zSgt', MaTrace_System.FlowDict['V_2_3'].Values[:,:,:,:,:]), allow_pickle=True)
+# '''
+# # %%
+# print('Exporting results')
+# # Exporting vehicle flows
+# results = os.path.join(os.getcwd(), 'results')
+# #np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/inflows/inflow_array', np.einsum('zSrgt->zSrt', MaTrace_System.FlowDict['Inflows'].Values[:,:,:,:,:]), allow_pickle=True)
+# np.save(results+'/arrays/vehicle_stock_array', np.einsum('zSgst->zSgt', MaTrace_System.StockDict['S_3'].Values[:,:,:,:,:]), allow_pickle=True)
+# np.save(results+'/arrays/vehicle_outflow_array', np.einsum('zSgstc->zSgt', MaTrace_System.FlowDict['V_3_4'].Values[:,:,:,:,:,:]), allow_pickle=True)
+# np.save(results+'/arrays/vehicle_inflow_array', np.einsum('zSgst->zSgt', MaTrace_System.FlowDict['V_2_3'].Values[:,:,:,:,:]), allow_pickle=True)
 
-# Exporting battery flows
-np.save(results+'/arrays/battery_inflow_array', np.einsum('zSagsbt->zSabt', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:]), allow_pickle=True) 
-np.save(results+'/arrays/battery_outflow_array', np.einsum('zSagsbtc->zSabt', MaTrace_System.FlowDict['B_3_4'].Values[:,:,:,:,:,:,:,:]), allow_pickle=True) 
-np.save(results+'/arrays/battery_reuse_array', np.einsum('zSaRgsbtc->zSaRbt', MaTrace_System.FlowDict['B_5_6'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) 
-np.save(results+'/arrays/battery_reuse_to_recycling_array',  np.einsum('zSaRgsbtc->zSaRbt',MaTrace_System.FlowDict['B_7_8'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) 
-np.save(results+'/arrays/battery_recycling_array',  np.einsum('zSaRgsbtc->zSaRbt',MaTrace_System.FlowDict['B_5_8'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True)
-np.save(results+'/arrays/slb_stock_array', np.einsum('zSaRgsbt->zSaRbt',MaTrace_System.StockDict['B_6_SLB'].Values[:,:,:,:,:,:,:,:]), allow_pickle=True) 
+# # Exporting battery flows
+# np.save(results+'/arrays/battery_inflow_array', np.einsum('zSagsbt->zSabt', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:]), allow_pickle=True) 
+# np.save(results+'/arrays/battery_outflow_array', np.einsum('zSagsbtc->zSabt', MaTrace_System.FlowDict['B_3_4'].Values[:,:,:,:,:,:,:,:]), allow_pickle=True) 
+# np.save(results+'/arrays/battery_reuse_array', np.einsum('zSaRgsbtc->zSaRbt', MaTrace_System.FlowDict['B_5_6'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) 
+# np.save(results+'/arrays/battery_reuse_to_recycling_array',  np.einsum('zSaRgsbtc->zSaRbt',MaTrace_System.FlowDict['B_7_8'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True) 
+# np.save(results+'/arrays/battery_recycling_array',  np.einsum('zSaRgsbtc->zSaRbt',MaTrace_System.FlowDict['B_5_8'].Values[:,:,:,:,:,:,:,:,:]), allow_pickle=True)
+# np.save(results+'/arrays/slb_stock_array', np.einsum('zSaRgsbt->zSaRbt',MaTrace_System.StockDict['B_6_SLB'].Values[:,:,:,:,:,:,:,:]), allow_pickle=True) 
 
 
-# Exporting material flows
-np.save(results+'/arrays/material_inflow_array',  np.einsum('zSasbet->zSaet',MaTrace_System.FlowDict['E_1_2'].Values), allow_pickle=True) 
-np.save(results+'/arrays/material_outflow_array', np.einsum('zSabet->zSaet', MaTrace_System.FlowDict['E_3_4'].Values), allow_pickle=True) 
-np.save(results+'/arrays/material_reuse_array', np.einsum('zSaRbet->zSaRet', MaTrace_System.FlowDict['E_5_6'].Values), allow_pickle=True) 
-np.save(results+'/arrays/material_reuse_to_recycling_array',  np.einsum('zSaRbet->zSaRet',MaTrace_System.FlowDict['E_7_8'].Values), allow_pickle=True) 
-np.save(results+'/arrays/material_recycling_array',  np.einsum('zSaRbet->zSaRet' ,MaTrace_System.FlowDict['E_5_8'].Values), allow_pickle=True)
-np.save(results+'/arrays/material_recycled_process_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_8_1'].Values), allow_pickle=True)
-np.save(results+'/arrays/material_primary_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_0_1'].Values), allow_pickle=True)
+# # Exporting material flows
+# np.save(results+'/arrays/material_inflow_array',  np.einsum('zSasbet->zSaet',MaTrace_System.FlowDict['E_1_2'].Values), allow_pickle=True) 
+# np.save(results+'/arrays/material_outflow_array', np.einsum('zSabet->zSaet', MaTrace_System.FlowDict['E_3_4'].Values), allow_pickle=True) 
+# np.save(results+'/arrays/material_reuse_array', np.einsum('zSaRbet->zSaRet', MaTrace_System.FlowDict['E_5_6'].Values), allow_pickle=True) 
+# np.save(results+'/arrays/material_reuse_to_recycling_array',  np.einsum('zSaRbet->zSaRet',MaTrace_System.FlowDict['E_7_8'].Values), allow_pickle=True) 
+# np.save(results+'/arrays/material_recycling_array',  np.einsum('zSaRbet->zSaRet' ,MaTrace_System.FlowDict['E_5_8'].Values), allow_pickle=True)
+# np.save(results+'/arrays/material_recycled_process_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_8_1'].Values), allow_pickle=True)
+# np.save(results+'/arrays/material_primary_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_0_1'].Values), allow_pickle=True)
 
 '''
 The following is the code for the figures we show Francois 16.09.21
@@ -681,7 +698,7 @@ s = 0 # Low, medium, high
 a = 0 # NCX, LFP, Next_Gen, Roskill
 R = 0 # LFP reused, no reuse, all reuse
 v = 0 # Low, medium, high
-e = 1 # Low, medium, high
+e = 0 # Low, medium, high
 fig, ax = plt.subplots(figsize=(8,7))
 ax.set_prop_cycle(custom_cycler)
 ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -786,7 +803,7 @@ plt.ylim(0,4000)
 
 z = 1 # Low, medium, high
 s = 0 # Low, medium, high
-a = 1 # NCX, LFP, Next_Gen, Roskill
+a = 0 # NCX, LFP, Next_Gen, Roskill
 R = 2 # LFP reused, no reuse, all reuse
 v = 0 # Low, medium, high
 e = 1 # Low, medium, high
