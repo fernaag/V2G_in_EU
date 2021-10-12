@@ -629,7 +629,7 @@ for z in range(Nz):
             # Calculate recycling flows
             for R in range(NR):
                 MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,R,:,:,:]      = MaTrace_System.FlowDict['E_4_5'].Values[z,S,:,:,:,:] - MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,R,:,:,:]
-            MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_7_8'].Values[z,S,:,:,:,:,:,:,:])
+            MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,:,:,:,:,:])
             # Calculate recovered materials for different recycling technologies and corresponding promary material demand
             MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,:,:,:,:,:]        = np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]) +\
                 np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,:,:,:,:])
@@ -675,7 +675,7 @@ The following is the code for the figures we show Francois 16.09.21
 # %%
 from cycler import cycler
 import seaborn as sns
-custom_cycler = cycler(color=sns.color_palette('Accent', 20)) #'Set2', 'Paired', 'YlGnBu'
+custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
 z = 1 # Low, medium, high
 s = 0 # Low, medium, high
 a = 0 # NCX, LFP, Next_Gen, Roskill
@@ -711,11 +711,29 @@ ax.text(2005, 100, 'Medium demand', style='italic',
 #ax.set_ylim([0,5])
 ax.tick_params(axis='both', which='major', labelsize=18)
 plt.ylim(0,800)
+material_cycler = cycler(color=['r','g','b','yellow','m','dimgrey', 'coral', 'yellowgreen', 'cornflowerblue', 'palegoldenrod', 'plum', 'lightgrey']) #'Set2', 'Paired', 'YlGnBu'
 
+# Resource figure for this scenario
+h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+fig, ax = plt.subplots(figsize=(8,7))
+ax.set_prop_cycle(material_cycler)
+ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0),\
+                MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
+ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
+ax.set_ylabel('Material weight [Mt]',fontsize =18)
+right_side = ax.spines["right"]
+right_side.set_visible(False)
+top = ax.spines["top"]
+top.set_visible(False)
+ax.set_title('Material demand'.format(S), fontsize=20)
+ax.set_xlabel('Year',fontsize =16)
+ax.tick_params(axis='both', which='major', labelsize=18)
+plt.ylim(0,4000)
 
 z = 1 # Low, medium, high
 s = 0 # Low, medium, high
-a = 1 # NCX, LFP, Next_Gen, Roskill
+a = 0 # NCX, LFP, Next_Gen, Roskill
 R = 0 # LFP reused, no reuse, all reuse
 v = 1 # Low, medium, high
 e = 1 # Low, medium, high
@@ -748,7 +766,23 @@ ax.text(2005, 100, 'Medium demand', style='italic',
 #ax.set_ylim([0,5])
 ax.tick_params(axis='both', which='major', labelsize=18)
 plt.ylim(0,800)
-
+# Resource figure for this scenario
+h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+fig, ax = plt.subplots(figsize=(8,7))
+ax.set_prop_cycle(material_cycler)
+ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0),\
+                MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
+ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
+ax.set_ylabel('Material weight [Mt]',fontsize =18)
+right_side = ax.spines["right"]
+right_side.set_visible(False)
+top = ax.spines["top"]
+top.set_visible(False)
+ax.set_title('Material demand'.format(S), fontsize=20)
+ax.set_xlabel('Year',fontsize =16)
+ax.tick_params(axis='both', which='major', labelsize=18)
+plt.ylim(0,4000)
 
 z = 1 # Low, medium, high
 s = 0 # Low, medium, high
@@ -784,6 +818,24 @@ ax.text(2005, 100, 'Medium demand', style='italic',
 #ax.set_ylim([0,5])
 ax.tick_params(axis='both', which='major', labelsize=18)
 plt.ylim(0,800)
+
+# Resource figure for this scenario
+h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+fig, ax = plt.subplots(figsize=(8,7))
+ax.set_prop_cycle(material_cycler)
+ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0),\
+                MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
+ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
+ax.set_ylabel('Material weight [Mt]',fontsize =18)
+right_side = ax.spines["right"]
+right_side.set_visible(False)
+top = ax.spines["top"]
+top.set_visible(False)
+ax.set_title('Material demand'.format(S), fontsize=20)
+ax.set_xlabel('Year',fontsize =16)
+ax.tick_params(axis='both', which='major', labelsize=18)
+plt.ylim(0,4000)
 # from cycler import cycler
 # import seaborn as sns
 # custom_cycler = cycler(color=sns.color_palette('Paired', 20)) #'Set2', 'Paired', 'YlGnBu'
