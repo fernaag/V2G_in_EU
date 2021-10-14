@@ -704,8 +704,8 @@ custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 
 z = 1 # Low, medium, high
 s = 1 # Low, medium, high
 a = 0 # NCX, LFP, Next_Gen, Roskill
-R = 0 # LFP reused, no reuse, all reuse
-v = 0 # Low, medium, high
+R = 1 # LFP reused, no reuse, all reuse
+v = 4 # Low, medium, high, v2g mandate, no v2g
 e = 1 # Low, medium, high
 fig, ax = plt.subplots(figsize=(8,7))
 ax.set_prop_cycle(custom_cycler)
@@ -713,7 +713,7 @@ ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::],
             [MaTrace_System.StockDict['C_3'].Values[z,s,a,v,:,55::].sum(axis=0), \
                 MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,:,55::].sum(axis=0),\
                     MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,:,55::].sum(axis=0)])
-ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,55::], 'k')
+ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,55::], 'k')
 ax.set_ylabel('Capacity [GWh]',fontsize =18)
 right_side = ax.spines["right"]
 right_side.set_visible(False)
