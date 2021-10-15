@@ -736,19 +736,20 @@ def plot_SLB_scenarios():
     import seaborn as sns
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 1 # Low, medium, high
-    s = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill, BNEF, Faraday
+    s = 1 # Low, medium, high
+    a = 1 # NCX, LFP, Next_Gen, Roskill, BNEF, Faraday
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
-    ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                [MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,0,:,55::].sum(axis=0), \
-                    MaTrace_System.StockDict['C_6_SLB'].Values[z,s,4,2,:,55::].sum(axis=0)])
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,55::], '--k')
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,55::], 'xk')
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,55::], 'k')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,0,:,55::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,2,:,55::].sum(axis=0))
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
@@ -828,7 +829,7 @@ def plot_energy_resource_graphs():
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 0 # NCX, LFP, Next_Gen, Roskill
+    a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 0 # Low, medium, high, v2g mandate, no v2g
     e = 1 # Low, medium, high
@@ -864,14 +865,14 @@ def plot_energy_resource_graphs():
     material_cycler = cycler(color=['r','g','b','yellow','m','dimgrey', 'indianred', 'yellowgreen', 'cornflowerblue', 'palegoldenrod', 'plum', 'lightgrey']) #'Set2', 'Paired', 'YlGnBu'
 
     # Resource figure for this scenario
-    h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(material_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0),\
                     MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
     ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
-    ax.set_ylabel('Material weight [Mt]',fontsize =18)
+    ax.set_ylabel('Material weight [kt]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
     top = ax.spines["top"]
@@ -883,7 +884,7 @@ def plot_energy_resource_graphs():
 
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 0 # NCX, LFP, Next_Gen, Roskill
+    a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 3 # Low, medium, high, V2G mandate, No V2G
     e = 1 # Low, medium, high
@@ -917,14 +918,14 @@ def plot_energy_resource_graphs():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,800)
     # Resource figure for this scenario
-    h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(material_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0),\
                     MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
     ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
-    ax.set_ylabel('Material weight [Mt]',fontsize =18)
+    ax.set_ylabel('Material weight [kt]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
     top = ax.spines["top"]
@@ -936,7 +937,7 @@ def plot_energy_resource_graphs():
 
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 0 # NCX, LFP, Next_Gen, Roskill
+    a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, V2G mandate, No V2G
     e = 1 # Low, medium, high
@@ -970,14 +971,14 @@ def plot_energy_resource_graphs():
     plt.ylim(0,800)
 
     # Resource figure for this scenario
-    h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(material_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0),\
                     MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
     ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
-    ax.set_ylabel('Material weight [Mt]',fontsize =18)
+    ax.set_ylabel('Material weight [kt]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
     top = ax.spines["top"]
