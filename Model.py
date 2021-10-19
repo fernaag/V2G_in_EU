@@ -706,7 +706,7 @@ def plot_V2G_scenarios():
     import seaborn as sns
     custom_cycler = cycler(color=sns.color_palette('tab10', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 1 # Low, medium, high
-    s = 0 # Low, medium, high
+    s = 1 # Low, medium, high
     a = 0 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
@@ -731,7 +731,7 @@ def plot_V2G_scenarios():
     ax.set_title('Available V2G capacity by scenario'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,5500)
+    plt.ylim(0,6500)
 
 # %% 
 def plot_SLB_scenarios():
@@ -739,7 +739,7 @@ def plot_SLB_scenarios():
     import seaborn as sns
     custom_cycler = cycler(color=sns.color_palette('tab10', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 1 # Low, medium, high
-    s = 1 # Low, medium, high
+    s = 0 # Low, medium, high
     a = 1 # NCX, LFP, Next_Gen, Roskill, BNEF, Faraday
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
@@ -762,13 +762,13 @@ def plot_SLB_scenarios():
     ax.set_title('Available SLB capacity by scenario'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    #plt.ylim(0,800)
+    plt.ylim(0,6500)
 # %% 
 def plot_only_NSB():
     from cycler import cycler
     import seaborn as sns
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
     a = 0 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
@@ -865,7 +865,7 @@ def plot_energy_resource_graphs():
     #ax.set_ylim([0,5])
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,800)
-    material_cycler = cycler(color=['r','g','b','yellow','m','dimgrey', 'indianred', 'yellowgreen', 'cornflowerblue', 'palegoldenrod', 'plum', 'lightgrey']) #'Set2', 'Paired', 'YlGnBu'
+    material_cycler = cycler(color=['r','g','b','yellow','m','k', 'indianred', 'yellowgreen', 'cornflowerblue', 'palegoldenrod', 'plum', 'lightgrey']) #'Set2', 'Paired', 'YlGnBu'
 
     # Resource figure for this scenario
     h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
