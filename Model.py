@@ -704,7 +704,7 @@ The following is the code for the figures we show Francois 16.09.21
 def plot_V2G_scenarios():
     from cycler import cycler
     import seaborn as sns
-    custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
+    custom_cycler = cycler(color=sns.color_palette('tab10', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 1 # Low, medium, high
     s = 0 # Low, medium, high
     a = 0 # NCX, LFP, Next_Gen, Roskill
@@ -717,14 +717,17 @@ def plot_V2G_scenarios():
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,55::], 'xk')
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,55::], 'k')
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,0,:,55::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,1,:,55::].sum(axis=0))
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,2,:,55::].sum(axis=0))
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,3,:,55::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,4,:,55::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,5,:,55::].sum(axis=0))
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
     top = ax.spines["top"]
     top.set_visible(False)
-    ax.legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low', 'V2G high', 'V2G mandate'], loc='upper left',prop={'size':15})
+    ax.legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low', 'V2G moderate', 'V2G high', 'V2G mandate', 'No V2G', 'Early V2G'], loc='upper left',prop={'size':15})
     ax.set_title('Available V2G capacity by scenario'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
@@ -734,7 +737,7 @@ def plot_V2G_scenarios():
 def plot_SLB_scenarios():
     from cycler import cycler
     import seaborn as sns
-    custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
+    custom_cycler = cycler(color=sns.color_palette('tab10', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 1 # NCX, LFP, Next_Gen, Roskill, BNEF, Faraday
@@ -831,7 +834,7 @@ def plot_energy_resource_graphs():
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
-    v = 0 # Low, medium, high, v2g mandate, no v2g
+    v = 4 # Low, medium, high, v2g mandate, no v2g, early
     e = 1 # Low, medium, high
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
@@ -839,7 +842,7 @@ def plot_energy_resource_graphs():
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,v,:,55::].sum(axis=0), \
                     MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,:,55::].sum(axis=0),\
                         MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,:,55::].sum(axis=0)])
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,55::], 'k')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
@@ -850,12 +853,12 @@ def plot_energy_resource_graphs():
     ax.set_xlabel('Year',fontsize =16)
     ax.text(2005, 500, 'Baseline stock and electrification', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'Ni-rich technology', style='italic',
+    ax.text(2005, 400, 'Faraday Inst. tech. ', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 300, 'LFP reused', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 200, 'Low V2G penetration', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 300, 'No reuse', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 200, 'No V2G', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
             
     ax.text(2005, 100, 'Medium demand', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
@@ -880,13 +883,13 @@ def plot_energy_resource_graphs():
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,4500)
+    plt.ylim(0,3500)
 
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
-    R = 0 # LFP reused, no reuse, all reuse
-    v = 3 # Low, medium, high, V2G mandate, No V2G
+    R = 1 # LFP reused, no reuse, all reuse
+    v = 3 # Low, medium, high, v2g mandate, no v2g, early
     e = 1 # Low, medium, high
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
@@ -894,7 +897,7 @@ def plot_energy_resource_graphs():
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,v,:,55::].sum(axis=0), \
                     MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,:,55::].sum(axis=0),\
                         MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,:,55::].sum(axis=0)])
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,55::], 'k')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
@@ -905,10 +908,10 @@ def plot_energy_resource_graphs():
     ax.set_xlabel('Year',fontsize =16)
     ax.text(2005, 500, 'Baseline stock and electrification', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'Ni-rich technology', style='italic',
+    ax.text(2005, 400, 'Faraday Inst. tech.', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 300, 'LFP reused', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 300, 'No reuse', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     ax.text(2005, 200, 'V2G mandate from 2027', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
             
@@ -933,13 +936,13 @@ def plot_energy_resource_graphs():
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,4500)
+    plt.ylim(0,3500)
 
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
-    v = 4 # Low, medium, high, V2G mandate, No V2G
+    v = 4 # Low, medium, high, V2G mandate, No V2G, early
     e = 1 # Low, medium, high
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
@@ -947,7 +950,7 @@ def plot_energy_resource_graphs():
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,v,:,55::].sum(axis=0), \
                     MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,:,55::].sum(axis=0),\
                         MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,:,55::].sum(axis=0)])
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,55::], 'k')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
@@ -958,7 +961,7 @@ def plot_energy_resource_graphs():
     ax.set_xlabel('Year',fontsize =16)
     ax.text(2005, 500, 'Baseline stock and electrification', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'Ni-rich technology', style='italic',
+    ax.text(2005, 400, 'Faraday Inst. tech.', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     ax.text(2005, 300, 'All reused', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
@@ -966,7 +969,7 @@ def plot_energy_resource_graphs():
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     ax.text(2005, 100, 'Medium demand', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    #ax.set_ylim([0,5])
+    ax.set_ylim([0,5])
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,800)
 
@@ -986,4 +989,6 @@ def plot_energy_resource_graphs():
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,4500)
+    plt.ylim(0,3500)
+
+# %%
