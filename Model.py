@@ -188,7 +188,7 @@ ParameterDict['Material_content_NSB']= msc.Parameter(Name = 'Materials_NSB',
                                                              ID = 3,
                                                              P_Res = None,
                                                              MetaData = None,
-                                                             Indices = 'g,s,b,e', #t=time, h=units
+                                                             Indices = 'g,b,e', #t=time, h=units
                                                              Values = np.load(os.getcwd()+'/data/scenario_data/material_content_NSB.npy'), # in kg 
                                                              Uncert=None,
                                                              Unit = '%')
@@ -358,7 +358,7 @@ MaTrace_System.FlowDict['E_1_6'] = msc.Flow(Name = 'Spent LIBs after second life
 MaTrace_System.FlowDict['E_7_8'] = msc.Flow(Name = 'Spent LIBs after second life to to recycling', P_Start = 7, P_End = 8,
                                             Indices = 'z,S,a,R,b,e,t', Values=None)
 MaTrace_System.FlowDict['E_8_1'] = msc.Flow(Name = 'Recycled materials materials for battery production', P_Start = 8, P_End = 1,
-                                            Indices = 'z,S,a,R,b,e,h,t', Values=None)
+                                            Indices = 'z,S,a,R,v,E,b,e,h,t', Values=None)
 # Initializing stocks at transport stage
 MaTrace_System.StockDict['E_3']   = msc.Stock(Name = 'LIBs in EV in-use stock', P_Res = 3, Type = 0,
                                               Indices = 'z,S,a,s,b,e,t', Values=None)
@@ -647,23 +647,26 @@ for z in range(Nz):
             for E in range(NE):
                 for v in range(Nv):
                     MaTrace_System.FlowDict['E_6_7'].Values[z,S,:,:,v,E,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,:,:,:,:,:]) \
-                        + np.einsum('gsbe,aRbt->aRbet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:,:], MaTrace_System.FlowDict['C_6_7'].Values[z,S,:,:,v,E,:,:])
+                        + np.einsum('gbe,aRbt->aRbet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:], MaTrace_System.FlowDict['C_6_7'].Values[z,S,:,:,v,E,:,:])
             # Calculate material stock? Slows down model and not necessarily insightful
             # Calculate recycling flows
             for R in range(NR):
                 MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,R,:,:,:]      = MaTrace_System.FlowDict['E_4_5'].Values[z,S,:,:,:,:] - MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,R,:,:,:]
-                MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,:,:,:,:,:]      = np.einsum('gsbe,avEbt->avEbet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:,:], MaTrace_System.FlowDict['C_1_6'].Values[z,S,:,R,:,:,:,:])
-            MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,:,:,:,:,:])
+                MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,:,:,:,:,:]      = np.einsum('gbe,avEbt->avEbet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:], MaTrace_System.FlowDict['C_1_6'].Values[z,S,:,R,:,:,:,:])
+            MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRgsbtc->aRbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], MaTrace_System.FlowDict['B_6_7'].Values[z,S,:,:,:,:,:,:,:]) 
             # FIXME: Add NSB outflows
             # Calculate recovered materials for different recycling technologies and corresponding promary material demand
-            MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,:,:,:,:,:]        = np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]) +\
-                np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,:,:,:,:])
+            for v in range(Nv):
+                for E in range(NE):
+                    MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,:,v,E,:,:,:,:]        = np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_7_8'].Values[z,S,:,:,:,:,:]) +\
+                        np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_5_8'].Values[z,S,:,:,:,:,:]) \
+                            + np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], np.einsum('gbe,aRbt->aRbet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:], MaTrace_System.FlowDict['C_6_7'].Values[z,S,:,:,v,E,:,:]))
             # Calculate demand for primary materials
             for R in range(NR):
                 for h in range(Nh):
                     for v in range(Nv):
                         for E in range(NE):
-                            MaTrace_System.FlowDict['E_0_1'].Values[z,S,:,R,v,E,:,:,h,:]    = np.einsum('asbet->abet', MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,R,:,:,h,:] + MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,v,E,:,:,:]#
+                            MaTrace_System.FlowDict['E_0_1'].Values[z,S,:,R,v,E,:,:,h,:]    = np.einsum('asbet->abet', MaTrace_System.FlowDict['E_1_2'].Values[z,S,:,:,:,:,:]) - MaTrace_System.FlowDict['E_8_1'].Values[z,S,:,R,v,E,:,:,h,:] + MaTrace_System.FlowDict['E_1_6'].Values[z,S,:,R,v,E,:,:,:]#
                     
 '''
 I suggest that for the moment, before we spend too much time visualizing the results in a fancy way,
@@ -835,7 +838,7 @@ def plot_energy_resource_graphs():
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g, early
-    e = 1 # Low, medium, high
+    e = 3 # Low, medium, high, CP4All
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -851,20 +854,20 @@ def plot_energy_resource_graphs():
     ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
     ax.set_title('Available capacity by technology'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
-    ax.text(2005, 500, 'Baseline stock and electrification', style='italic',
+    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'Faraday Inst. tech. ', style='italic',
+    ax.text(2005, 550, 'Faraday Inst. tech. ', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 300, 'No reuse', style='italic',
+    ax.text(2005, 400, 'No reuse', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 200, 'No V2G', style='italic',
+    ax.text(2005, 250, 'No V2G', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
             
-    ax.text(2005, 100, 'Medium demand', style='italic',
+    ax.text(2005, 100, 'High demand', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     #ax.set_ylim([0,5])
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,800)
+    plt.ylim(0,1300)
     material_cycler = cycler(color=['r','g','b','yellow','m','k', 'indianred', 'yellowgreen', 'cornflowerblue', 'palegoldenrod', 'plum', 'lightgrey']) #'Set2', 'Paired', 'YlGnBu'
 
     # Resource figure for this scenario
@@ -873,7 +876,7 @@ def plot_energy_resource_graphs():
     ax.set_prop_cycle(material_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0),\
-                    MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
+                    MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0))
     ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
     ax.set_ylabel('Material weight [kt]',fontsize =18)
     right_side = ax.spines["right"]
@@ -883,14 +886,14 @@ def plot_energy_resource_graphs():
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,3500)
+    plt.ylim(0,3000)
 
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 3 # Low, medium, high, v2g mandate, no v2g, early
-    e = 1 # Low, medium, high
+    e = 3 # Low, medium, high, CP4All
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -906,27 +909,27 @@ def plot_energy_resource_graphs():
     ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
     ax.set_title('Available capacity by technology'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
-    ax.text(2005, 500, 'Baseline stock and electrification', style='italic',
+    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'Faraday Inst. tech.', style='italic',
+    ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 300, 'No reuse', style='italic',
+    ax.text(2005, 400, 'No reuse', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 200, 'V2G mandate from 2027', style='italic',
+    ax.text(2005, 250, 'V2G mandate from 2027', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
             
-    ax.text(2005, 100, 'Medium demand', style='italic',
+    ax.text(2005, 100, 'High demand', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     #ax.set_ylim([0,5])
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,800)
+    plt.ylim(0,1300)
     # Resource figure for this scenario
     h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(material_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0),\
-                    MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
+                    MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0))
     ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
     ax.set_ylabel('Material weight [kt]',fontsize =18)
     right_side = ax.spines["right"]
@@ -936,14 +939,14 @@ def plot_energy_resource_graphs():
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,3500)
+    plt.ylim(0,3000)
 
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, V2G mandate, No V2G, early
-    e = 1 # Low, medium, high
+    e = 3 # Low, medium, high, CP4All
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -959,19 +962,19 @@ def plot_energy_resource_graphs():
     ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
     ax.set_title('Available capacity by technology'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
-    ax.text(2005, 500, 'Baseline stock and electrification', style='italic',
+    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'Faraday Inst. tech.', style='italic',
+    ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 300, 'All reused', style='italic',
+    ax.text(2005, 400, 'All reused', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 200, 'No V2G', style='italic',
+    ax.text(2005, 250, 'No V2G', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 100, 'Medium demand', style='italic',
+    ax.text(2005, 100, 'High demand', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     ax.set_ylim([0,5])
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,800)
+    plt.ylim(0,1300)
 
     # Resource figure for this scenario
     h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
@@ -979,7 +982,7 @@ def plot_energy_resource_graphs():
     ax.set_prop_cycle(material_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0),\
-                    MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,:,:,h,55:].sum(axis=0))
+                    MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0))
     ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
     ax.set_ylabel('Material weight [kt]',fontsize =18)
     right_side = ax.spines["right"]
@@ -989,6 +992,6 @@ def plot_energy_resource_graphs():
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,3500)
+    plt.ylim(0,3000)
 
 # %%
