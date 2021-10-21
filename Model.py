@@ -893,7 +893,7 @@ def plot_energy_resource_graphs():
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 3 # Low, medium, high, v2g mandate, no v2g, early
-    e = 3 # Low, medium, high, CP4All
+    e = 3# Low, medium, high, CP4All
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -944,7 +944,7 @@ def plot_energy_resource_graphs():
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
-    R = 2 # LFP reused, no reuse, all reuse
+    R = 0 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, V2G mandate, No V2G, early
     e = 3 # Low, medium, high, CP4All
     fig, ax = plt.subplots(figsize=(8,7))
@@ -966,7 +966,7 @@ def plot_energy_resource_graphs():
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
             bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'All reused', style='italic',
+    ax.text(2005, 400, 'LFP reused', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     ax.text(2005, 250, 'No V2G', style='italic',
             bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
@@ -993,5 +993,105 @@ def plot_energy_resource_graphs():
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
+
+# %%
+def plot_resource_range():
+    from cycler import cycler
+    import seaborn as sns
+    resource_cycler = cycler(color=['slategrey', 'lightsteelblue', 'cornflowerblue', 'royalblue', 'navy', 'k', 'pink','lightcoral', 'indianred', 'r', 'brown', 'maroon']) #'Set2', 'Paired', 'YlGnBu'
+    z = 1 # Low, medium, high
+    s = 1 # Low, medium, high
+    R = 1 # LFP reused, no reuse, all reuse
+    v = 5 # Low, medium, high, V2G mandate, No V2G, early
+    e = 0 # Low, medium, high, CP4All
+    h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+    for m in range(Ne):
+        fig, ax = plt.subplots(figsize=(8,7))
+        ax.set_prop_cycle(resource_cycler)
+        ax.set_title('{} demand - {}'.format(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[m], IndexTable.Classification[IndexTable.index.get_loc('Recycling_Process')].Items[h]), fontsize=20)
+        for a in range(Na):
+            ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                            MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0) + MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0))
+            #ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+            #                MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0))
+                            
+        ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[:]+ IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[:], loc='upper left',prop={'size':15})
+        ax.set_ylabel('Material weight [kt]',fontsize =18)
+        right_side = ax.spines["right"]
+        right_side.set_visible(False)
+        top = ax.spines["top"]
+        top.set_visible(False)
+        ax.set_xlabel('Year',fontsize =16)
+        ax.tick_params(axis='both', which='major', labelsize=18)
+# %%
+def plot_rec_resource_range():
+    from cycler import cycler
+    import seaborn as sns
+    resource_cycler = cycler(color=['pink','lightcoral', 'indianred', 'r', 'brown', 'maroon']) #'Set2', 'Paired', 'YlGnBu'
+    z = 1 # Low, medium, high
+    s = 1 # Low, medium, high
+    R = 1 # LFP reused, no reuse, all reuse
+    v = 5 # Low, medium, high, V2G mandate, No V2G, early
+    e = 0 # Low, medium, high, CP4All
+    h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+    for m in range(Ne):
+        fig, ax = plt.subplots(figsize=(8,7))
+        ax.set_prop_cycle(resource_cycler)
+        ax.set_title('Recycled {} availability - {}'.format(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[m], IndexTable.Classification[IndexTable.index.get_loc('Recycling_Process')].Items[h]), fontsize=20)
+        for a in range(Na):
+            ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                            MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0))
+                            
+        ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[:], loc='upper left',prop={'size':15})
+        ax.set_ylabel('Material weight [kt]',fontsize =18)
+        right_side = ax.spines["right"]
+        right_side.set_visible(False)
+        top = ax.spines["top"]
+        top.set_visible(False)
+        ax.set_xlabel('Year',fontsize =16)
+        ax.tick_params(axis='both', which='major', labelsize=18)
+# %%
+def plot_flows():
+    from cycler import cycler
+    import seaborn as sns
+    flows_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu', 'Accent'
+    z = 1 # Low, medium, high
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(flows_cycler)
+    for s in range(NS):
+        ax.set_title('Inflows by scenario'.format(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[s]), fontsize=20)
+        ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[65::], 
+                            MaTrace_System.FlowDict['V_2_3'].Values[z,s,1,:,65:].sum(axis=0))
+            #ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+            #                MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0))
+                            
+        ax.legend(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[:], loc='upper left',prop={'size':15})
+        ax.set_ylabel('BEV sales [million]',fontsize =18)
+        right_side = ax.spines["right"]
+        right_side.set_visible(False)
+        top = ax.spines["top"]
+        top.set_visible(False)
+        ax.set_xlabel('Year',fontsize =16)
+        ax.tick_params(axis='both', which='major', labelsize=18)
+        plt.ylim(0,30)
+
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(flows_cycler)
+    for s in range(NS):
+        ax.set_title('Outflows by scenario'.format(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[s]), fontsize=20)
+        ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[65::], 
+                            np.einsum('btc->t', MaTrace_System.FlowDict['V_3_4'].Values[z,s,1,:,65:,:]))
+            #ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+            #                MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0))
+                            
+        ax.legend(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[:], loc='upper left',prop={'size':15})
+        ax.set_ylabel('BEV outflows [million]',fontsize =18)
+        right_side = ax.spines["right"]
+        right_side.set_visible(False)
+        top = ax.spines["top"]
+        top.set_visible(False)
+        ax.set_xlabel('Year',fontsize =16)
+        ax.tick_params(axis='both', which='major', labelsize=18)
+        plt.ylim(0,30)
 
 # %%
