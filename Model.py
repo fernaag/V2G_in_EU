@@ -300,10 +300,14 @@ MaTrace_System.FlowDict['B_4_5'] = msc.Flow(Name = 'Used LIBs for health assessm
                                             Indices = 'z,S,a,g,s,b,t,c', Values=None)
 MaTrace_System.FlowDict['B_5_6'] = msc.Flow(Name = 'Used LIBs as second life ', P_Start = 5, P_End = 6,
                                             Indices = 'z,S,a,R,v,E,g,s,b,t,c', Values=None)
+MaTrace_System.FlowDict['C_2_3_max'] =  msc.Flow(Name = 'Capacity of vehicles equiped with V2G', P_Start = 1, P_End = 6,
+                                            Indices = 'z,S,a,v,g,s,b,t', Values=None) # Only in terms of capacity
+MaTrace_System.FlowDict['C_2_3_real'] =  msc.Flow(Name = 'Capacity of vehicles equiped with V2G', P_Start = 1, P_End = 6,
+                                            Indices = 'z,S,a,R,v,E,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_1_6'] =  msc.Flow(Name = 'New LIBs for stationary storage ', P_Start = 1, P_End = 6,
                                             Indices = 'z,S,a,R,v,E,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_5_6'] =  msc.Flow(Name = 'New LIBs for stationary storage ', P_Start = 1, P_End = 6,
-                                            Indices = 'z,S,a,R,v,E,s,b,t', Values=None) # Only in terms of capacity
+                                            Indices = 'z,S,a,R,v,E,g,s,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_6_7_SLB'] =  msc.Flow(Name = 'New LIBs for stationary storage ', P_Start = 1, P_End = 6,
                                             Indices = 'z,S,a,R,v,E,s,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_6_7'] =  msc.Flow(Name = 'New LIBs for stationary storage outflows', P_Start = 6, P_End = 7,
@@ -387,17 +391,19 @@ MaTrace_System.StockDict['dE_6_NSB']  = msc.Stock(Name = 'Stock change of NSB in
 
 # Initializing energy layer
 MaTrace_System.StockDict['C_3']   = msc.Stock(Name = 'Total capacity of V2G-ready EV stock', P_Res = 3, Type = 0,
-                                              Indices = 'z,S,a,v,E,g,t', Values=None)
+                                              Indices = 'z,S,a,R,v,E,t', Values=None)
+MaTrace_System.StockDict['C_3_tc']   = msc.Stock(Name = 'Total capacity of V2G-ready EV stock', P_Res = 3, Type = 0,
+                                              Indices = 'z,S,a,R,v,E,t,c', Values=None)
 MaTrace_System.StockDict['Con_3']   = msc.Stock(Name = 'Capacity of share of V2G-ready EV stock connected to the grid', P_Res = 3, Type = 0,
                                               Indices = 'z,S,a,v,g,t', Values=None)
 MaTrace_System.StockDict['Pcon_3']   = msc.Stock(Name = 'Power of share of V2G-ready EV stock connected to the grid', P_Res = 3, Type = 0,
                                               Indices = 'z,S,a,v,g,t', Values=None)
 MaTrace_System.StockDict['C_6_SLB']   = msc.Stock(Name = 'Capacity of SLBs', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,R,v,E,g,b,t', Values=None)
+                                              Indices = 'z,S,a,R,v,E,t', Values=None)
 MaTrace_System.StockDict['C_6_SLB_tc']   = msc.Stock(Name = 'Capacity of SLBs', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,R,v,E,g,b,t,c', Values=None)
+                                              Indices = 'z,S,a,R,v,E,g,s,b,t,c', Values=None)
 MaTrace_System.StockDict['C_6_NSB']   = msc.Stock(Name = 'Capacity of NSBs', P_Res = 6, Type = 0,
-                                              Indices = 'z,S,a,R,v,E,b,t', Values=None)
+                                              Indices = 'z,S,a,R,v,E,t', Values=None)
 MaTrace_System.StockDict['C_6_NSB_tc']   = msc.Stock(Name = 'Capacity of NSBs', P_Res = 6, Type = 0,
                                               Indices = 'z,S,a,R,v,E,b,t,c', Values=None)
 MaTrace_System.StockDict['Pow_3']   = msc.Stock(Name = 'Total power of V2G-ready EV stock', P_Res = 3, Type = 0,
@@ -500,6 +506,7 @@ for z in range(Nz):
                 for E in range(NE):
                     for t in range(Nt):
                         for c in range(t):
+                            # FIXME: Don't need all those loops, I think
                             # Calculate maximum inflows available to SLB:
                             MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,v,E,g,:,:,t,c]  = np.einsum('Rb,asb->aRsb', MaTrace_System.ParameterDict['Reuse_rate'].Values[:,:,t], \
                                 MaTrace_System.FlowDict['B_4_5'].Values[z,S,:,g,:,:,t,c]) # The last term will define the share of batteries reused, while the reuse parameter defines which chemistries, if any, are prioritized
@@ -543,7 +550,6 @@ stationary storagr (if any) to satisfy that demand. then the ourflows after stat
 need to be calculated using a model for that as well. 
 '''
 # %%
-print('Calculating energy layer')
 '''
 Here we will introduce a new way of computing things. Essentially, the underlying assumption
 would be that if there is no demand for stationary storage, then there is no need for further
@@ -562,53 +568,88 @@ slb_model                        = dsm.DynamicStockModel(t=range(0,Nt), lt={'Typ
 slb_model.compute_sf()# Calculate maximum available capacities
 
 # Aggregate all cohorts for reuse under the assumption that they are in similar SOH
-inflows = np.einsum('zSaRgsbtc->zSaRgsbt',MaTrace_System.FlowDict['B_5_6'].Values[:,:,:,:,:,:,:,:,:])
+inflows = np.einsum('zSaRvEgsbtc->zSaRvEgsbt',MaTrace_System.FlowDict['B_5_6'].Values[:,:,:,:,:,:,:,:,:,:,:])
 # Calculate the capacity that is available according to this under the assumption that 80% of the initial capacity is still available
-SLB_available = np.einsum('zSaRgsbt, gst->zSaRgsbt',inflows, MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]) * 0.8 
-
-
+SLB_available = np.einsum('zSaRvEgsbt, gst->zSaRvEgsbt',inflows, MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]) * 0.8 
+# Calculate the maximum amount of vehicles that can be equipped with V2G
+MaTrace_System.FlowDict['C_2_3_max'].Values[:,:,:,:,:,:,:,:]         = np.einsum('vgt, zSagsbt->zSavgsbt',MaTrace_System.ParameterDict['V2G_rate'].Values[:,:,:], \
+    np.einsum('btc,zSagsbtc->zSagsbt', MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,:,:], \
+                np.einsum('zSagsbt, gsc->zSagsbtc', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]))) *0.25
 
 '''
 Since the flows have been adjusted to the demand, we need to update the values of SLBs as not
-all batteries available are actually reused. V2G does not have this issue as the flows are the
-same but we need to re-calculate the real share of EVs that has V2G.
+all batteries available are actually reused. V2G has a similar issue, as we would like to 
+avoid installing a lot of V2G capable vehicles that cannot be used.
 
-I think the only way to do this is by using a stock-driven  model for the SLBs based on what we have found
-'''
-
-
-# %%
-'''
 Knowing the V2G and SLB available capacity, we can calculate the demand for new batteries. 
 We can define a degradation curve that is less steep than the one on EV batteries
 since the requirements in this application are lower. This in turn means a longer lifetime. 
 
 For now I assume all NSB are LFP since I don't have material data on teh other chemistries yet.
 '''
-# # TODO: Create new degradation curves for these batteries
-# Model_nsb = pcm.ProductComponentModel(t = range(0,Nt),  lt_pr = {'Type': 'Normal', 'Mean': np.array([16]), 'StdDev': np.array([4])})
-# Model_nsb.compute_sf_pr()
-# for z in range(Nz):
-#     for S in range(NS):
-#         for a in range(Na):
-#             for E in range(NE):
-#                 for v in range(Nv):
-#                     for R in range(NR):
-#                         for t in range(1,Nt):
-#                         # FIXME: For the moment I assume all new batteries are LFP, which is index 2. Inflows equal the gap to satisfy the energy storage needs
-#                         # FIXME: Need to add the degradation and adjust this in the material demand
-#                                 if MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] -  MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,:,t].sum(axis=0) \
-#                                     - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,E,:,t].sum(axis=0) - MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t,:].sum(axis=0) >0:
-#                                      MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] -  MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,:,t].sum(axis=0) \
-#                                         - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,E,:,t].sum(axis=0) - MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t,:].sum(axis=0)
-#                                      MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t::,t] = MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t]*  Model_nsb.sf_pr[t::,t]
-#                                 # Calculate the stock based on those inflows and correct value that will be calculated below
-#                                 else: 
-#                                     MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t] = 0
-#                                     MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t::,t] = MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t]*  Model_nsb.sf_pr[t::,t]
-#                         MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,:] = MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,:,:].sum(axis=1)
-#                         MaTrace_System.FlowDict['C_6_7'].Values[z,S,a,R,v,E,2,1:]            = np.diff(MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,:]) - MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,1:]
-# # %%
+# %%
+installed_slbs = np.zeros((Nz, Ns ,Na, NR, Nv, NE, Nt))
+share_reused = np.zeros((Nz, Ns ,Na, NR, Nv, NE, Nt))
+
+print('Calculating energy layer')
+for z in range(Nz):
+    for S in range(NS):
+        for a in range(Na):
+            for v in range(Nv):
+                for R in range(NR):
+                    for E in range(NE):
+                        for t in range(Nt):
+                            # If the demand exceeds installed capacity and potential V2G, install all V2G available
+                            if MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
+                                + MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,t] \
+                                    + MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,t] \
+                                        + np.sum(MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t])\
+                                        <  MaTrace_System.ParameterDict['Storage_demand'].Values[E,t]:
+                                        MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t]   = np.sum(MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t])
+                                        MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t]
+                                        MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
+                                        # If there is still demand after V2G is installed, and the available SLBs are all needed, we install all SLBs
+                                        if MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
+                                            + MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,t] \
+                                                + MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,t] \
+                                                    + np.sum(SLB_available[z,S,a,R,v,E,:,:,:,t]) < MaTrace_System.ParameterDict['Storage_demand'].Values[E,t]:
+                                                    MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,:,:,:,t]            = SLB_available[z,S,a,R,v,E,:,:,:,t]
+                                                    for g in range(Ng):
+                                                        for s in range(Ns):
+                                                            for b in range(Nb):
+                                                                MaTrace_System.StockDict['C_6_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t]
+                                                    MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
+                                                    # Fill gap with new LFP batteries
+                                                    MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t]                = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] \
+                                                        - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,t] \
+                                                            - MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,t]
+                                                    MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t::,t]        = MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t] * Model_nsb.sf_pr[t::,t]
+                                                    MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t', MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,:,:])
+                                        # If V2G + SLBs exceeds demand, only reuse as many as are needed to meet it
+                                        elif MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
+                                            + MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,t] \
+                                                + MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,t] \
+                                                    + np.sum(SLB_available[z,S,a,R,v,E,:,:,:,t]) >= MaTrace_System.ParameterDict['Storage_demand'].Values[E,t]:
+                                            installed_slbs[z,S,a,R,v,E,t]    =  MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,t]\
+                                                - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,t]
+                                            # We define the share of SLBs that is actually installed as the available batteries times the ratio of batteries installed to available. 
+                                            # All chemistries given the same priority
+                                            share_reused[z,S,a,R,v,E,t]                                  =   (installed_slbs[z,S,a,R,v,E,t]/np.sum(SLB_available[z,S,a,R,v,E,:,:,:,t]))
+                                            MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,:,:,:,t] = SLB_available[z,S,a,R,v,E,:,:,:,t] * share_reused[z,S,a,R,v,E,t]
+                                            for g in range(Ng):
+                                                for s in range(Ns):
+                                                    for b in range(Nb):
+                                                        MaTrace_System.StockDict['C_6_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t]
+                                            MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
+                            else: 
+                                MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,t]\
+                                           - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,t]
+                                MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t]
+                                MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
+                                # MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t]               =  MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,t]\
+                                #             - MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,t]
+                                        
+
 '''
 Here we calculate the material flows for Ni, Co, Li, P, C, Mn, which are materials exclusively in modules.
 Since we are only interested in the cell materials, we define the material content based on the size of the battery 
@@ -618,6 +659,7 @@ See material_content.ipynb for a detailed description and data for the calculati
 We aggregate the cohorts to have the total flows, as the cohort composition is not interesting in the 
 context of materials. 
 '''
+# %%
 print('Running element layer')
 for z in range(Nz):
     for g in range(0,Ng):
@@ -830,9 +872,9 @@ def plot_energy_resource_graphs():
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                [MaTrace_System.StockDict['C_3'].Values[z,s,a,v,e,:,55::].sum(axis=0), \
-                    np.einsum('gbt->t',MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,:,:,55::]),\
-                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,:,55::].sum(axis=0)])
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,55::]])
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
@@ -885,9 +927,9 @@ def plot_energy_resource_graphs():
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                [MaTrace_System.StockDict['C_3'].Values[z,s,a,v,e,:,55::].sum(axis=0), \
-                    np.einsum('gbt->t',MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,:,:,55::]),\
-                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,:,55::].sum(axis=0)])
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,55::]])
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
@@ -938,9 +980,9 @@ def plot_energy_resource_graphs():
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
     ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                [MaTrace_System.StockDict['C_3'].Values[z,s,a,v,e,:,55::].sum(axis=0), \
-                    np.einsum('gbt->t',MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,:,:,55::]),\
-                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,:,55::].sum(axis=0)])
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,55::]])
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
