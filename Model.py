@@ -560,6 +560,14 @@ lt_slb                               = np.array([6]) # We could have different l
 sd_slb                               = np.array([2]) 
 slb_model                        = dsm.DynamicStockModel(t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
 slb_model.compute_sf()# Calculate maximum available capacities
+
+# Aggregate all cohorts for reuse under the assumption that they are in similar SOH
+inflows = np.einsum('zSaRgsbtc->zSaRgsbt',MaTrace_System.FlowDict['B_5_6'].Values[:,:,:,:,:,:,:,:,:])
+# Calculate the capacity that is available according to this under the assumption that 80% of the initial capacity is still available
+SLB_available = np.einsum('zSaRgsbt, gst->zSaRgsbt',inflows, MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]) * 0.8 
+
+
+
 '''
 Since the flows have been adjusted to the demand, we need to update the values of SLBs as not
 all batteries available are actually reused. V2G does not have this issue as the flows are the
