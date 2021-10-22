@@ -593,40 +593,38 @@ for z in range(Nz):
             for E in range(NE):
                 for a in range(Na):
                     for v in range(Nv):
-                        for s in range(Ns):
-                            for b in range(Nb):
-                                for t in range(Nt):
-                                    # Add full V2G availability if demand present
-                                    if MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] >= np.einsum('bc,bc->', MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,t,:], \
-                                            np.einsum('sbc, sc->bc', MaTrace_System.StockDict['B_C_3_V2G'].Values[z,S,a,v,g,:,:,t,:], MaTrace_System.ParameterDict['Capacity'].Values[g,:,:])) *0.25:
-                                        # TODO: Add plug and V2G ratio for the correct calculation of the available capacity. At the moment I just multiply with 0.25 (0.5 V2G available capacity and 0.5 plug ratio)
-                                        MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t]         = np.einsum('bc,bc->', MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,t,:], \
-                                            np.einsum('sbc, sc->bc', MaTrace_System.StockDict['B_C_3_V2G'].Values[z,S,a,v,g,:,:,t,:], MaTrace_System.ParameterDict['Capacity'].Values[g,:,:])) *0.25
-                                        # If there is still demand to be satisfied, add SLB
-                                        # The first condition adds all SLB in case it is not enough
-                                        for R in range(NR):
-                                            if MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,:,t].sum(axis=0) - \
-                                                np.sum(MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,:,:,t]) + np.sum(np.einsum('gsbc,gs->gsb', MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,t,:] , MaTrace_System.ParameterDict['Capacity'].Values[:,:,t])) > 0:
-                                                # Since the demand exceeds the capacity available for SLB, we reuse all available batteries
-                                                MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,s,b,t]           =  MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,t,:].sum(axis=0) * MaTrace_System.ParameterDict['Capacity'].Values[g,s,t]
-                                                # Compute stock
-                                                MaTrace_System.StockDict['C_6_SLB_tc'].Values[z,S,a,R,v,E,g,b,t::,t] = MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,s,b,t] *slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t]
-                                                MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,g,b,t]        = MaTrace_System.StockDict['C_6_SLB_tc'].Values[z,S,a,R,v,E,g,b,t,:].sum(axis=0)
-                                                # Fill the final gap with NSBs
-                                                MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] -  MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,:,t].sum(axis=0) \
-                                                    - np.einsum('gb->', MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,:,:,t]) - MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t,:].sum(axis=0)
-                                                MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t::,t] = MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t]*  Model_nsb.sf_pr[t::,t]
-                                                MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,t] = MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t,:].sum(axis=0)
-                                            # This second condition adds only the amount of SLBs that are actually needed, if the demand is exceeded
-                                            if MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] > MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t] + MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,g,b,t] +  \
-                                                    MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,t,:].sum(axis=0) * MaTrace_System.ParameterDict['Capacity'].Values[g,s,t] + MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,t]:
-                                                MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,s,b,t]          = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t]
-                                                MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,g,b,t]       = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t]
-                                            
-                                    # If the V2G capacity alone can satisfy the demand, then we just install as many V2G cars as are needed
-                                    elif MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] < MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t]:
-                                        MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t]
-                                
+                        for t in range(Nt):
+                            # Add full V2G availability if demand present
+                            if MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] >= np.einsum('bc,bc->', MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,t,:], \
+                                    np.einsum('sbc, sc->bc', MaTrace_System.StockDict['B_C_3_V2G'].Values[z,S,a,v,g,:,:,t,:], MaTrace_System.ParameterDict['Capacity'].Values[g,:,:])) *0.25:
+                                # TODO: Add plug and V2G ratio for the correct calculation of the available capacity. At the moment I just multiply with 0.25 (0.5 V2G available capacity and 0.5 plug ratio)
+                                MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t]         = np.einsum('bc,bc->', MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,t,:], \
+                                    np.einsum('sbc, sc->bc', MaTrace_System.StockDict['B_C_3_V2G'].Values[z,S,a,v,g,:,:,t,:], MaTrace_System.ParameterDict['Capacity'].Values[g,:,:])) *0.25
+                                # If there is still demand to be satisfied, add SLB
+                                # The first condition adds all SLB in case it is not enough
+                                for R in range(NR):
+                                    if MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,:,t].sum(axis=0) - \
+                                        np.sum(MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,:,:,t]) + np.sum(np.einsum('gsbc,gs->gsb', MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,t,:] , MaTrace_System.ParameterDict['Capacity'].Values[:,:,t])) > 0:
+                                        # Since the demand exceeds the capacity available for SLB, we reuse all available batteries
+                                        MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,:,:,t]           =  np.einsum('sbc,s->', MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,:,:,t,:],  MaTrace_System.ParameterDict['Capacity'].Values[g,:,t])
+                                        # Compute stock
+                                        MaTrace_System.StockDict['C_6_SLB_tc'].Values[z,S,a,R,v,E,g,:,t::,t] = np.einsum('sb,b->b', (MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,:,:,t] *slb_model.sf[t::,t]), MaTrace_System.ParameterDict['Degradation_slb'].Values[:,t::,t])
+                                        MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,g,:,t]        = MaTrace_System.StockDict['C_6_SLB_tc'].Values[z,S,a,R,v,E,g,:,t,:].sum(axis=1)
+                                        # Fill the final gap with NSBs
+                                        MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] -  MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,:,t].sum(axis=0) \
+                                            - np.einsum('gb->', MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,:,:,t]) - MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t,:].sum(axis=0)
+                                        MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t::,t] = MaTrace_System.FlowDict['C_1_6'].Values[z,S,a,R,v,E,2,t]*  Model_nsb.sf_pr[t::,t]
+                                        MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,t] = MaTrace_System.StockDict['C_6_NSB_tc'].Values[z,S,a,R,v,E,2,t,:].sum(axis=0)
+                                    # This second condition adds only the amount of SLBs that are actually needed, if the demand is exceeded
+                                    if MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] > MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,:,t].sum(axis=0) + np.sum(MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,:,:,t]) +  \
+                                            np.sum(MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,t,:]) * MaTrace_System.ParameterDict['Capacity'].Values[g,:,t] + MaTrace_System.StockDict['C_6_NSB'].Values[z,S,a,R,v,E,2,t]:
+                                        MaTrace_System.FlowDict['C_5_6'].Values[z,S,a,R,v,E,:,:,t]          = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t]
+                                        MaTrace_System.StockDict['C_6_SLB'].Values[z,S,a,R,v,E,g,b,t]       = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t]
+                                    
+                            # If the V2G capacity alone can satisfy the demand, then we just install as many V2G cars as are needed
+                            elif MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] < MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t]:
+                                MaTrace_System.StockDict['C_3'].Values[z,S,a,v,E,g,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t]
+                            
                 # # Calculate corresponding power capacity
                 # MaTrace_System.StockDict['Pow_6_SLB'].Values[z,S,:,:,g,:]     = MaTrace_System.StockDict['C_6_SLB'].Values[z,S,:,:,g,:] / 6 # TODO: Define this factor as a parameter
                 # MaTrace_System.StockDict['Pow_3'].Values[z,S,:,:,g,:]       = MaTrace_System.StockDict['C_3'].Values[z,S,:,:,g,:] *0.25/ 8 # TODO: Define this factor as a parameter
