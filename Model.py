@@ -872,7 +872,7 @@ def plot_energy_resource_graphs():
     import seaborn as sns
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 1 # Low, medium, high
-    s = 1 # Low, medium, high
+    s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g, early
@@ -927,7 +927,7 @@ def plot_energy_resource_graphs():
     plt.ylim(0,3000)
 
     z = 1 # Low, medium, high
-    s = 1 # Low, medium, high
+    s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 3 # Low, medium, high, v2g mandate, no v2g, early
@@ -980,7 +980,7 @@ def plot_energy_resource_graphs():
     plt.ylim(0,3000)
 
     z = 1 # Low, medium, high
-    s = 1 # Low, medium, high
+    s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, V2G mandate, No V2G, early
@@ -1022,6 +1022,172 @@ def plot_energy_resource_graphs():
                     MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0),\
                     MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,55:].sum(axis=0))
     ax.legend(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[:]+['Rec. Li', 'Rec. Graphite', 'Rec. P', 'Rec. Mn', 'Rec. Co', 'Rec. Ni'], loc='upper left',prop={'size':15})
+    ax.set_ylabel('Material weight [kt]',fontsize =18)
+    right_side = ax.spines["right"]
+    right_side.set_visible(False)
+    top = ax.spines["top"]
+    top.set_visible(False)
+    ax.set_title('Material demand'.format(S), fontsize=20)
+    ax.set_xlabel('Year',fontsize =16)
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    plt.ylim(0,3000)
+
+# %%
+def plot_energy_resource_aggregated():
+    from cycler import cycler
+    import seaborn as sns
+    custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
+    z = 1 # Low, medium, high
+    s = 1 # Low, medium, high
+    a = 4 # NCX, LFP, Next_Gen, Roskill
+    R = 1 # LFP reused, no reuse, all reuse
+    v = 4 # Low, medium, high, v2g mandate, no v2g, early
+    e = 3 # Low, medium, high, CP4All
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(custom_cycler)
+    ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    ax.set_ylabel('Capacity [GWh]',fontsize =18)
+    right_side = ax.spines["right"]
+    right_side.set_visible(False)
+    top = ax.spines["top"]
+    top.set_visible(False)
+    ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax.set_title('Available capacity by technology'.format(S), fontsize=20)
+    ax.set_xlabel('Year',fontsize =16)
+    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 550, 'Faraday Inst. tech. ', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 400, 'No reuse', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 250, 'No V2G', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+            
+    ax.text(2005, 100, 'High demand', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    #ax.set_ylim([0,5])
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    plt.ylim(0,1300)
+    material_cycler = cycler(color=sns.color_palette('Paired', 6))
+
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(material_cycler)
+    ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]),\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,55:]))
+    ax.legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
+    ax.set_ylabel('Material weight [kt]',fontsize =18)
+    right_side = ax.spines["right"]
+    right_side.set_visible(False)
+    top = ax.spines["top"]
+    top.set_visible(False)
+    ax.set_title('Material demand'.format(S), fontsize=20)
+    ax.set_xlabel('Year',fontsize =16)
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    plt.ylim(0,3000)
+
+    z = 1 # Low, medium, high
+    s = 1 # Low, medium, high
+    a = 4 # NCX, LFP, Next_Gen, Roskill
+    R = 1 # LFP reused, no reuse, all reuse
+    v = 3 # Low, medium, high, v2g mandate, no v2g, early
+    e = 3 # Low, medium, high, CP4All
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(custom_cycler)
+    ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    ax.set_ylabel('Capacity [GWh]',fontsize =18)
+    right_side = ax.spines["right"]
+    right_side.set_visible(False)
+    top = ax.spines["top"]
+    top.set_visible(False)
+    ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax.set_title('Available capacity by technology'.format(S), fontsize=20)
+    ax.set_xlabel('Year',fontsize =16)
+    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 400, 'No reuse', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 250, 'V2G mandate from 2027', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+            
+    ax.text(2005, 100, 'High demand', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    #ax.set_ylim([0,5])
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    plt.ylim(0,1300)
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(material_cycler)
+    ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]),\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,55:]))
+    ax.legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
+    ax.set_ylabel('Material weight [kt]',fontsize =18)
+    right_side = ax.spines["right"]
+    right_side.set_visible(False)
+    top = ax.spines["top"]
+    top.set_visible(False)
+    ax.set_title('Material demand'.format(S), fontsize=20)
+    ax.set_xlabel('Year',fontsize =16)
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    plt.ylim(0,3000)
+
+    z = 1 # Low, medium, high
+    s = 1 # Low, medium, high
+    a = 4 # NCX, LFP, Next_Gen, Roskill
+    R = 2 # LFP reused, no reuse, all reuse
+    v = 4 # Low, medium, high, V2G mandate, No V2G, early
+    e = 3 # Low, medium, high, CP4All
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(custom_cycler)
+    ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_6_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    ax.set_ylabel('Capacity [GWh]',fontsize =18)
+    right_side = ax.spines["right"]
+    right_side.set_visible(False)
+    top = ax.spines["top"]
+    top.set_visible(False)
+    ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax.set_title('Available capacity by technology'.format(S), fontsize=20)
+    ax.set_xlabel('Year',fontsize =16)
+    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 400, 'All reused', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 250, 'No V2G', style='italic',
+            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.text(2005, 100, 'High demand', style='italic',
+            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    ax.set_ylim([0,5])
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    plt.ylim(0,1300)
+
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(material_cycler)
+    ax.stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]),\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,55:]))
+    ax.legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
     ax.set_ylabel('Material weight [kt]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
