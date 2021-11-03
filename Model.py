@@ -140,7 +140,7 @@ ParameterDict = {}
 mo_start = 0 # set mo for re-reading a certain parameter
 ParameterDict['Vehicle_stock']= msc.Parameter(Name = 'Vehicle_stock',
                                                              ID = 1,
-                                                             P_Res = None,
+                                                             P_Res = 3,
                                                              MetaData = None,
                                                              Indices = 'z,t', #t=time, h=units
                                                              Values = np.load(os.getcwd()+'/data/scenario_data/stock.npy'), # in thousands
@@ -165,7 +165,7 @@ ParameterDict['Segment_shares']= msc.Parameter(Name = 'Segment_shares',
                                                              Unit = '%')
 
 ParameterDict['Battery_chemistry_shares']= msc.Parameter(Name = 'Battery_chemistry_shares',
-                                                             ID = 3,
+                                                             ID = 4,
                                                              P_Res = None,
                                                              MetaData = None,
                                                              Indices = 'a,g,b,c', #t=time, h=units
@@ -176,7 +176,7 @@ ParameterDict['Battery_chemistry_shares']= msc.Parameter(Name = 'Battery_chemist
 
 
 ParameterDict['Material_content']= msc.Parameter(Name = 'Materials',
-                                                             ID = 3,
+                                                             ID = 5,
                                                              P_Res = None,
                                                              MetaData = None,
                                                              Indices = 'g,s,b,e', #t=time, h=units
@@ -738,9 +738,6 @@ what is insightful and meaningful as a figure and can create those figures for t
 # np.save(results+'/arrays/material_recycled_process_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_8_1'].Values), allow_pickle=True)
 # np.save(results+'/arrays/material_primary_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_0_1'].Values), allow_pickle=True)
 
-'''
-The following is the code for the figures we show Francois 16.09.21
-'''
 # %% 
 def plot_V2G_scenarios():
     from cycler import cycler
@@ -1058,17 +1055,17 @@ def plot_energy_resource_aggregated():
     ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
     ax.set_title('Available capacity by technology'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
-    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 550, 'Faraday Inst. tech. ', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'No reuse', style='italic',
-            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 250, 'No V2G', style='italic',
-            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 550, 'Faraday Inst. tech. ', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 400, 'No reuse', style='italic',
+    #         bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 250, 'No V2G', style='italic',
+    #         bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
             
-    ax.text(2005, 100, 'High demand', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 100, 'High demand', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     #ax.set_ylim([0,5])
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,1300)
@@ -1090,6 +1087,9 @@ def plot_energy_resource_aggregated():
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,-1]) + np.einsum('bm->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
     plt.ylim(0,3000)
 
     z = 1 # Low, medium, high
@@ -1113,17 +1113,17 @@ def plot_energy_resource_aggregated():
     ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
     ax.set_title('Available capacity by technology'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
-    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'No reuse', style='italic',
-            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 250, 'V2G mandate from 2027', style='italic',
-            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 400, 'No reuse', style='italic',
+    #         bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 250, 'V2G mandate from 2027', style='italic',
+    #         bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
             
-    ax.text(2005, 100, 'High demand', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 100, 'High demand', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     #ax.set_ylim([0,5])
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,1300)
@@ -1142,6 +1142,9 @@ def plot_energy_resource_aggregated():
     top.set_visible(False)
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,-1]) + np.einsum('bm->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
 
@@ -1166,16 +1169,16 @@ def plot_energy_resource_aggregated():
     ax.legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
     ax.set_title('Available capacity by technology'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
-    ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 400, 'All reused', style='italic',
-            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 250, 'No V2G', style='italic',
-            bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
-    ax.text(2005, 100, 'High demand', style='italic',
-            bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 700, 'Baseline stock and electrification', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 550, 'Faraday Inst. tech.', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 400, 'All reused', style='italic',
+    #         bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 250, 'No V2G', style='italic',
+    #         bbox={'facecolor': 'blue', 'alpha': 0.3, 'pad': 10}, fontsize=15)
+    # ax.text(2005, 100, 'High demand', style='italic',
+    #         bbox={'facecolor': 'red', 'alpha': 0.3, 'pad': 10}, fontsize=15)
     ax.set_ylim([0,5])
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,1300)
@@ -1195,6 +1198,9 @@ def plot_energy_resource_aggregated():
     top.set_visible(False)
     ax.set_title('Material demand'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
+    print(np.einsum('bm->', MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,:,h,-1]) + np.einsum('bm->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
 
