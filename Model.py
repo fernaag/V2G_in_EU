@@ -707,7 +707,8 @@ The following is the code for the figures we show Francois 16.09.21
 def plot_V2G_scenarios():
     from cycler import cycler
     import seaborn as sns
-    custom_cycler = cycler(color=sns.color_palette('tab10', 6)) #'Set2', 'Paired', 'YlGnBu'
+    scen_cycler = (cycler(color=['red','green', 'blue']) *
+          cycler(linestyle=['-','--',':']))    
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 0 # NCX, LFP, Next_Gen, Roskill
@@ -715,32 +716,35 @@ def plot_V2G_scenarios():
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
     fig, ax = plt.subplots(figsize=(8,7))
-    ax.set_prop_cycle(custom_cycler)
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,55::], '--k')
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,55::], 'xk')
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,55::], 'k')
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,0,:,55::].sum(axis=0))
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,1,:,55::].sum(axis=0))
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,2,:,55::].sum(axis=0))
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,3,:,55::].sum(axis=0))
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,4,:,55::].sum(axis=0))
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.StockDict['C_3'].Values[z,s,a,5,:,55::].sum(axis=0))
+    ax.set_prop_cycle(scen_cycler)
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::], '--k')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::], 'xk')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::], 'k')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,0,:,70::].sum(axis=0), '-r')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,2,:,70::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,3,:,70::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,0,:,70::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,2,:,70::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,3,:,70::].sum(axis=0))
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
     top = ax.spines["top"]
     top.set_visible(False)
-    ax.legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low', 'V2G moderate', 'V2G high', 'V2G mandate', 'No V2G', 'Early V2G'], loc='upper left',prop={'size':15})
+    ax.legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low, Slow EV', 'V2G moderate, Slow EV', 'V2G mandate, Slow EV', 'V2G low, Fast EV', 'V2G moderate, Fast EV', 'V2G mandate, Fast EV'], loc='upper left',prop={'size':15})
     ax.set_title('Available V2G capacity by scenario'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,6500)
+    plt.ylim(0,6000)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/V2G_scenarios'))
+# %%
 
 # %% 
 def plot_SLB_scenarios():
     from cycler import cycler
     import seaborn as sns
-    custom_cycler = cycler(color=sns.color_palette('tab10', 6)) #'Set2', 'Paired', 'YlGnBu'
+    scen_cycler = (cycler(color=['red','green']) *
+          cycler(linestyle=['-','--'])) 
     z = 1 # Low, medium, high
     s = 0 # Low, medium, high
     a = 1 # NCX, LFP, Next_Gen, Roskill, BNEF, Faraday
@@ -748,24 +752,29 @@ def plot_SLB_scenarios():
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
     fig, ax = plt.subplots(figsize=(8,7))
-    ax.set_prop_cycle(custom_cycler)
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,55::], '--k')
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,55::], 'xk')
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,55::], 'k')
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,0,:,55::].sum(axis=0))
-    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,s,a,2,:,55::].sum(axis=0))
+    ax.set_prop_cycle(scen_cycler)
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::], '--k')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::], 'xk')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::], 'k')
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,0,:,70::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,2,:,70::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,0,:,70::].sum(axis=0))
+    ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,2,:,70::].sum(axis=0))
     ax.set_ylabel('Capacity [GWh]',fontsize =18)
     right_side = ax.spines["right"]
     right_side.set_visible(False)
     top = ax.spines["top"]
     top.set_visible(False)
-    ax.legend(['Low storage demand','Medium storage demand','High storage demand', 'LFP reused', 'All reused'], loc='upper left',prop={'size':15})
+    ax.legend(['Low storage demand','Medium storage demand','High storage demand', 'LFP reused - Slow EV', 'All reused - Slow EV', 'LFP reused - Fast EV', 'All reused - Fast EV'], loc='upper left',prop={'size':15})
     ax.set_title('Available SLB capacity by scenario'.format(S), fontsize=20)
     ax.set_xlabel('Year',fontsize =16)
     ax.tick_params(axis='both', which='major', labelsize=18)
-    plt.ylim(0,6500)
+    plt.ylim(0,6000)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/SLB_scenarios'))
 # %% 
 def plot_only_NSB():
     from cycler import cycler
