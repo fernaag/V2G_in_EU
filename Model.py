@@ -737,8 +737,6 @@ def plot_V2G_scenarios():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,6000)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/V2G_scenarios'))
-# %%
-
 # %% 
 def plot_SLB_scenarios():
     from cycler import cycler
@@ -757,7 +755,7 @@ def plot_SLB_scenarios():
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::], 'xk')
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::], 'k')
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,0,:,70::].sum(axis=0))
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,0,:,70::].sum(axis=0), '-r')
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
                 MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,2,:,70::].sum(axis=0))
     ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
