@@ -718,6 +718,8 @@ what is insightful and meaningful as a figure and can create those figures for t
 # np.save(results+'/arrays/material_recycled_process_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_8_1'].Values), allow_pickle=True)
 # np.save(results+'/arrays/material_primary_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_0_1'].Values), allow_pickle=True)
 
+## Exporting P values Anna
+# np.save(results+'/arrays/P_demand_vehicles',np.einsum('zSasbt->zSat',MaTrace_System.FlowDict['E_1_2'].Values[:,:,:,:,:,2,:]), allow_pickle=True)# z,S,a,s,b,e,t
 # %% 
 def plot_V2G_scenarios():
     from cycler import cycler
@@ -1431,3 +1433,25 @@ def plot_material_security():
     fig.tight_layout()
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/material_security_slowEV'))
 # %%
+def plot_P_Anna():
+    from cycler import cycler
+    import seaborn as sns
+    scen_cycler = (cycler(color=['r','darkorange','lime','g','b','c','m','y','k']) *
+            cycler(linestyle=['-','--','-.',':'])) 
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(scen_cycler)
+    legend = []
+    for z in range(Nz):
+        for S in range(NS):
+            for a in range(Na):
+                ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('sbt->t',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,55::]))
+                ax.set_ylabel('Material weight [kt]',fontsize =18)
+                right_side = ax.spines["right"]
+                right_side.set_visible(False)
+                top = ax.spines["top"]
+                top.set_visible(False)
+                ax.set_title('Material demand'.format(S), fontsize=20)
+                ax.set_xlabel('Year',fontsize =16)
+                ax.tick_params(axis='both', which='major', labelsize=18)
+                legend.append(IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]+IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
+                ax.legend(legend, loc='upper left',prop={'size':15})
