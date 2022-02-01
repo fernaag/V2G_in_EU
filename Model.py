@@ -1,5 +1,6 @@
 # %% 
 # Load a local copy of the current ODYM branch:
+from asyncio import new_event_loop
 import sys
 import os
 import numpy as np
@@ -761,19 +762,60 @@ def export_table():
                                     'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
                                         'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
                                             'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
-                                                'Primary materials': [np.einsum('bet->', MaTrace_System.FlowDict['E_6_1'].Values[z,S,a,R,v,E,:,:,h,:])]})
+                                                'Secondary materials': [np.einsum('bet->', MaTrace_System.FlowDict['E_6_1'].Values[z,S,a,R,v,E,:,:,h,:])]})
                         rec.append(rec_scenario)
     recycled = pd.concat(rec)
     recycled.reset_index(inplace=True, drop=True)
     cm = sns.light_palette("green", as_cmap=True)
     recycled = recycled.style.background_gradient(cmap=cm)
     
+    ## Export amount of batteries reused
+    reuse = []
+    for z in range(Nz):
+        for S in range(NS):
+            for R in range(NR):
+                for v in range(Nv):
+                    for E in range(NE):
+                        reuse_scenario = pd.DataFrame({'Stock Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]], \
+                                'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
+                                    'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
+                                        'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
+                                            'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
+                                                'Reused batteries': [np.einsum('gsbt->', MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])]})
+                        reuse.append(reuse_scenario)
+    reused = pd.concat(reuse)
+    reused.reset_index(inplace=True, drop=True)
+    cm = sns.light_palette("green", as_cmap=True)
+    reused = reused.style.background_gradient(cmap=cm)
+    
+    ## Export amount of new batteries 
+    new = []
+    for z in range(Nz):
+        for S in range(NS):
+            for R in range(NR):
+                for v in range(Nv):
+                    for E in range(NE):
+                        new_scenario = pd.DataFrame({'Stock Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]], \
+                                'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
+                                    'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
+                                        'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
+                                            'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
+                                                'New batteries': [np.einsum('bt->', MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,:,:])]})
+                        new.append(new_scenario)
+    new_bat = pd.concat(new)
+    new_bat.reset_index(inplace=True, drop=True)
+    cm = sns.light_palette("red", as_cmap=True)
+    new_bat = new_bat.style.background_gradient(cmap=cm)
+                        
+                        
     # Create a Pandas Excel writer using XlsxWriter as the engine.
     writer = pd.ExcelWriter(os.path.join(os.getcwd(), 'results/Manuscript/material_use.xlsx'), engine='xlsxwriter')
 
     # Write each dataframe to a different worksheet.
     material_scenarios.to_excel(writer, sheet_name='Primary materials')
     recycled.to_excel(writer, sheet_name='Secondary materials')
+    reused.to_excel(writer, sheet_name='Reused batteries')
+    new_bat.to_excel(writer, sheet_name='New batteries')
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()
     
