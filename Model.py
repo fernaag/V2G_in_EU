@@ -718,8 +718,66 @@ what is insightful and meaningful as a figure and can create those figures for t
 # np.save(results+'/arrays/material_recycled_process_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_8_1'].Values), allow_pickle=True)
 # np.save(results+'/arrays/material_primary_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_0_1'].Values), allow_pickle=True)
 
+#%%
 ## Exporting P values Anna
-# np.save(results+'/arrays/P_demand_vehicles',np.einsum('zSasbt->zSat',MaTrace_System.FlowDict['E_1_2'].Values[:,:,:,:,:,2,:]), allow_pickle=True)# z,S,a,s,b,e,t
+def export_P_values():
+    results = os.path.join(os.getcwd(), 'results')
+    np.save(results+'/arrays/P_demand_vehicles',np.einsum('zSasbt->zSat',MaTrace_System.FlowDict['E_1_2'].Values[:,:,:,:,:,2,:]), allow_pickle=True)# z,S,a,s,b,e,t
+
+
+## Exporting table with key indicators
+def export_table():
+    import seaborn as sns
+    a = 5 # Faraday chemistry scenario
+    h = 1 # Hydrometallurgical recycling
+    table = []
+    # Exporting primary material use
+    for z in range(Nz):
+        for S in range(NS):
+            for R in range(NR):
+                for v in range(Nv):
+                    for E in range(NE):
+                        scenario = pd.DataFrame({'Stock Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]], \
+                                'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
+                                    'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
+                                        'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
+                                            'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
+                                                'Primary materials': [np.einsum('bet->', MaTrace_System.FlowDict['E_0_1'].Values[z,S,a,R,v,E,:,:,h,:])]})
+                        table.append(scenario)
+    material_scenarios = pd.concat(table)
+    material_scenarios.reset_index(inplace=True, drop=True)
+    cm = sns.light_palette("red", as_cmap=True)
+    material_scenarios = material_scenarios.style.background_gradient(cmap=cm)
+    
+    # Exporting recycled material use
+    rec = []
+    for z in range(Nz):
+        for S in range(NS):
+            for R in range(NR):
+                for v in range(Nv):
+                    for E in range(NE):
+                        rec_scenario = pd.DataFrame({'Stock Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]], \
+                                'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
+                                    'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
+                                        'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
+                                            'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
+                                                'Primary materials': [np.einsum('bet->', MaTrace_System.FlowDict['E_6_1'].Values[z,S,a,R,v,E,:,:,h,:])]})
+                        rec.append(rec_scenario)
+    recycled = pd.concat(rec)
+    recycled.reset_index(inplace=True, drop=True)
+    cm = sns.light_palette("green", as_cmap=True)
+    recycled = recycled.style.background_gradient(cmap=cm)
+    
+    # Create a Pandas Excel writer using XlsxWriter as the engine.
+    writer = pd.ExcelWriter(os.path.join(os.getcwd(), 'results/Manuscript/material_use.xlsx'), engine='xlsxwriter')
+
+    # Write each dataframe to a different worksheet.
+    material_scenarios.to_excel(writer, sheet_name='Primary materials')
+    recycled.to_excel(writer, sheet_name='Secondary materials')
+    # Close the Pandas Excel writer and output the Excel file.
+    writer.save()
+    
+    
 # %% 
 def plot_V2G_scenarios():
     from cycler import cycler
