@@ -733,18 +733,17 @@ def export_table():
     h = 1 # Hydrometallurgical recycling
     table = []
     # Exporting primary material use
-    for z in range(Nz):
-        for S in range(NS):
-            for R in range(NR):
-                for v in range(Nv):
-                    for E in range(NE):
-                        scenario = pd.DataFrame({'Stock Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]], \
-                                'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
-                                    'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
-                                        'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
-                                            'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
-                                                'Primary materials': [np.einsum('bet->', MaTrace_System.FlowDict['E_0_1'].Values[z,S,a,R,v,E,:,:,h,:])]})
-                        table.append(scenario)
+    z = 1
+    for S in range(NS):
+        for R in range(NR):
+            for v in range(Nv):
+                for E in range(NE):
+                    scenario = pd.DataFrame({'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
+                                'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
+                                    'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
+                                        'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
+                                            'Primary materials': [np.einsum('bet->', MaTrace_System.FlowDict['E_0_1'].Values[z,S,a,R,v,E,:,:,h,:])]})
+                    table.append(scenario)
     material_scenarios = pd.concat(table)
     material_scenarios.reset_index(inplace=True, drop=True)
     cm = sns.light_palette("red", as_cmap=True)
@@ -752,18 +751,17 @@ def export_table():
     
     # Exporting recycled material use
     rec = []
-    for z in range(Nz):
-        for S in range(NS):
-            for R in range(NR):
-                for v in range(Nv):
-                    for E in range(NE):
-                        rec_scenario = pd.DataFrame({'Stock Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]], \
-                                'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
-                                    'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
-                                        'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
-                                            'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
-                                                'Secondary materials': [np.einsum('bet->', MaTrace_System.FlowDict['E_6_1'].Values[z,S,a,R,v,E,:,:,h,:])]})
-                        rec.append(rec_scenario)
+    for S in range(NS):
+        for R in range(NR):
+            for v in range(Nv):
+                for E in range(NE):
+                    rec_scenario = pd.DataFrame({
+                            'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
+                                'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
+                                    'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
+                                        'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
+                                            'Secondary materials': [np.einsum('bet->', MaTrace_System.FlowDict['E_6_1'].Values[z,S,a,R,v,E,:,:,h,:])]})
+                    rec.append(rec_scenario)
     recycled = pd.concat(rec)
     recycled.reset_index(inplace=True, drop=True)
     cm = sns.light_palette("green", as_cmap=True)
@@ -771,18 +769,17 @@ def export_table():
     
     ## Export amount of batteries reused
     reuse = []
-    for z in range(Nz):
-        for S in range(NS):
-            for R in range(NR):
-                for v in range(Nv):
-                    for E in range(NE):
-                        reuse_scenario = pd.DataFrame({'Stock Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]], \
-                                'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
-                                    'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
-                                        'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
-                                            'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
-                                                'Reused batteries': [np.einsum('gsbt->', MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])]})
-                        reuse.append(reuse_scenario)
+    for S in range(NS):
+        for R in range(NR):
+            for v in range(Nv):
+                for E in range(NE):
+                    reuse_scenario = pd.DataFrame({
+                            'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
+                                'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
+                                    'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
+                                        'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
+                                            'Reused batteries': [np.einsum('gsbt->', MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])]})
+                    reuse.append(reuse_scenario)
     reused = pd.concat(reuse)
     reused.reset_index(inplace=True, drop=True)
     cm = sns.light_palette("green", as_cmap=True)
@@ -790,18 +787,17 @@ def export_table():
     
     ## Export amount of new batteries 
     new = []
-    for z in range(Nz):
-        for S in range(NS):
-            for R in range(NR):
-                for v in range(Nv):
-                    for E in range(NE):
-                        new_scenario = pd.DataFrame({'Stock Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]], \
-                                'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
-                                    'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
-                                        'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
-                                            'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
-                                                'New batteries': [np.einsum('bt->', MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,:,:])]})
-                        new.append(new_scenario)
+    for S in range(NS):
+        for R in range(NR):
+            for v in range(Nv):
+                for E in range(NE):
+                    new_scenario = pd.DataFrame({
+                            'EV Scenario':[IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]], \
+                                'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
+                                    'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
+                                        'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
+                                            'New batteries': [np.einsum('bt->', MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,:,:])]})
+                    new.append(new_scenario)
     new_bat = pd.concat(new)
     new_bat.reset_index(inplace=True, drop=True)
     cm = sns.light_palette("red", as_cmap=True)
@@ -818,8 +814,7 @@ def export_table():
     new_bat.to_excel(writer, sheet_name='New batteries')
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()
-    
-    
+       
 # %% 
 def plot_V2G_scenarios():
     from cycler import cycler
@@ -1536,22 +1531,24 @@ def plot_material_security():
 def plot_P_Anna():
     from cycler import cycler
     import seaborn as sns
-    scen_cycler = (cycler(color=['r','darkorange','lime','g','b','c','m','y','k']) *
+    scen_cycler = (cycler(color=['r','g', 'b']) *
             cycler(linestyle=['-','--','-.',':'])) 
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(scen_cycler)
     legend = []
-    for z in range(Nz):
-        for S in range(NS):
-            for a in range(Na):
-                ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('sbt->t',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,55::]))
-                ax.set_ylabel('Material weight [kt]',fontsize =18)
-                right_side = ax.spines["right"]
-                right_side.set_visible(False)
-                top = ax.spines["top"]
-                top.set_visible(False)
-                ax.set_title('Material demand'.format(S), fontsize=20)
-                ax.set_xlabel('Year',fontsize =16)
-                ax.tick_params(axis='both', which='major', labelsize=18)
-                legend.append(IndexTable.Classification[IndexTable.index.get_loc('Stock_Scenarios')].Items[z]+IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
-                ax.legend(legend, loc='upper left',prop={'size':15})
+    z=1
+    for S in range(NS):
+        for a in range(Na):
+            ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('sbt->t',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,55::]))
+            ax.set_ylabel('Material weight [kt]',fontsize =18)
+            right_side = ax.spines["right"]
+            right_side.set_visible(False)
+            top = ax.spines["top"]
+            top.set_visible(False)
+            ax.set_title('Material demand'.format(S), fontsize=20)
+            ax.set_xlabel('Year',fontsize =16)
+            ax.tick_params(axis='both', which='major', labelsize=18)
+            legend.append(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+' '+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
+            ax.legend(legend, loc='upper left',prop={'size':15})
+            #ax.text(2045, np.einsum('sb->',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,-1]),IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+' '+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
+# %%
