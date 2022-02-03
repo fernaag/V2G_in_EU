@@ -309,6 +309,8 @@ MaTrace_System.FlowDict['B_4_6'] = msc.Flow(Name = 'Spent LIBs directly to recyc
 #                                             Indices = 'z,S,a,R,v,E,g,s,b,t', Values=None)
 MaTrace_System.FlowDict['B_5_6'] = msc.Flow(Name = 'Spent LIBs after second life to to recycling', P_Start = 5, P_End = 6,
                                             Indices = 'z,S,a,R,v,E,g,s,b,t', Values=None)
+MaTrace_System.FlowDict['B_5_6_tc'] = msc.Flow(Name = 'Spent LIBs after second life to to recycling', P_Start = 5, P_End = 6,
+                                            Indices = 'z,S,a,R,v,E,g,s,b,t,c', Values=None)
 # Initializing stocks at transport stage
 MaTrace_System.StockDict['B_3']   = msc.Stock(Name = 'LIBs in EV in-use stock', P_Res = 3, Type = 0,
                                               Indices = 'z,S,a,g,s,b,t', Values=None)
@@ -413,6 +415,8 @@ MaTrace_System.FlowDict['C_4_5'] =  msc.Flow(Name = 'Used LIBs for stationary st
                                             Indices = 'z,S,a,R,v,E,g,s,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_5_6_SLB'] =  msc.Flow(Name = 'Spent LIBs to recycling', P_Start = 1, P_End = 6,
                                             Indices = 'z,S,a,R,v,E,g,s,b,t', Values=None) # Only in terms of capacity
+MaTrace_System.FlowDict['C_5_6_SLB'] =  msc.Flow(Name = 'Spent LIBs to recycling', P_Start = 1, P_End = 6,
+                                            Indices = 'z,S,a,R,v,E,g,s,b,t,c', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_5_6_NSB'] =  msc.Flow(Name = 'New LIBs for stationary storage outflows', P_Start = 5, P_End = 6,
                                              Indices = 'z,S,a,R,v,E,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.Initialize_FlowValues()  # Assign empty arrays to flows according to dimensions.
@@ -571,7 +575,6 @@ for z in range(Nz):
                     for E in range(NE):
                         for t in range(Nt):
                             # If the demand exceeds installed capacity and potential V2G, install all V2G available
-                            # FIXME: Add degradation curves
                             if MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
                                 + MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t] \
                                     + MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t] \
@@ -590,7 +593,8 @@ for z in range(Nz):
                                                     for g in range(Ng):
                                                         for s in range(Ns):
                                                             for b in range(Nb):
-                                                                MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t]
+                                                                # TODO: Check with Dirk: I devide by 0,8 so that I can use the degradation curve that starts at 0.8 (more transparent and clearly connected to vehicle system)
+                                                                MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t] /0.8
                                                     MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
                                                     # Fill gap with new LFP batteries
                                                     MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,t]                = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] \
@@ -613,7 +617,7 @@ for z in range(Nz):
                                             for g in range(Ng):
                                                 for s in range(Ns):
                                                     for b in range(Nb):
-                                                        MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t]
+                                                        MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t] /0.8
                                             MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
                             else: 
                                 MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t]\
@@ -627,7 +631,9 @@ for z in range(Nz):
                         MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]* share_reused[z,S,a,R,v,E,:]
                         # Calculate outflow volume of SLBs
                         for b in range(Nb):
-                            MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,1,:,b,:]             = MaTrace_System.FlowDict['C_5_6_SLB'].Values[z,S,a,R,v,E,1,:,b,:] / (MaTrace_System.ParameterDict['Capacity'].Values[1,:,:]*0.8) # TODO: Adjust once degradation is implemented
+                            # FIXME: This is a bit tricky: How to convert back to mass without the cohorts --> Use mean? 
+                            MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,1,:,b,:]            = MaTrace_System.FlowDict['C_5_6_SLB'].Values[z,S,a,R,v,E,1,:,b,:] / (MaTrace_System.ParameterDict['Capacity'].Values[1,:,:]*0.6) 
+                            MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,1,:,2,:]            = MaTrace_System.FlowDict['C_5_6_SLB'].Values[z,S,a,R,v,E,1,:,2,:] / (MaTrace_System.ParameterDict['Capacity'].Values[1,:,:]*0.7) 
 
 '''
 Here we calculate the material flows for Ni, Co, Li, P, C, Mn, which are materials exclusively in modules.
@@ -669,10 +675,9 @@ for z in range(Nz):
                         MaTrace_System.FlowDict['E_4_6'].Values[z,S,:,R,v,E,:,:,:]      = MaTrace_System.FlowDict['E_3_4'].Values[z,S,:,:,:,:] - MaTrace_System.FlowDict['E_4_5'].Values[z,S,:,R,v,E,:,:,:]
                         MaTrace_System.FlowDict['E_1_5'].Values[z,S,:,R,v,E,:,:,:]      = np.einsum('gbe,abt->abet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:], \
                             MaTrace_System.FlowDict['C_1_5'].Values[z,S,:,R,v,E,:,:])
-            # Flows of batteries to recycling after reuse
+            # Flows of second life batteries to recycling after reuse
             MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,:,:,:,:]          = np.einsum('gsbe,aRvEgsbt->aRvEbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], \
                 MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,:,:,:,:,:]) 
-            # FIXME: Add NSB outflows
             # Calculate recovered materials for different recycling technologies and corresponding promary material demand
             for v in range(Nv):
                 for E in range(NE):
