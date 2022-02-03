@@ -259,6 +259,8 @@ ParameterDict['Storage_demand']= msc.Parameter(Name = 'Storage_demand',
                                                              Uncert=None,
                                                              Unit = 'GWh')
 
+#TODO: Add degradation NSB
+
 MaTrace_System = msc.MFAsystem(Name = 'MaTrace_Vehicle_Fleet_Global', 
                       Geogr_Scope = 'EU', 
                       Unit = 'Vehicles', 
@@ -558,7 +560,7 @@ For now I assume all NSB are LFP since I don't have material data on teh other c
 '''
 # %%
 installed_slbs = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
-share_reused = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
+share_reused = np.ones((Nz, NS ,Na, NR, Nv, NE, Nt))
 
 print('Calculating energy layer')
 for z in range(Nz):
@@ -576,7 +578,8 @@ for z in range(Nz):
                                         + np.sum(MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t])\
                                         <  MaTrace_System.ParameterDict['Storage_demand'].Values[E,t]:
                                         MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t]   = np.sum(MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t])
-                                        MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t]
+                                        # FIXME: Currently assuming all chemistries degrade the same in the fleet
+                                        MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] * MaTrace_System.ParameterDict['Degradation_fleet'].Values[0,t::,t]
                                         MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                                         # If there is still demand after V2G is installed, and the available SLBs are all needed, we install all SLBs
                                         if MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
@@ -587,12 +590,13 @@ for z in range(Nz):
                                                     for g in range(Ng):
                                                         for s in range(Ns):
                                                             for b in range(Nb):
-                                                                MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t]
+                                                                MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t]
                                                     MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
                                                     # Fill gap with new LFP batteries
-                                                    MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,t]                = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] \
+                                                    MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,t]                = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] \
                                                         - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t] \
-                                                            - MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t]
+                                                            - MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t], 0)
+                                                    # TODO: Add degradation NSB
                                                     MaTrace_System.StockDict['C_5_NSB_tc'].Values[z,S,a,R,v,E,2,t::,t]        = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,t] * Model_nsb.sf_pr[t::,t]
                                                     MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t', MaTrace_System.StockDict['C_5_NSB_tc'].Values[z,S,a,R,v,E,2,:,:])
                                         # If V2G + SLBs exceeds demand, only reuse as many as are needed to meet it
@@ -609,12 +613,12 @@ for z in range(Nz):
                                             for g in range(Ng):
                                                 for s in range(Ns):
                                                     for b in range(Nb):
-                                                        MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t]
+                                                        MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t]
                                             MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
                             else: 
-                                MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] = MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t]\
-                                           - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t]
-                                MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t]
+                                MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t]\
+                                           - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t], 0)
+                                MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] * MaTrace_System.ParameterDict['Degradation_fleet'].Values[0,t::,t]
                                 MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                         # Calculate outflows
                         MaTrace_System.FlowDict['C_5_6_SLB'].Values[z,S,a,R,v,E,:,:,:,1:]           = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,1:] - np.diff((MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:]).sum(axis=-1), n=1,axis=-1)
