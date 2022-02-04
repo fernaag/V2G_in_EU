@@ -415,8 +415,7 @@ MaTrace_System.FlowDict['C_4_5'] =  msc.Flow(Name = 'Used LIBs for stationary st
                                             Indices = 'z,S,a,R,v,E,g,s,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_5_6_SLB'] =  msc.Flow(Name = 'Spent LIBs to recycling', P_Start = 1, P_End = 6,
                                             Indices = 'z,S,a,R,v,E,g,s,b,t', Values=None) # Only in terms of capacity
-MaTrace_System.FlowDict['C_5_6_SLB'] =  msc.Flow(Name = 'Spent LIBs to recycling', P_Start = 1, P_End = 6,
-                                            Indices = 'z,S,a,R,v,E,g,s,b,t,c', Values=None) # Only in terms of capacity
+
 MaTrace_System.FlowDict['C_5_6_NSB'] =  msc.Flow(Name = 'New LIBs for stationary storage outflows', P_Start = 5, P_End = 6,
                                              Indices = 'z,S,a,R,v,E,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.Initialize_FlowValues()  # Assign empty arrays to flows according to dimensions.
@@ -565,6 +564,8 @@ For now I assume all NSB are LFP since I don't have material data on teh other c
 # %%
 installed_slbs = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
 share_reused = np.ones((Nz, NS ,Na, NR, Nv, NE, Nt))
+capacity_stock = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt, Nt)) # Stock in terms of total capacity without degradation
+capacity_outflow = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt))
 
 print('Calculating energy layer')
 for z in range(Nz):
@@ -595,7 +596,10 @@ for z in range(Nz):
                                                             for b in range(Nb):
                                                                 # TODO: Check with Dirk: I devide by 0,8 so that I can use the degradation curve that starts at 0.8 (more transparent and clearly connected to vehicle system)
                                                                 MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t] /0.8
-                                                    MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
+                                                                # Define this to convert back to mass layer later
+                                                                #capacity_stock[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] /0.8
+                                                    
+                                                    MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:]) 
                                                     # Fill gap with new LFP batteries
                                                     MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,t]                = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] \
                                                         - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t] \
@@ -618,6 +622,9 @@ for z in range(Nz):
                                                 for s in range(Ns):
                                                     for b in range(Nb):
                                                         MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t] /0.8
+                                                        # Define initial capacity to convert back to mass layer
+                                                        #capacity_stock[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] /0.8
+                                                        
                                             MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
                             else: 
                                 MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t]\
@@ -626,14 +633,35 @@ for z in range(Nz):
                                 MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                         # Calculate outflows
                         MaTrace_System.FlowDict['C_5_6_SLB'].Values[z,S,a,R,v,E,:,:,:,1:]           = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,1:] - np.diff((MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:]).sum(axis=-1), n=1,axis=-1)
+                        # Calculate total capacity outflow
+                        # for g in range(Ng):
+                        #     for s in range(Ns):
+                        #         for b in range(Nb):
+                        #             capacity_stock[z,S,a,R,v,E,g,s,b,:,:]                           = MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,:,:] / MaTrace_System.ParameterDict['Degradation_slb'].Values[b,:,:] * 0.8 # Revers operation in line 599 to get total capacity back
+                        # capacity_outflow[z,S,a,R,v,E,:,:,:,1:]                                      = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,1:] /0.8 - np.diff((capacity_stock[z,S,a,R,v,E,:,:,:,:,:]).sum(axis=-1), n=1,axis=-1)
                         MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,a,R,v,E,2,1:]               = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,1:] - np.diff(MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:], n=1,axis=0)
                         # Calculate real share that got reused
                         MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]* share_reused[z,S,a,R,v,E,:]
                         # Calculate outflow volume of SLBs
-                        for b in range(Nb):
-                            # FIXME: This is a bit tricky: How to convert back to mass without the cohorts --> Use mean? 
-                            MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,1,:,b,:]            = MaTrace_System.FlowDict['C_5_6_SLB'].Values[z,S,a,R,v,E,1,:,b,:] / (MaTrace_System.ParameterDict['Capacity'].Values[1,:,:]*0.6) 
-                            MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,1,:,2,:]            = MaTrace_System.FlowDict['C_5_6_SLB'].Values[z,S,a,R,v,E,1,:,2,:] / (MaTrace_System.ParameterDict['Capacity'].Values[1,:,:]*0.7) 
+                        # for b in range(Nb):
+                        #     # FIXME: This is a bit tricky: How to convert back to mass without the cohorts --> Use mean? 
+                        #     MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,b,:]            = MaTrace_System.FlowDict['C_5_6_SLB'].Values[z,S,a,R,v,E,:,:,b,:] / (MaTrace_System.ParameterDict['Capacity'].Values[b,:,:]) 
+
+# %%
+for z in range(Nz):
+    for S in range(NS):
+        for a in range(Na):
+            for R in range(NR):
+                for v in range(Nv):
+                    for E in range(NE):
+                        for s in range(Ns):
+                            for b in range(Nb):
+                                slb_mass_model                        = dsm.DynamicStockModel(i= MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,1,s,b,:,:].sum(axis=1),t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
+                                slb_mass_model.compute_s_c_inflow_driven()
+                                slb_mass_model.compute_o_c_from_s_c()
+                                slb_mass_model.compute_outflow_total()
+                                MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,:] = slb_mass_model.o.copy()
+
 
 '''
 Here we calculate the material flows for Ni, Co, Li, P, C, Mn, which are materials exclusively in modules.
@@ -666,7 +694,7 @@ for z in range(Nz):
             MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,:,:,:,:,:,:]      = np.einsum('gsbe,aRvEgsbt->aRvEbet', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], \
                 MaTrace_System.FlowDict['B_5_6'].Values[z,S,:,:,:,:,:,:,:]) \
                         + np.einsum('gbe,aRvEbt->aRvEbet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:], \
-                            MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,:,:,:,:,:,:])
+                            MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,:,:,:,:,:,:]) # FIXME: Might need to account for degradatin here.
             # Calculate material stock? Slows down model and not necessarily insightful
             # Calculate recycling flows
             for R in range(NR):
@@ -686,7 +714,7 @@ for z in range(Nz):
                         MaTrace_System.FlowDict['E_5_6'].Values[z,S,:,:,v,E,:,:,:]) +\
                         np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], MaTrace_System.FlowDict['E_4_6'].Values[z,S,:,:,v,E,:,:,:]) \
                             + np.einsum('eh,aRbet->aRbeht', MaTrace_System.ParameterDict['Recycling_efficiency'].Values[:,:], \
-                                np.einsum('gbe,aRbt->aRbet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:], MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,:,:,v,E,:,:]))
+                                np.einsum('gbe,aRbt->aRbet',MaTrace_System.ParameterDict['Material_content_NSB'].Values[:,:,:], MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,:,:,v,E,:,:])) # FIXME: Might need to add degradation here.
             # Calculate demand for primary materials
             for R in range(NR):
                 for h in range(Nh):
