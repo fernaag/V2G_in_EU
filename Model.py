@@ -53,6 +53,7 @@ Mylog.info('### 1. - Initialize.')
 #Load project-specific config file
 ProjectSpecs_ConFile = 'ODYM_Config_Vehicle_System.xlsx'
 Model_Configfile     = xlrd.open_workbook(os.path.join(DataPath, ProjectSpecs_ConFile))
+# Model_Configfile     = pd.read_excel(os.path.join(DataPath, ProjectSpecs_ConFile), engine = 'openpyxl')
 ScriptConfig         = {'Model Setting': Model_Configfile.sheet_by_name('Config').cell_value(3,3)} # Dictionary with config parameters
 Model_Configsheet    = Model_Configfile.sheet_by_name('Setting_' + ScriptConfig['Model Setting'])
 
