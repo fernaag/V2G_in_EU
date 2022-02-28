@@ -570,10 +570,12 @@ share_reused = np.ones((Nz, NS ,Na, NR, Nv, NE, Nt))
 capacity_stock = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt, Nt)) # Stock in terms of total capacity without degradation
 capacity_outflow = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt))
 
+# Do not compute all chemistry scenarios
+a = 4 # Only BNEF as baseline
 print('Calculating energy layer')
 for z in range(Nz):
     for S in range(NS):
-        for a in range(Na):
+        #for a in range(Na):
             for v in range(Nv):
                 for R in range(NR):
                     for E in range(NE):
@@ -597,7 +599,6 @@ for z in range(Nz):
                                                     for g in [1,2]:
                                                         for s in range(Ns):
                                                             for b in range(Nb):
-                                                                # TODO: Check with Dirk: I devide by 0,8 so that I can use the degradation curve that starts at 0.8 (more transparent and clearly connected to vehicle system)
                                                                 MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t] /0.8
                                                                 # Define this to convert back to mass layer later
                                                                 #capacity_stock[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] /0.8
@@ -635,9 +636,9 @@ for z in range(Nz):
                                 MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] * MaTrace_System.ParameterDict['Degradation_fleet'].Values[0,t::,t]
                                 MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                         # Calculate outflows
-                            if t > 0:
-                                MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,1:,t]           = np.diff((MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,t]), n=1,axis=-1)
-                                MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,t,t]            = 0 
+                            # if t > 0:
+                            MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,1:,:]           = np.diff((MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:]), n=1,axis=-2)
+                            #MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,t,t]            = 0 
                         # Calculate total capacity outflow
                         # for g in range(Ng):
                         #     for s in range(Ns):
@@ -648,22 +649,23 @@ for z in range(Nz):
                         # Calculate real share that got reused
                         MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]* share_reused[z,S,a,R,v,E,:]
                         # Calculate outflow volume of SLBs
-MaTrace_System.FlowDict['B_4_5'].Values = np.nan_to_num(MaTrace_System.FlowDict['B_4_5'].Values, nan=0)
+# %%
 for z in range(Nz):
     for S in range(NS):
-        for a in range(Na):
+        #for a in range(Na):
             for v in range(Nv):
                 for R in range(NR):
                     for E in range(NE):
                         for g in [1,2]:
                             for s in range(Ns):
                                 for b in range(Nb):
-                                    MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,:]            = np.einsum('tc->t', MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,:,:] / (MaTrace_System.ParameterDict['Degradation_slb'].Values[b,:,:])) / MaTrace_System.ParameterDict['Capacity'].Values[g,s,:] 
+                                    for t in range(Nt):
+                                        MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,t]            = np.einsum('c->', np.divide(MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t,:], MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t,:], np.zeros_like(MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t,:]), where = MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t,:]!=0)) / MaTrace_System.ParameterDict['Capacity'].Values[g,s,t] 
 
-# # %%
+# 
 # for z in range(Nz):
 #     for S in range(NS):
-#         for a in range(Na):
+#         #for a in range(Na):
 #             for R in range(NR):
 #                 for v in range(Nv):
 #                     for E in range(NE):
@@ -770,16 +772,11 @@ what is insightful and meaningful as a figure and can create those figures for t
 # np.save(results+'/arrays/material_primary_array', np.einsum('zSaRbeht->zSaReht', MaTrace_System.FlowDict['E_0_1'].Values), allow_pickle=True)
 
 #%%
-## Exporting P values Anna
-def export_P_values():
-    results = os.path.join(os.getcwd(), 'results')
-    np.save(results+'/arrays/P_demand_vehicles',np.einsum('zSasbt->zSat',MaTrace_System.FlowDict['E_1_2'].Values[:,:,:,:,:,2,:]), allow_pickle=True)# z,S,a,s,b,e,t
-
 
 ## Exporting table with key indicators
 def export_table():
     import seaborn as sns
-    a = 5 # Faraday chemistry scenario
+    a = 4 # BNEF chemistry scenario
     h = 1 # Hydrometallurgical recycling
     table = []
     # Exporting primary material use
@@ -865,8 +862,6 @@ def export_table():
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()
        
-export_table()
-# %% 
 def plot_V2G_scenarios():
     from cycler import cycler
     import seaborn as sns
@@ -874,7 +869,7 @@ def plot_V2G_scenarios():
           cycler(linestyle=['-','--',':']))    
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 0 # NCX, LFP, Next_Gen, Roskill
+    a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
@@ -901,7 +896,6 @@ def plot_V2G_scenarios():
     plt.ylim(0,6000)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/V2G_scenarios'))
 
-# %% 
 def plot_SLB_scenarios():
     from cycler import cycler
     import seaborn as sns
@@ -937,7 +931,7 @@ def plot_SLB_scenarios():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,6000)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/SLB_scenarios'))
-# %%
+
 def plot_energy_resource_graphs():
     from cycler import cycler
     import seaborn as sns
@@ -1103,7 +1097,6 @@ def plot_energy_resource_graphs():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
 
-# %%
 def plot_energy_resource_aggregated():
     from cycler import cycler
     import seaborn as sns
@@ -1244,7 +1237,6 @@ def plot_energy_resource_aggregated():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
 
-# %%
 def plot_energy_resource_multi():
     from cycler import cycler
     import seaborn as sns
@@ -1253,8 +1245,8 @@ def plot_energy_resource_multi():
     z = 1 # Low, medium, high
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
-    R = 1 # LFP reused, no reuse, all reuse
-    v = 4 # Low, medium, high, v2g mandate, no v2g, early
+    R = 0 # LFP reused, no reuse, all reuse
+    v = 0 # Low, medium, high, v2g mandate, no v2g, early
     e = 3 # Low, medium, high, CP4All
     fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
     ax[0,0].set_prop_cycle(custom_cycler)
@@ -1269,7 +1261,7 @@ def plot_energy_resource_multi():
     top = ax[0,0].spines["top"]
     top.set_visible(False)
     # ax[0,0].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[0,0].set_title('Available capacity by technology'.format(S), fontsize=8)
+    ax[0,0].set_title('Only NSB'.format(S), fontsize=8)
     ax[0,0].set_xlabel('Year',fontsize =8)
     ax[0,0].tick_params(axis='both', which='major', labelsize=8)
     plt.ylim(0,1300)
@@ -1295,8 +1287,8 @@ def plot_energy_resource_multi():
     z = 1 # Low, medium, high
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
-    R = 1 # LFP reused, no reuse, all reuse
-    v = 3 # Low, medium, high, v2g mandate, no v2g, early
+    R = 0 # LFP reused, no reuse, all reuse
+    v = 4 # Low, medium, high, v2g mandate, no v2g, early
     e = 3 # Low, medium, high, CP4All
     ax[0,1].set_prop_cycle(custom_cycler)
     ax[0,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -1310,7 +1302,7 @@ def plot_energy_resource_multi():
     top = ax[0,1].spines["top"]
     top.set_visible(False)
     # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[0,1].set_title('Available capacity by technology'.format(S), fontsize=8)
+    ax[0,1].set_title('V2G Mandate - No Reuse'.format(S), fontsize=8)
     ax[0,1].set_xlabel('Year',fontsize =8)
     ax[0,1].tick_params(axis='both', which='major', labelsize=8)
     plt.ylim(0,1300)
@@ -1335,7 +1327,7 @@ def plot_energy_resource_multi():
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
-    v = 4 # Low, medium, high, V2G mandate, No V2G, early
+    v = 0 # Low, medium, high, V2G mandate, No V2G, early
     e = 3 # Low, medium, high, CP4All
     ax[0,2].set_prop_cycle(custom_cycler)
     ax[0,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -1349,7 +1341,7 @@ def plot_energy_resource_multi():
     top = ax[0,2].spines["top"]
     top.set_visible(False)
     # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[0,2].set_title('Available capacity by technology'.format(S), fontsize=8)
+    ax[0,2].set_title('All reuse - No V2G'.format(S), fontsize=8)
     ax[0,2].set_xlabel('Year',fontsize =8)
     # ax[0,2].set_ylim([0,5])
     ax[0,2].tick_params(axis='both', which='major', labelsize=8)
@@ -1377,8 +1369,8 @@ def plot_energy_resource_multi():
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
-    R = 1 # LFP reused, no reuse, all reuse
-    v = 4 # Low, medium, high, v2g mandate, no v2g, early
+    R = 0 # LFP reused, no reuse, all reuse
+    v = 0 # Low, medium, high, v2g mandate, no v2g, early
     e = 3 # Low, medium, high, CP4All
     ax[2,0].set_prop_cycle(custom_cycler)
     ax[2,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -1392,7 +1384,7 @@ def plot_energy_resource_multi():
     top = ax[2,0].spines["top"]
     top.set_visible(False)
     # ax[0,0].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[2,0].set_title('Available capacity by technology'.format(S), fontsize=8)
+    ax[2,0].set_title('Only NSB'.format(S), fontsize=8)
     ax[2,0].set_xlabel('Year',fontsize =8)
     ax[2,0].tick_params(axis='both', which='major', labelsize=8)
     plt.ylim(0,1300)
@@ -1417,8 +1409,8 @@ def plot_energy_resource_multi():
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
-    R = 1 # LFP reused, no reuse, all reuse
-    v = 3 # Low, medium, high, v2g mandate, no v2g, early
+    R = 0 # LFP reused, no reuse, all reuse
+    v = 4 # Low, medium, high, v2g mandate, no v2g, early
     e = 3 # Low, medium, high, CP4All
     ax[2,1].set_prop_cycle(custom_cycler)
     ax[2,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -1432,7 +1424,7 @@ def plot_energy_resource_multi():
     top = ax[2,1].spines["top"]
     top.set_visible(False)
     # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[2,1].set_title('Available capacity by technology'.format(S), fontsize=8)
+    ax[2,1].set_title('V2G Mandate - No reuse'.format(S), fontsize=8)
     ax[2,1].set_xlabel('Year',fontsize =8)
     ax[2,1].tick_params(axis='both', which='major', labelsize=8)
     plt.ylim(0,1300)
@@ -1457,7 +1449,8 @@ def plot_energy_resource_multi():
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
-    v = 4 # Low, medium, high, V2G mandate, No V2G, early
+    v = 0 # Low, medium, high, V2G mandate, No V2G, early
+
     e = 3 # Low, medium, high, CP4All
     ax[2,2].set_prop_cycle(custom_cycler)
     ax[2,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -1471,7 +1464,7 @@ def plot_energy_resource_multi():
     top = ax[2,2].spines["top"]
     top.set_visible(False)
     # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[2,2].set_title('Available capacity by technology'.format(S), fontsize=8)
+    ax[2,2].set_title('All reuse - No V2G'.format(S), fontsize=8)
     ax[2,2].set_xlabel('Year',fontsize =8)
     # ax[0,2].set_ylim([0,5])
     ax[2,2].tick_params(axis='both', which='major', labelsize=8)
@@ -1494,7 +1487,7 @@ def plot_energy_resource_multi():
     ax[3,2].tick_params(axis='both', which='major', labelsize=8)
     ax[3,2].set_ylim(0,3000)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/resource_multi'))
-# %%
+
 def plot_material_security():
     from cycler import cycler
     import seaborn as sns
@@ -1578,7 +1571,13 @@ def plot_material_security():
     ax.legend(fontsize=14)
     fig.tight_layout()
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/material_security_slowEV'))
+
 # %%
+## Exporting P values Anna
+def export_P_values():
+    results = os.path.join(os.getcwd(), 'results')
+    np.save(results+'/arrays/P_demand_vehicles',np.einsum('zSasbt->zSat',MaTrace_System.FlowDict['E_1_2'].Values[:,:,:,:,:,2,:]), allow_pickle=True)# z,S,a,s,b,e,t
+
 def plot_P_Anna():
     from cycler import cycler
     import seaborn as sns
@@ -1602,4 +1601,5 @@ def plot_P_Anna():
             legend.append(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+' '+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
             ax.legend(legend, loc='upper left',prop={'size':15})
             #ax.text(2045, np.einsum('sb->',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,-1]),IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+' '+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
+
 # %%
