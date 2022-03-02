@@ -637,32 +637,23 @@ for z in range(Nz):
                                 MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                         # Calculate outflows
                             # if t > 0:
-                            MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,1:,:]           = np.diff((MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:]), n=1,axis=-2)
+                            # MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,1:,:]           = np.diff((MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:]), n=1,axis=-2)
                             #MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,t,t]            = 0 
                         # Calculate total capacity outflow
                         # for g in range(Ng):
                         #     for s in range(Ns):
                         #         for b in range(Nb):
                         #             capacity_stock[z,S,a,R,v,E,g,s,b,:,:]                           = MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,:,:] / MaTrace_System.ParameterDict['Degradation_slb'].Values[b,:,:] * 0.8 # Revers operation in line 599 to get total capacity back
-                        # capacity_outflow[z,S,a,R,v,E,:,:,:,1:]                                      = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,1:] /0.8 - np.diff((capacity_stock[z,S,a,R,v,E,:,:,:,:,:]).sum(axis=-1), n=1,axis=-1)
+                        capacity_outflow[z,S,a,R,v,E,:,:,:,1:]                                      = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,1:] /0.8 - np.diff((capacity_stock[z,S,a,R,v,E,:,:,:,:,:]).sum(axis=-1), n=1,axis=-1)
                         MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,a,R,v,E,2,1:]               = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,1:] - np.diff(MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:], n=1,axis=0)
                         # Calculate real share that got reused
                         MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]* share_reused[z,S,a,R,v,E,:]
+                        for t in range(1,Nt):
+                            for c in range(t):
+                                MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = np.einsum('gsb->sb', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,c]) * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
+                        MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:] = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
                         # Calculate outflow volume of SLBs
 # %%
-for z in range(Nz):
-    for S in range(NS):
-        #for a in range(Na):
-            for v in range(Nv):
-                for R in range(NR):
-                    for E in range(NE):
-                        for g in [1,2]:
-                            for s in range(Ns):
-                                for b in range(Nb):
-                                    for t in range(Nt):
-                                        MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,t]            = np.einsum('c->', np.divide(MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t,:], MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t,:], np.zeros_like(MaTrace_System.FlowDict['C_5_6_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t,:]), where = MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t,:]!=0)) / MaTrace_System.ParameterDict['Capacity'].Values[g,s,t] 
-
-# 
 # for z in range(Nz):
 #     for S in range(NS):
 #         #for a in range(Na):
@@ -690,7 +681,7 @@ context of materials.
 # %%
 print('Running element layer')
 for z in range(Nz):
-    for g in range(0,Ng):
+    for g in range(2):
         for S in range(NS): 
             MaTrace_System.StockDict['E_C_3'].Values[z,S,:,:,:,:,:,:]     = np.einsum('gsbe, agsbtc->asbetc', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], \
                 MaTrace_System.StockDict['B_C_3'].Values[z,S,:,:,:,:,:,:])
