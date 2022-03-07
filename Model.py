@@ -1,6 +1,7 @@
 # %% 
 # Load a local copy of the current ODYM branch:
 from asyncio import new_event_loop
+from curses.panel import bottom_panel
 import sys
 import os
 import numpy as np
@@ -644,29 +645,29 @@ for z in range(Nz):
                         #     for s in range(Ns):
                         #         for b in range(Nb):
                         #             capacity_stock[z,S,a,R,v,E,g,s,b,:,:]                           = MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,:,:] / MaTrace_System.ParameterDict['Degradation_slb'].Values[b,:,:] * 0.8 # Revers operation in line 599 to get total capacity back
-                        capacity_outflow[z,S,a,R,v,E,:,:,:,1:]                                      = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,1:] /0.8 - np.diff((capacity_stock[z,S,a,R,v,E,:,:,:,:,:]).sum(axis=-1), n=1,axis=-1)
+                        # capacity_outflow[z,S,a,R,v,E,:,:,:,1:]                                      = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,1:] /0.8 - np.diff((capacity_stock[z,S,a,R,v,E,:,:,:,:,:]).sum(axis=-1), n=1,axis=-1)
                         MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,a,R,v,E,2,1:]               = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,1:] - np.diff(MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:], n=1,axis=0)
                         # Calculate real share that got reused
-                        MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]* share_reused[z,S,a,R,v,E,:]
-                        for t in range(1,Nt):
-                            for c in range(t):
-                                MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = np.einsum('gsb->sb', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,c]) * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
-                        MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:] = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
-                        # Calculate outflow volume of SLBs
+                        MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = np.einsum('gsbtc, t->gsbtc', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:], share_reused[z,S,a,R,v,E,:])
+#                         for t in range(1,Nt):
+#                             for c in range(t):
+#                                 MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = np.einsum('gsb->sb', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,c]) * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
+#                         MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:] = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
+# #                         # # Calculate outflow volume of SLBs
 # %%
-# for z in range(Nz):
-#     for S in range(NS):
-#         #for a in range(Na):
-#             for R in range(NR):
-#                 for v in range(Nv):
-#                     for E in range(NE):
-#                         for s in range(Ns):
-#                             for b in range(Nb):
-#                                 slb_mass_model                        = dsm.DynamicStockModel(i= MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,1,s,b,:,:].sum(axis=1),t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
-#                                 slb_mass_model.compute_s_c_inflow_driven()
-#                                 slb_mass_model.compute_o_c_from_s_c()
-#                                 slb_mass_model.compute_outflow_total()
-#                                 MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,:] = slb_mass_model.o.copy()
+for z in range(Nz):
+    for S in range(NS):
+        #for a in range(Na):
+            for R in range(NR):
+                for v in range(Nv):
+                    for E in range(NE):
+                        for s in range(Ns):
+                            for b in range(Nb):
+                                slb_mass_model                        = dsm.DynamicStockModel(i= MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,1,s,b,:,:].sum(axis=1),t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
+                                slb_mass_model.compute_s_c_inflow_driven()
+                                slb_mass_model.compute_o_c_from_s_c()
+                                slb_mass_model.compute_outflow_total()
+                                MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,:] = slb_mass_model.o.copy()
 
 
 '''
@@ -1237,15 +1238,15 @@ def plot_energy_resource_multi():
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
-    v = 0 # Low, medium, high, v2g mandate, no v2g, early
+    v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
     e = 3 # Low, medium, high, CP4All
     fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
     ax[0,0].set_prop_cycle(custom_cycler)
     ax[0,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
                     MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
-                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
-    ax[0,0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]], labels=['V2G', 'SLB', 'New batteries'])
+    ax[0,0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k', label='Storage demand')
     ax[0,0].set_ylabel('Capacity [GWh]',fontsize =8)
     right_side = ax[0,0].spines["right"]
     right_side.set_visible(False)
@@ -1263,7 +1264,7 @@ def plot_energy_resource_multi():
     ax[1,0].set_prop_cycle(material_cycler)
     ax[1,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]),\
-                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]))
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]), labels=['Primary materials', 'Recycled materials'])
     # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
     ax[1,0].set_ylabel('Material weight [kt]',fontsize =8)
     right_side = ax[1,0].spines["right"]
@@ -1273,14 +1274,10 @@ def plot_energy_resource_multi():
     ax[1,0].set_title('Material demand'.format(S), fontsize=8)
     ax[1,0].set_xlabel('Year',fontsize =8)
     ax[1,0].tick_params(axis='both', which='major', labelsize=8)
+    # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,0].set_ylim(0,3000)
 
-    z = 1 # Low, medium, high
-    s = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
-    R = 0 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g, early
-    e = 3 # Low, medium, high, CP4All
     ax[0,1].set_prop_cycle(custom_cycler)
     ax[0,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
@@ -1296,9 +1293,10 @@ def plot_energy_resource_multi():
     ax[0,1].set_title('V2G Mandate - No Reuse'.format(S), fontsize=8)
     ax[0,1].set_xlabel('Year',fontsize =8)
     ax[0,1].tick_params(axis='both', which='major', labelsize=8)
+    # ax[0,1].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
     plt.ylim(0,1300)
     # Resource figure for this scenario
-    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    
     ax[1,1].set_prop_cycle(material_cycler)
     ax[1,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]),\
@@ -1314,12 +1312,8 @@ def plot_energy_resource_multi():
     ax[1,1].tick_params(axis='both', which='major', labelsize=8)
     ax[1,1].set_ylim(0,3000)
     
-    z = 1 # Low, medium, high
-    s = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
     v = 0 # Low, medium, high, V2G mandate, No V2G, early
-    e = 3 # Low, medium, high, CP4All
     ax[0,2].set_prop_cycle(custom_cycler)
     ax[0,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
@@ -1334,12 +1328,12 @@ def plot_energy_resource_multi():
     # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
     ax[0,2].set_title('All reuse - No V2G'.format(S), fontsize=8)
     ax[0,2].set_xlabel('Year',fontsize =8)
+    # ax[0,2].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
     # ax[0,2].set_ylim([0,5])
     ax[0,2].tick_params(axis='both', which='major', labelsize=8)
     plt.ylim(0,1300)
 
     # Resource figure for this scenario
-    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[1,2].set_prop_cycle(material_cycler)
     ax[1,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]),\
@@ -1353,6 +1347,7 @@ def plot_energy_resource_multi():
     ax[1,2].set_title('Material demand'.format(S), fontsize=8)
     ax[1,2].set_xlabel('Year',fontsize =8)
     ax[1,2].tick_params(axis='both', which='major', labelsize=8)
+    # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,2].set_ylim(0,3000)
         
     ## Plot second EV penetration scenario
@@ -1460,14 +1455,12 @@ def plot_energy_resource_multi():
     # ax[0,2].set_ylim([0,5])
     ax[2,2].tick_params(axis='both', which='major', labelsize=8)
     plt.ylim(0,1300)
-
     # Resource figure for this scenario
     h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[3,2].set_prop_cycle(material_cycler)
     ax[3,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]),\
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]))
-    # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
     ax[3,2].set_ylabel('Material weight [kt]',fontsize =8)
     right_side = ax[3,2].spines["right"]
     right_side.set_visible(False)
@@ -1477,6 +1470,20 @@ def plot_energy_resource_multi():
     ax[3,2].set_xlabel('Year',fontsize =8)
     ax[3,2].tick_params(axis='both', which='major', labelsize=8)
     ax[3,2].set_ylim(0,3000)
+    # Add separator style
+    line = plt.Line2D([0,1],[0.5,0.5], transform=fig.transFigure, color="black")
+    fig.add_artist(line)
+    line2 = plt.Line2D([0.9,0.9],[0.1,0.9], transform=fig.transFigure, color="black")
+    fig.add_artist(line2)
+    plt.gcf().text(0.95, 0.3, 'SD ', fontsize=16)
+    plt.gcf().text(0.95, 0.7, 'STEP ', fontsize=16)
+    # Add legend
+    lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
+    lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+    fig.legend(lines, labels, loc='lower center', ncol=6, fontsize=14)
+    # Add title
+    fig.suptitle('Resource use per technology used to meet storage demand', fontsize=18)
+    fig.subplots_adjust(top=0.92, bottom=0.08)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/resource_multi'))
 
 def plot_material_security():
