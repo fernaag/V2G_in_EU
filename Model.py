@@ -717,16 +717,16 @@ def plot_V2G_scenarios():
     e = 2 # Low, medium, high
     fig, ax = plt.subplots(1,2,figsize=(16,7))
     ax[0].set_prop_cycle(scen_cycler)
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::], '--k')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::], 'xk')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::], 'k')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,0,:,70::].sum(axis=0), 'orangered', linestyle='-')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,2,:,70::].sum(axis=0))
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,3,:,70::].sum(axis=0))
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,0,:,70::].sum(axis=0))
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,2,:,70::].sum(axis=0))
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,3,:,70::].sum(axis=0))
-    ax[0].set_ylabel('Capacity [GWh]',fontsize =18)
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, '--k')
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, 'xk')
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::]/1000, 'k')
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,0,:,70::].sum(axis=0)/1000, 'orangered', linestyle='-')
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,2,:,70::].sum(axis=0)/1000)
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,3,:,70::].sum(axis=0)/1000)
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,0,:,70::].sum(axis=0)/1000)
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,2,:,70::].sum(axis=0)/1000)
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,3,:,70::].sum(axis=0)/1000)
+    ax[0].set_ylabel('Capacity [TWh]',fontsize =18)
     right_side = ax[0].spines["right"]
     right_side.set_visible(False)
     top = ax[0].spines["top"]
@@ -735,7 +735,7 @@ def plot_V2G_scenarios():
     ax[0].set_title('a) Available V2G capacity by scenario'.format(S), fontsize=20)
     ax[0].set_xlabel('Year',fontsize =16)
     ax[0].tick_params(axis='both', which='major', labelsize=18)
-    ax[0].set_ylim(0,6000)
+    ax[0].set_ylim(0,6)
     ax[0].set_xlim(2020,2050)
 
     from cycler import cycler
@@ -749,18 +749,18 @@ def plot_V2G_scenarios():
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
     ax[1].set_prop_cycle(scen_cycler)
-    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::], '--k')
-    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::], 'xk')
-    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::], 'k')
+    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, '--k')
+    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, 'xk')
+    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::]/1000, 'k')
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,0,:,70::].sum(axis=0), 'orangered', linestyle='-')
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,0,:,70::].sum(axis=0)/1000, 'orangered', linestyle='-')
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,2,:,70::].sum(axis=0))
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,2,:,70::].sum(axis=0)/1000)
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,0,:,70::].sum(axis=0))
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,0,:,70::].sum(axis=0)/1000)
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,2,:,70::].sum(axis=0))
-    ax[1].set_ylabel('Capacity [GWh]',fontsize =18)
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,2,:,70::].sum(axis=0)/1000)
+    ax[1].set_ylabel('Capacity [TWh]',fontsize =18)
     right_side = ax[1].spines["right"]
     right_side.set_visible(False)
     top = ax[1].spines["top"]
@@ -770,8 +770,8 @@ def plot_V2G_scenarios():
     ax[1].set_xlabel('Year',fontsize =16)
     ax[1].tick_params(axis='both', which='major', labelsize=18)
     ax[1].set_xlim(2020,2050)
-    plt.ylim(0,6000)
-    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'))
+    plt.ylim(0,6)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'), dpi=300)
 # %% 
 def plot_only_NSB():
     from cycler import cycler
