@@ -162,8 +162,8 @@ ParameterDict['Segment_shares']= msc.Parameter(Name = 'Segment_shares',
                                                              ID = 3,
                                                              P_Res = None,
                                                              MetaData = None,
-                                                             Indices = 'S,g,s,c', #t=time, h=units
-                                                             Values = np.load(os.getcwd()+'/data/scenario_data/vehicleSize_motorEnergy_passengerCars_global.npy')[:,5,:,:,:], # in %
+                                                             Indices = 'g,s,c', #t=time, h=units
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/vehicleSize_motorEnergy_passengerCars.npy')[:,:,:], # in %
                                                              Uncert=None,
                                                              Unit = '%')
 
@@ -450,17 +450,17 @@ for z in range(Nz):
                 lt_pr = {'Type': 'Normal', 'Mean': lt_car, 'StdDev': sd_car })
             Model.case_1()
             # Vehicles layer
-            MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:]           = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:] ,\
+            MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:]           = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:] ,\
                 np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_pr.copy()))
             MaTrace_System.StockDict['S_3'].Values[z,S,g,:,:]               = np.einsum('stc->st', MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:])
-            MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:,:]              = np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:],\
+            MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:,:]              = np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:],\
                 np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.i_pr.copy()))
-            MaTrace_System.FlowDict['V_3_4'].Values[z,S,g,:,:,:]            = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:],\
+            MaTrace_System.FlowDict['V_3_4'].Values[z,S,g,:,:,:]            = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:],\
                 np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , Model.oc_pr.copy()))
 
             ###  LIBs layer, we calculate the stocks anew but this time via the battery dynamics S_C_bat --> This is only important if we want to implement different lt for the battery
             MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:]       = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , \
-                np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:], \
+                np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:], \
                 np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_cm.copy())))
             MaTrace_System.StockDict['B_3'].Values[z,S,:,g,:,:,:]           = np.einsum('asbtc->asbt', MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:])
             ### Calculate share of stock with V2G
@@ -471,11 +471,11 @@ for z in range(Nz):
             MaTrace_System.FlowDict['B_2_3'].Values[z,S,:,g,:,:,:]          = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , \
                 MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:,:])
             # Calculating batteryy demand to battery manufacturer including reuse and replacements
-            MaTrace_System.FlowDict['B_1_2'].Values[z,S,:,g,:,:,:]            = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:], \
+            MaTrace_System.FlowDict['B_1_2'].Values[z,S,:,g,:,:,:]            = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:], \
                 np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.i_cm.copy())))
             # Calculating the outflows based on the battery demand. 
             # At the moment: LIB flows = EV flows
-            MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,g,:,:,:,:]        = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:], \
+            MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,g,:,:,:,:]        = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:], \
                 np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , Model.oc_cm.copy())))
             # MaTrace_System.FlowDict['B_4_5'].Values[z,S,:,g,:,:,:,:]      = MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,g,:,:,:,:]
             '''
@@ -647,6 +647,7 @@ for z in range(Nz):
                         #         for b in range(Nb):
                         #             capacity_stock[z,S,a,R,v,E,g,s,b,:,:]                           = MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,:,:] / MaTrace_System.ParameterDict['Degradation_slb'].Values[b,:,:] * 0.8 # Revers operation in line 599 to get total capacity back
                         # capacity_outflow[z,S,a,R,v,E,:,:,:,1:]                                      = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,1:] /0.8 - np.diff((capacity_stock[z,S,a,R,v,E,:,:,:,:,:]).sum(axis=-1), n=1,axis=-1)
+                        # TODO: Check if this line is okay and implement degradation
                         MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,a,R,v,E,2,1:]               = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,1:] - np.diff(MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:], n=1,axis=0)
                         # Calculate real share that got reused
                         MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = np.einsum('gsbtc, t->gsbtc', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:], share_reused[z,S,a,R,v,E,:])/0.8
