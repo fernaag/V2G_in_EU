@@ -443,7 +443,7 @@ sd_car = np.array([3])
 
 # %% 
 print('Running model')
-for z in range(Nz):
+for z in range(1):
     for g in range(0,Ng):
         for S in range(NS):
             Model                                                     = pcm.ProductComponentModel(t = range(0,Nt), s_pr = MaTrace_System.ParameterDict['Vehicle_stock'].Values[z,:]/1000, \
@@ -568,14 +568,14 @@ For now I assume all NSB are LFP since I don't have material data on the other c
 '''
 # %%
 installed_slbs = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
-share_reused = np.ones((Nz, NS ,Na, NR, Nv, NE, Nt))
+share_reused = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
 capacity_stock = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt, Nt)) # Stock in terms of total capacity without degradation
 capacity_outflow = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt))
 
 # Do not compute all chemistry scenarios
 a = 4 # Only BNEF as baseline
 print('Calculating energy layer')
-for z in range(Nz):
+for z in range(1):
     for S in range(NS):
         #for a in range(Na):
             for v in range(Nv):
@@ -604,7 +604,7 @@ for z in range(Nz):
                                                                 MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t] /0.8
                                                                 # Define this to convert back to mass layer later
                                                                 #capacity_stock[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] /0.8
-                                                    
+                                                    share_reused[z,S,a,R,v,E,t] = 1
                                                     MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:]) 
                                                     # Fill gap with new LFP batteries
                                                     MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,t]                = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] \
@@ -651,25 +651,25 @@ for z in range(Nz):
                         MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,a,R,v,E,2,1:]               = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,1:] - np.diff(MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:], n=1,axis=0)
                         # Calculate real share that got reused
                         MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = np.einsum('gsbtc, t->gsbtc', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:], share_reused[z,S,a,R,v,E,:])/0.8
-#                         for t in range(1,Nt):
-#                             for c in range(t):
-#                                 MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = np.einsum('gsb->sb', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,c]) * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
-#                         MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:] = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
-# #                         # # Calculate outflow volume of SLBs
+                        for t in range(1,Nt):
+                            for c in range(t):
+                                MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = np.einsum('gsb->sb', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,c]) * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
+                        MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:] = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
+#                         # # Calculate outflow volume of SLBs
 # %%
-for z in range(Nz):
-    for S in range(NS):
-        #for a in range(Na):
-            for R in range(NR):
-                for v in range(Nv):
-                    for E in range(NE):
-                        for s in range(Ns):
-                            for b in range(Nb):
-                                slb_mass_model                        = dsm.DynamicStockModel(i= MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,1,s,b,:,:].sum(axis=1),t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
-                                slb_mass_model.compute_s_c_inflow_driven()
-                                slb_mass_model.compute_o_c_from_s_c()
-                                slb_mass_model.compute_outflow_total()
-                                MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,:] = slb_mass_model.o.copy()
+# for z in range(1):
+#     for S in range(NS):
+#         #for a in range(Na):
+#             for R in range(NR):
+#                 for v in range(Nv):
+#                     for E in range(NE):
+#                         for s in range(Ns):
+#                             for b in range(Nb):
+#                                 slb_mass_model                        = dsm.DynamicStockModel(i= MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,g,s,b,:,:].sum(axis=1),t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
+#                                 slb_mass_model.compute_s_c_inflow_driven()
+#                                 slb_mass_model.compute_o_c_from_s_c()
+#                                 slb_mass_model.compute_outflow_total()
+#                                 MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,g,s,b,:] = slb_mass_model.o.copy()
 
 
 '''
@@ -683,7 +683,7 @@ context of materials.
 '''
 # %%
 print('Running element layer')
-for z in range(Nz):
+for z in range(1):
     for g in range(2):
         for S in range(NS): 
             MaTrace_System.StockDict['E_C_3'].Values[z,S,:,:,:,:,:,:]     = np.einsum('gsbe, agsbtc->asbetc', MaTrace_System.ParameterDict['Material_content'].Values[:,:,:,:], \
@@ -774,7 +774,7 @@ def export_table():
     h = 1 # Hydrometallurgical recycling
     table = []
     # Exporting primary material use
-    z = 1
+    z = 0
     for S in range(NS):
         for R in range(NR):
             for v in range(Nv):
@@ -861,7 +861,7 @@ def export_capacity_table():
     a = 4 # BNEF chemistry scenario
     table = []
     # Exporting V2G capacity
-    z = 1
+    z = 0
     for S in range(NS):
         for R in range(NR):
             for v in range(Nv):
@@ -948,7 +948,7 @@ def plot_V2G_scenarios():
     import seaborn as sns
     scen_cycler = (cycler(color=['red','green', 'blue']) *
           cycler(linestyle=['-','--',':']))    
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
@@ -982,7 +982,7 @@ def plot_SLB_scenarios():
     import seaborn as sns
     scen_cycler = (cycler(color=['red','green']) *
           cycler(linestyle=['-','--'])) 
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 0 # Low, medium, high
     a = 1 # NCX, LFP, Next_Gen, Roskill, BNEF, Faraday
     R = 1 # LFP reused, no reuse, all reuse
@@ -1017,7 +1017,7 @@ def plot_energy_resource_graphs():
     from cycler import cycler
     import seaborn as sns
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
@@ -1072,7 +1072,7 @@ def plot_energy_resource_graphs():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
 
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
@@ -1125,7 +1125,7 @@ def plot_energy_resource_graphs():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
 
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
@@ -1182,7 +1182,7 @@ def plot_energy_resource_aggregated():
     from cycler import cycler
     import seaborn as sns
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
@@ -1228,7 +1228,7 @@ def plot_energy_resource_aggregated():
     print(np.einsum('bm->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,-1]) + np.einsum('bm->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,-1]))
     plt.ylim(0,3000)
 
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
@@ -1272,7 +1272,7 @@ def plot_energy_resource_aggregated():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
 
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
@@ -1323,7 +1323,7 @@ def plot_energy_resource_multi():
     import seaborn as sns
     
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
@@ -1444,7 +1444,7 @@ def plot_energy_resource_multi():
         
     ## Plot second EV penetration scenario
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
@@ -1486,7 +1486,7 @@ def plot_energy_resource_multi():
     ax[3,0].set_ylim(0,3)
     ax[3,0].grid()
     
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
@@ -1526,7 +1526,7 @@ def plot_energy_resource_multi():
     ax[3,1].set_ylim(0,3)
     ax[3,1].grid()
     
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
