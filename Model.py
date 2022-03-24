@@ -1021,7 +1021,7 @@ def plot_energy_resource_graphs():
     s = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
-    v = 4 # Low, medium, high, v2g mandate, no v2g, early
+    v = 4 # Low, medium, high
     e = 3 # Low, medium, high, CP4All
     fig, ax = plt.subplots(figsize=(8,7))
     ax.set_prop_cycle(custom_cycler)
@@ -1328,7 +1328,7 @@ def plot_energy_resource_multi():
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
-    e = 3 # Low, medium, high, CP4All
+    e = 2 # Low, medium, high, CP4All
     fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
     ax[0,0].set_prop_cycle(custom_cycler)
     ax[0,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -1367,7 +1367,7 @@ def plot_energy_resource_multi():
     ax[1,0].set_ylim(0,3)
     ax[1,0].grid()
 
-    v = 4 # Low, medium, high, v2g mandate, no v2g, early
+    v = 2 # Low, medium, high, v2g mandate, no v2g, early
     ax[0,1].set_prop_cycle(custom_cycler)
     ax[0,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
@@ -1449,7 +1449,7 @@ def plot_energy_resource_multi():
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 0 # Low, medium, high, v2g mandate, no v2g, early
-    e = 3 # Low, medium, high, CP4All
+    e = 2 # Low, medium, high, CP4All
     ax[2,0].set_prop_cycle(custom_cycler)
     ax[2,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
@@ -1490,8 +1490,8 @@ def plot_energy_resource_multi():
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
-    v = 4 # Low, medium, high, v2g mandate, no v2g, early
-    e = 3 # Low, medium, high, CP4All
+    v = 2 # Low, medium, high, v2g mandate, no v2g, early
+    e = 2 # Low, medium, high, CP4All
     ax[2,1].set_prop_cycle(custom_cycler)
     ax[2,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
@@ -1532,7 +1532,7 @@ def plot_energy_resource_multi():
     R = 2 # LFP reused, no reuse, all reuse
     v = 0 # Low, medium, high, V2G mandate, No V2G, early
 
-    e = 3 # Low, medium, high, CP4All
+    e = 2 # Low, medium, high, CP4All
     ax[2,2].set_prop_cycle(custom_cycler)
     ax[2,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
