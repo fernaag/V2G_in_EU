@@ -21,6 +21,8 @@ from tqdm import tqdm
 import time
 import matplotlib
 import product_component_model as pcm
+xlrd.xlsx.Element_has_iter = True
+
 mpl_logger = log.getLogger("matplotlib")
 mpl_logger.setLevel(log.WARNING)  
 # For Ipython Notebook only
