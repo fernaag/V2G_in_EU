@@ -1,5 +1,7 @@
 # %% 
 # Load a local copy of the current ODYM branch:
+from asyncio import new_event_loop
+from curses.panel import bottom_panel
 import sys
 import os
 import numpy as np
@@ -19,6 +21,8 @@ from tqdm import tqdm
 import time
 import matplotlib
 import product_component_model as pcm
+xlrd.xlsx.Element_has_iter = True
+
 mpl_logger = log.getLogger("matplotlib")
 mpl_logger.setLevel(log.WARNING)  
 # For Ipython Notebook only
@@ -52,6 +56,7 @@ Mylog.info('### 1. - Initialize.')
 #Load project-specific config file
 ProjectSpecs_ConFile = 'ODYM_Config_Vehicle_System.xlsx'
 Model_Configfile     = xlrd.open_workbook(os.path.join(DataPath, ProjectSpecs_ConFile))
+# Model_Configfile     = pd.read_excel(os.path.join(DataPath, ProjectSpecs_ConFile), engine = 'openpyxl')
 ScriptConfig         = {'Model Setting': Model_Configfile.sheet_by_name('Config').cell_value(3,3)} # Dictionary with config parameters
 Model_Configsheet    = Model_Configfile.sheet_by_name('Setting_' + ScriptConfig['Model Setting'])
 
@@ -140,7 +145,7 @@ ParameterDict = {}
 mo_start = 0 # set mo for re-reading a certain parameter
 ParameterDict['Vehicle_stock']= msc.Parameter(Name = 'Vehicle_stock',
                                                              ID = 1,
-                                                             P_Res = None,
+                                                             P_Res = 3,
                                                              MetaData = None,
                                                              Indices = 'z,t', #t=time, h=units
                                                              Values = np.load(os.getcwd()+'/data/scenario_data/stock.npy'), # in thousands
@@ -159,13 +164,13 @@ ParameterDict['Segment_shares']= msc.Parameter(Name = 'Segment_shares',
                                                              ID = 3,
                                                              P_Res = None,
                                                              MetaData = None,
-                                                             Indices = 'S,g,s,c', #t=time, h=units
-                                                             Values = np.load(os.getcwd()+'/data/scenario_data/vehicleSize_motorEnergy_passengerCars_global.npy')[:,5,:,:,:], # in %
+                                                             Indices = 'g,s,c', #t=time, h=units
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/vehicleSize_motorEnergy_passengerCars.npy')[:,:,:], # in %
                                                              Uncert=None,
                                                              Unit = '%')
 
 ParameterDict['Battery_chemistry_shares']= msc.Parameter(Name = 'Battery_chemistry_shares',
-                                                             ID = 3,
+                                                             ID = 4,
                                                              P_Res = None,
                                                              MetaData = None,
                                                              Indices = 'a,g,b,c', #t=time, h=units
@@ -176,7 +181,7 @@ ParameterDict['Battery_chemistry_shares']= msc.Parameter(Name = 'Battery_chemist
 
 
 ParameterDict['Material_content']= msc.Parameter(Name = 'Materials',
-                                                             ID = 3,
+                                                             ID = 5,
                                                              P_Res = None,
                                                              MetaData = None,
                                                              Indices = 'g,s,b,e', #t=time, h=units
@@ -257,6 +262,8 @@ ParameterDict['Storage_demand']= msc.Parameter(Name = 'Storage_demand',
                                                              Values = np.load(os.getcwd()+'/data/scenario_data/Energy_storage_demand.npy'),
                                                              Uncert=None,
                                                              Unit = 'GWh')
+
+#TODO: Add degradation NSB
 
 MaTrace_System = msc.MFAsystem(Name = 'MaTrace_Vehicle_Fleet_Global', 
                       Geogr_Scope = 'EU', 
@@ -465,13 +472,13 @@ for z in range(Nz):
                 lt_cm = {'Type': 'Normal', 'Mean': lt_bat, 'StdDev': sd_bat}, tau_cm = tau_bat)
             Model.case_1()
             # Vehicles layer
-            MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:]           = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:] ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_pr.copy()))
+            MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:]           = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:] ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_pr.copy()))
             MaTrace_System.StockDict['S_3'].Values[z,S,g,:,:]               = np.einsum('stc->st', MaTrace_System.StockDict['S_C_3'].Values[z,S,g,:,:,:])
-            MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:,:]              = np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:],np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.i_pr.copy()))
-            MaTrace_System.FlowDict['V_3_4'].Values[z,S,g,:,:,:]            = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:],np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , Model.oc_pr.copy()))
+            MaTrace_System.FlowDict['V_2_3'].Values[z,S,g,:,:]              = np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:],np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.i_pr.copy()))
+            MaTrace_System.FlowDict['V_3_4'].Values[z,S,g,:,:,:]            = np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:],np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , Model.oc_pr.copy()))
 
             ###  LIBs layer, we calculate the stocks anew but this time via the battery dynamics S_C_bat
-            MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:]       = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:] \
+            MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:]       = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:] \
                 ,np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.sc_cm.copy())))
             MaTrace_System.StockDict['B_3'].Values[z,S,:,g,:,:,:]           = np.einsum('asbtc->asbt', MaTrace_System.StockDict['B_C_3'].Values[z,S,:,g,:,:,:,:])
             ### Calculate share of stock with V2G
@@ -482,11 +489,11 @@ for z in range(Nz):
             # Calculating batteryy demand to battery manufacturer including reuse and replacements
             #       Use Model.case_3() instead. This considers two different lifetimes, but replacements and reuse are not allowed.
             #       If we keep this definition, we need to add two additional flows B_1_3 and B_4_3
-            MaTrace_System.FlowDict['B_1_2'].Values[z,S,:,g,:,:,:]            = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:], \
+            MaTrace_System.FlowDict['B_1_2'].Values[z,S,:,g,:,:,:]            = np.einsum('abt,st->asbt', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,c->sc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:], \
                 np.einsum('c,c->c', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:],Model.i_cm.copy())))
             # Calculating the outflows based on the battery demand. Here again, this flow will be larger than the number of vehicles due to battery replacements, if allowed.
             # At the moment: LIB flows = EV flows
-            MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,g,:,:,:,:]        = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[S,g,:,:], \
+            MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,g,:,:,:,:]        = np.einsum('abc,stc->asbtc', MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[:,g,:,:] , np.einsum('sc,tc->stc', MaTrace_System.ParameterDict['Segment_shares'].Values[g,:,:], \
                 np.einsum('c,tc->tc', MaTrace_System.ParameterDict['Drive_train_shares'].Values[S,g,:] , Model.oc_cm.copy())))
             MaTrace_System.FlowDict['B_4_5'].Values[z,S,:,g,:,:,:,:]      = MaTrace_System.FlowDict['B_3_4'].Values[z,S,:,g,:,:,:,:]
             '''
@@ -704,26 +711,26 @@ what is insightful and meaningful as a figure and can create those figures for t
 The following is the code for the figures we show Francois 16.09.21
 '''
 # %% 
-def plot_V2G_scenarios():
+def plot_capacity_scenarios():
     from cycler import cycler
     import seaborn as sns
     scen_cycler = (cycler(color=['orangered', 'royalblue']) *
           cycler(linestyle=['-','--',':']))    
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 0 # NCX, LFP, Next_Gen, Roskill
+    a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
     fig, ax = plt.subplots(1,2,figsize=(16,7))
     ax[0].set_prop_cycle(scen_cycler)
     ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, '--k')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, 'xk')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::]/1000, 'k')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,0,:,70::].sum(axis=0)/1000, 'orangered', linestyle='-')
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, 'xk')
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, 'k')
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,1,:,70::].sum(axis=0)/1000, 'orangered', linestyle='-')
     ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,2,:,70::].sum(axis=0)/1000)
     ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,3,:,70::].sum(axis=0)/1000)
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,0,:,70::].sum(axis=0)/1000)
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,1,:,70::].sum(axis=0)/1000)
     ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,2,:,70::].sum(axis=0)/1000)
     ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,3,:,70::].sum(axis=0)/1000)
     ax[0].set_ylabel('Capacity [TWh]',fontsize =18)
@@ -731,7 +738,7 @@ def plot_V2G_scenarios():
     right_side.set_visible(False)
     top = ax[0].spines["top"]
     top.set_visible(False)
-    ax[0].legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low, STEP', 'V2G moderate, STEP', 'V2G mandate, STEP', 'V2G low, SD', 'V2G moderate, SD', 'V2G mandate, SD'], loc='upper left',prop={'size':15})
+    ax[0].legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low, STEP', 'V2G medium, STEP', 'V2G mandate, STEP', 'V2G low, SD', 'V2G medium, SD', 'V2G mandate, SD'], loc='upper left',prop={'size':15})
     ax[0].set_title('a) Available V2G capacity by scenario'.format(S), fontsize=20)
     ax[0].set_xlabel('Year',fontsize =16)
     ax[0].tick_params(axis='both', which='major', labelsize=18)
@@ -750,14 +757,14 @@ def plot_V2G_scenarios():
     e = 2 # Low, medium, high
     ax[1].set_prop_cycle(scen_cycler)
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, '--k')
-    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, 'xk')
-    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[3,70::]/1000, 'k')
+    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, 'xk')
+    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, 'k')
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,0,:,70::].sum(axis=0)/1000, 'orangered', linestyle='-')
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,1,:,70::].sum(axis=0)/1000, 'orangered', linestyle='-')
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
                 MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,2,:,70::].sum(axis=0)/1000)
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,0,:,70::].sum(axis=0)/1000)
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,1,:,70::].sum(axis=0)/1000)
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
                 MaTrace_System.StockDict['C_6_SLB'].Values[z,1,a,2,:,70::].sum(axis=0)/1000)
     ax[1].set_ylabel('Capacity [TWh]',fontsize =18)
@@ -772,7 +779,7 @@ def plot_V2G_scenarios():
     ax[1].set_xlim(2020,2050)
     plt.ylim(0,6)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'), dpi=300)
-# %% 
+
 def plot_only_NSB():
     from cycler import cycler
     import seaborn as sns
@@ -834,7 +841,6 @@ def plot_only_NSB():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,4500)
 
-# %%
 def plot_energy_resource_graphs():
     from cycler import cycler
     import seaborn as sns
@@ -1000,7 +1006,6 @@ def plot_energy_resource_graphs():
     ax.tick_params(axis='both', which='major', labelsize=18)
     plt.ylim(0,3000)
 
-# %%
 def plot_resource_range():
     from cycler import cycler
     import seaborn as sns
@@ -1029,7 +1034,7 @@ def plot_resource_range():
         top.set_visible(False)
         ax.set_xlabel('Year',fontsize =16)
         ax.tick_params(axis='both', which='major', labelsize=18)
-# %%
+
 def plot_rec_resource_range():
     from cycler import cycler
     import seaborn as sns
@@ -1056,7 +1061,7 @@ def plot_rec_resource_range():
         top.set_visible(False)
         ax.set_xlabel('Year',fontsize =16)
         ax.tick_params(axis='both', which='major', labelsize=18)
-# %%
+
 def plot_flows():
     from cycler import cycler
     import seaborn as sns
