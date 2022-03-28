@@ -235,6 +235,15 @@ ParameterDict['Degradation_slb']= msc.Parameter(Name = 'Degradation_slb',
                                                              Uncert=None,
                                                              Unit = '%')
 
+ParameterDict['Degradation_nsb']= msc.Parameter(Name = 'Degradation_nsb',
+                                                             ID = 3,
+                                                             P_Res = None,
+                                                             MetaData = None,
+                                                             Indices = 'b,t,c', #t=time, h=units
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/degradation_slb.npy'),
+                                                             Uncert=None,
+                                                             Unit = '%')
+
 ParameterDict['Reuse_rate']= msc.Parameter(Name = 'Reuse',
                                                              ID = 3,
                                                              P_Res = None,
@@ -592,7 +601,7 @@ for z in range(1):
                                         <  MaTrace_System.ParameterDict['Storage_demand'].Values[E,t]:
                                         MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t]   = np.sum(MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t])
                                         # FIXME: Currently assuming all chemistries degrade the same in the fleet
-                                        MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] # FIXME: Seems like we had already taken off the degradation * MaTrace_System.ParameterDict['Degradation_fleet'].Values[0,t::,t]
+                                        MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] 
                                         MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                                         # If there is still demand after V2G is installed, and the available SLBs are all needed, we install all SLBs
                                         if MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
@@ -613,8 +622,8 @@ for z in range(1):
                                                         - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t] \
                                                             - MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t], 0)
                                                     # TODO: Add degradation NSB
-                                                    MaTrace_System.StockDict['C_5_NSB_tc'].Values[z,S,a,R,v,E,2,t::,t]        = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,t] * Model_nsb.sf_pr[t::,t]
-                                                    MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t', MaTrace_System.StockDict['C_5_NSB_tc'].Values[z,S,a,R,v,E,2,:,:])
+                                                    MaTrace_System.StockDict['C_5_NSB_tc'].Values[z,S,a,R,v,E,2,t::,t]        = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,t] * Model_nsb.sf_pr[t::,t] #* MaTrace_System.ParameterDict['Degradation_nsb'].Values[2,t::,t] /0.8 #TODO: Delete once the correct parameter is here
+                                                    MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:]               = np.einsum('btc->t', MaTrace_System.StockDict['C_5_NSB_tc'].Values[z,S,a,R,v,E,:,:,:])
                                         # If V2G + SLBs exceeds demand, only reuse as many as are needed to meet it
                                         elif MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
                                             + MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t] \
@@ -637,7 +646,7 @@ for z in range(1):
                             else: 
                                 MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t]\
                                            - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t], 0)
-                                MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] * MaTrace_System.ParameterDict['Degradation_fleet'].Values[0,t::,t]
+                                MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] #* MaTrace_System.ParameterDict['Degradation_fleet'].Values[0,t::,t]
                                 MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                         # Calculate outflows
                             # if t > 0:
@@ -1330,7 +1339,7 @@ def plot_energy_resource_multi():
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
-    e = 2 # Low, medium, high, CP4All
+    e = 0 # Low, medium, high, CP4All
     fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
     ax[0,0].set_prop_cycle(custom_cycler)
     ax[0,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -1369,7 +1378,7 @@ def plot_energy_resource_multi():
     ax[1,0].set_ylim(0,3)
     ax[1,0].grid()
 
-    v = 2 # Low, medium, high, v2g mandate, no v2g, early
+    v = 1 # Low, medium, high, v2g mandate, no v2g, early
     ax[0,1].set_prop_cycle(custom_cycler)
     ax[0,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
