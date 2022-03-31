@@ -421,7 +421,7 @@ MaTrace_System.StockDict['Pow_5_NSB']   = msc.Stock(Name = 'Power of NSBs', P_Re
 MaTrace_System.FlowDict['C_2_3_max'] =  msc.Flow(Name = 'Capacity of vehicles equiped with V2G', P_Start = 1, P_End = 6,
                                             Indices = 'z,S,a,v,g,s,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_2_3_real'] =  msc.Flow(Name = 'Capacity of vehicles equiped with V2G', P_Start = 1, P_End = 6,
-                                            Indices = 'z,S,a,R,v,E,t', Values=None) # Only in terms of capacity
+                                            Indices = 'z,S,a,R,v,E,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_1_5'] =  msc.Flow(Name = 'New LIBs for stationary storage ', P_Start = 1, P_End = 6,
                                             Indices = 'z,S,a,R,v,E,b,t', Values=None) # Only in terms of capacity
 MaTrace_System.FlowDict['C_4_5'] =  msc.Flow(Name = 'Used LIBs for stationary storage ', P_Start = 1, P_End = 6,
@@ -562,8 +562,7 @@ inflows = np.einsum('zSaRvEgsbtc->zSaRvEgsbt',MaTrace_System.FlowDict['B_4_5'].V
 SLB_available = np.einsum('zSaRvEgsbt, gst->zSaRvEgsbt',inflows, MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]) * 0.8 
 # Calculate the maximum amount of vehicles that can be equipped with V2G. We assume that the plug-ratio is 50% and park ratio is also 50%. Therefore we use factor 0.25
 MaTrace_System.FlowDict['C_2_3_max'].Values[:,:,:,:,:,:,:,:]         = np.einsum('vgt, zSagsbt->zSavgsbt',MaTrace_System.ParameterDict['V2G_rate'].Values[:,:,:], \
-    np.einsum('btc,zSagsbtc->zSagsbt', MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,:,:], \
-                np.einsum('zSagsbt, gsc->zSagsbtc', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]))) *0.25
+                np.einsum('zSagsbt, gsc->zSagsbt', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:])) *0.25
 # Calculate total capacity needed for vehicle fleet
 ev_fleet_capacity = np.einsum('zSagsbt, gsc->zSat', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:])
 '''
@@ -582,6 +581,8 @@ installed_slbs = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
 share_reused = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
 capacity_stock = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt, Nt)) # Stock in terms of total capacity without degradation
 capacity_outflow = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt))
+stock_max = np.zeros((Nz, NS, Na, Nv, Nt,Nt))
+stock_total = np.zeros((Nz, NS, Na, Nv, Nt))
 
 # Do not compute all chemistry scenarios
 a = 4 # Only BNEF as baseline
@@ -594,14 +595,16 @@ for z in range(1):
                     for E in range(NE):
                         for t in range(Nt):
                             # If the demand exceeds installed capacity and potential V2G, install all V2G available
+                            stock_max[z,S,a,v,t::,t] = np.einsum('gsb,bt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t], MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,t::,t]) * Model.sf_pr[t::,t] 
+                            stock_total[z,S,a,v,t] = stock_max[z,S,a,v,t,:].sum()
                             if MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
                                 + MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t] \
                                     + MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t] \
                                         + np.sum(MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t])\
                                         <  MaTrace_System.ParameterDict['Storage_demand'].Values[E,t]:
-                                        MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t]   = np.sum(MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t])
+                                        MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,t]   = np.einsum('gsb->b',MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,t])
                                         # FIXME: Currently assuming all chemistries degrade the same in the fleet
-                                        MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] 
+                                        MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = np.einsum('b,bt->t', MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,t], MaTrace_System.ParameterDict['Degradation_fleet'].Values[:,t::,t]) * Model.sf_pr[t::,t] 
                                         MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                                         # If there is still demand after V2G is installed, and the available SLBs are all needed, we install all SLBs
                                         if MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] \
@@ -644,9 +647,9 @@ for z in range(1):
                                                         
                                             MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,:]               = np.einsum('gsbtc->t', MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,:,:,:,:,:])
                             else: 
-                                MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t]\
-                                           - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t], 0)
-                                MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,t] * Model.sf_pr[t::,t] #* MaTrace_System.ParameterDict['Degradation_fleet'].Values[0,t::,t]
+                                MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,t] = max(MaTrace_System.ParameterDict['Storage_demand'].Values[E,t] - MaTrace_System.StockDict['C_5_SLB'].Values[z,S,a,R,v,E,t]\
+                                           - MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,t] - MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,t], 0) * MaTrace_System.ParameterDict['Battery_chemistry_shares'].Values[a,1,:,t]
+                                MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,t::,t]        = MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,t].sum(axis=0) * Model.sf_pr[t::,t] * MaTrace_System.ParameterDict['Degradation_fleet'].Values[0,t::,t]
                                 MaTrace_System.StockDict['C_3'].Values[z,S,a,R,v,E,:]               = np.einsum('tc->t',MaTrace_System.StockDict['C_3_tc'].Values[z,S,a,R,v,E,:,:])
                         # Calculate outflows
                             # if t > 0:
@@ -1339,7 +1342,7 @@ def plot_energy_resource_multi():
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
-    e = 0 # Low, medium, high, CP4All
+    e =1 # Low, medium, high, CP4All
     fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
     ax[0,0].set_prop_cycle(custom_cycler)
     ax[0,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
