@@ -1,7 +1,7 @@
 # %% 
 # Load a local copy of the current ODYM branch:
 from asyncio import new_event_loop
-from curses.panel import bottom_panel
+# from curses.panel import bottom_panel
 import sys
 import os
 import numpy as np
@@ -579,8 +579,8 @@ For now I assume all NSB are LFP since I don't have material data on the other c
 # %%
 installed_slbs = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
 share_reused = np.zeros((Nz, NS ,Na, NR, Nv, NE, Nt))
-capacity_stock = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt, Nt)) # Stock in terms of total capacity without degradation
-capacity_outflow = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt))
+# capacity_stock = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt, Nt)) # Stock in terms of total capacity without degradation
+# capacity_outflow = np.zeros((Nz, NS, Na, NR, Nv, NE, Ng, Ns, Nb, Nt))
 stock_max = np.zeros((Nz, NS, Na, Nv, Nt,Nt))
 stock_total = np.zeros((Nz, NS, Na, Nv, Nt))
 
@@ -884,7 +884,7 @@ def export_capacity_table():
                                 'Reuse Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]], \
                                     'V2G Scenario':[IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]], \
                                         'Storage Demand Scenario':[IndexTable.Classification[IndexTable.index.get_loc('Energy_Storage_Scenarios')].Items[E]], \
-                                            'V2G Capacity': [np.einsum('t->', MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:])]})
+                                            'V2G Capacity': [np.einsum('bt->', MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,:])]})
                     table.append(scenario)
     v2g_scenarios = pd.concat(table)
     v2g_scenarios.reset_index(inplace=True, drop=True)
@@ -956,6 +956,9 @@ def export_capacity_table():
     evs.to_excel(writer, sheet_name='EV fleet')
     # Close the Pandas Excel writer and output the Excel file.
     writer.save()
+    
+# call export_capacity_table():
+export_capacity_table()
        
 def plot_V2G_scenarios():
     from cycler import cycler

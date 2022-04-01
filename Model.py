@@ -1,7 +1,7 @@
 # %% 
 # Load a local copy of the current ODYM branch:
 from asyncio import new_event_loop
-from curses.panel import bottom_panel
+# from curses.panel import bottom_panel
 import sys
 import os
 import numpy as np
@@ -778,7 +778,10 @@ def plot_capacity_scenarios():
     ax[1].tick_params(axis='both', which='major', labelsize=18)
     ax[1].set_xlim(2020,2050)
     plt.ylim(0,6)
-    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'), dpi=300)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'), dpi=600)
+    
+# Call plot_capacity_scenarios()
+plot_capacity_scenarios()
 
 def plot_only_NSB():
     from cycler import cycler
