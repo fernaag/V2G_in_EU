@@ -561,8 +561,8 @@ inflows = np.einsum('zSaRvEgsbtc->zSaRvEgsbt',MaTrace_System.FlowDict['B_4_5'].V
 # Calculate the capacity that is available according to this under the assumption that 80% of the initial capacity is still available
 SLB_available = np.einsum('zSaRvEgsbt, gst->zSaRvEgsbt',inflows, MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]) * 0.8 
 # Calculate the maximum amount of vehicles that can be equipped with V2G. We assume that the plug-ratio is 50% and park ratio is also 50%. Therefore we use factor 0.25
-MaTrace_System.FlowDict['C_2_3_max'].Values[:,:,:,:,:,:,:,:]         = np.einsum('vgt, zSagsbt->zSavgsbt',MaTrace_System.ParameterDict['V2G_rate'].Values[:,:,:], \
-                np.einsum('zSagsbt, gsc->zSagsbt', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:])) *0.25
+MaTrace_System.FlowDict['C_2_3_max'].Values[:,:,:,:,:,:,:,:]         = np.einsum('vgc, zSagsbc->zSavgsbc',MaTrace_System.ParameterDict['V2G_rate'].Values[:,:,:], \
+                np.einsum('zSagsbc, gsc->zSagsbc', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:])) *0.25
 # Calculate total capacity needed for vehicle fleet
 ev_fleet_capacity = np.einsum('zSagsbt, gsc->zSat', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:])
 '''
@@ -1342,7 +1342,7 @@ def plot_energy_resource_multi():
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
-    e =1 # Low, medium, high, CP4All
+    e =2 # Low, medium, high, CP4All
     fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
     ax[0,0].set_prop_cycle(custom_cycler)
     ax[0,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
@@ -1381,7 +1381,7 @@ def plot_energy_resource_multi():
     ax[1,0].set_ylim(0,3)
     ax[1,0].grid()
 
-    v = 1 # Low, medium, high, v2g mandate, no v2g, early
+    v = 3 # Low, medium, high, v2g mandate, no v2g, early
     ax[0,1].set_prop_cycle(custom_cycler)
     ax[0,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
@@ -1504,7 +1504,7 @@ def plot_energy_resource_multi():
     s = 1 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
-    v = 2 # Low, medium, high, v2g mandate, no v2g, early
+    v = 3 # Low, medium, high, v2g mandate, no v2g, early
     e = 2 # Low, medium, high, CP4All
     ax[2,1].set_prop_cycle(custom_cycler)
     ax[2,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
