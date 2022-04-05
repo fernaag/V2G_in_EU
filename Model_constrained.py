@@ -1690,7 +1690,7 @@ def plot_share_installed():
     scen_cycler = (cycler(color=sns.color_palette('Accent', 6)) *
             cycler(linestyle=['-','--',':']))    
     z = 0 # Low, medium, high
-    s = 1 # Low, medium, high
+    S = 0 # Low, medium, high
     a = 4 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     E = 0 # Low, medium, high
@@ -1718,11 +1718,11 @@ def plot_share_installed():
     ax[1].set_prop_cycle(scen_cycler)
     for v in range(1,4):
         ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,:].sum(axis=0)[70::]\
-            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,:])[70::]*100, label=IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v])
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,:])[70::]*100, label=IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v]+' - No reuse')
     v=0
     for R in range(1,3):
         ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])[70::]\
-            /np.einsum('gsbt->t', SLB_available[z,S,a,R,v,E,:,:,:,:])[70::]*100, label=IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R])
+            /np.einsum('gsbt->t', SLB_available[z,S,a,R,v,E,:,:,:,:])[70::]*100, label=IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]+' - No V2G')
     ax[1].set_ylabel('Share installed [%]',fontsize =18)
     right_side = ax[1].spines["right"]
     right_side.set_visible(False)
@@ -1732,7 +1732,7 @@ def plot_share_installed():
     ax[1].set_xlabel('Year',fontsize =16)
     ax[1].tick_params(axis='both', which='major', labelsize=18)
     ax[1].set_ylim([0,105])
-    fig.legend(loc='upper left',prop={'size':15}, bbox_to_anchor=(0.2,0), ncol=5, handletextpad = 2, handlelength = 2)
+    fig.legend(loc='upper left',prop={'size':15}, bbox_to_anchor=(0.1,0), ncol=5, handletextpad = 1, handlelength = 1)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/shares_installed'), dpi=600)
 # %%
 ## Exporting P values Anna
