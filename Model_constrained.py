@@ -958,7 +958,7 @@ def export_capacity_table():
     writer.save()
     
 # call export_capacity_table():
-export_capacity_table()
+#export_capacity_table()
        
 def plot_V2G_scenarios():
     from cycler import cycler
@@ -1359,7 +1359,7 @@ def plot_energy_resource_multi():
     top = ax[0,0].spines["top"]
     top.set_visible(False)
     # ax[0,0].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[0,0].set_title('Only NSB'.format(S), fontsize=10)
+    ax[0,0].set_title('a) Only NSB'.format(S), fontsize=10)
     ax[0,0].set_xlabel('Year',fontsize =10)
     ax[0,0].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
@@ -1377,7 +1377,7 @@ def plot_energy_resource_multi():
     right_side.set_visible(False)
     top = ax[1,0].spines["top"]
     top.set_visible(False)
-    ax[1,0].set_title('Material demand'.format(S), fontsize=10)
+    ax[1,0].set_title('d) Material demand'.format(S), fontsize=10)
     ax[1,0].set_xlabel('Year',fontsize =10)
     ax[1,0].tick_params(axis='both', which='major', labelsize=10)
     # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left')
@@ -1397,7 +1397,7 @@ def plot_energy_resource_multi():
     top = ax[0,1].spines["top"]
     top.set_visible(False)
     # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[0,1].set_title('V2G Mandate - No Reuse'.format(S), fontsize=10)
+    ax[0,1].set_title('b) V2G Mandate - No Reuse'.format(S), fontsize=10)
     ax[0,1].set_xlabel('Year',fontsize =10)
     ax[0,1].tick_params(axis='both', which='major', labelsize=10)
     # ax[0,1].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
@@ -1414,7 +1414,7 @@ def plot_energy_resource_multi():
     right_side.set_visible(False)
     top = ax[1,1].spines["top"]
     top.set_visible(False)
-    ax[1,1].set_title('Material demand'.format(S), fontsize=10)
+    ax[1,1].set_title('e) Material demand'.format(S), fontsize=10)
     ax[1,1].set_xlabel('Year',fontsize =10)
     ax[1,1].tick_params(axis='both', which='major', labelsize=10)
     ax[1,1].set_ylim(0,3)
@@ -1434,7 +1434,7 @@ def plot_energy_resource_multi():
     top = ax[0,2].spines["top"]
     top.set_visible(False)
     # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[0,2].set_title('All reuse - No V2G'.format(S), fontsize=10)
+    ax[0,2].set_title('c) All reuse - No V2G'.format(S), fontsize=10)
     ax[0,2].set_xlabel('Year',fontsize =10)
     # ax[0,2].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
     # ax[0,2].set_ylim([0,5])
@@ -1452,7 +1452,7 @@ def plot_energy_resource_multi():
     right_side.set_visible(False)
     top = ax[1,2].spines["top"]
     top.set_visible(False)
-    ax[1,2].set_title('Material demand'.format(S), fontsize=10)
+    ax[1,2].set_title('f) Material demand'.format(S), fontsize=10)
     ax[1,2].set_xlabel('Year',fontsize =10)
     ax[1,2].tick_params(axis='both', which='major', labelsize=10)
     # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
@@ -1479,7 +1479,7 @@ def plot_energy_resource_multi():
     top = ax[2,0].spines["top"]
     top.set_visible(False)
     # ax[0,0].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[2,0].set_title('Only NSB'.format(S), fontsize=10)
+    ax[2,0].set_title('g) Only NSB'.format(S), fontsize=10)
     ax[2,0].set_xlabel('Year',fontsize =10)
     ax[2,0].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
@@ -1497,7 +1497,7 @@ def plot_energy_resource_multi():
     right_side.set_visible(False)
     top = ax[3,0].spines["top"]
     top.set_visible(False)
-    ax[3,0].set_title('Material demand'.format(S), fontsize=10)
+    ax[3,0].set_title('j) Material demand'.format(S), fontsize=10)
     ax[3,0].set_xlabel('Year',fontsize =10)
     ax[3,0].tick_params(axis='both', which='major', labelsize=10)
     ax[3,0].set_ylim(0,3)
@@ -1521,7 +1521,7 @@ def plot_energy_resource_multi():
     top = ax[2,1].spines["top"]
     top.set_visible(False)
     # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[2,1].set_title('V2G Mandate - No reuse'.format(S), fontsize=10)
+    ax[2,1].set_title('h) V2G Mandate - No reuse'.format(S), fontsize=10)
     ax[2,1].set_xlabel('Year',fontsize =10)
     ax[2,1].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
@@ -1537,7 +1537,7 @@ def plot_energy_resource_multi():
     right_side.set_visible(False)
     top = ax[3,1].spines["top"]
     top.set_visible(False)
-    ax[3,1].set_title('Material demand'.format(S), fontsize=10)
+    ax[3,1].set_title('k) Material demand'.format(S), fontsize=10)
     ax[3,1].set_xlabel('Year',fontsize =10)
     ax[3,1].tick_params(axis='both', which='major', labelsize=10)
     ax[3,1].set_ylim(0,3)
@@ -1562,7 +1562,7 @@ def plot_energy_resource_multi():
     top = ax[2,2].spines["top"]
     top.set_visible(False)
     # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
-    ax[2,2].set_title('All reuse - No V2G'.format(S), fontsize=10)
+    ax[2,2].set_title('i) All reuse - No V2G'.format(S), fontsize=10)
     ax[2,2].set_xlabel('Year',fontsize =10)
     # ax[0,2].set_ylim([0,5])
     ax[2,2].tick_params(axis='both', which='major', labelsize=10)
@@ -1579,7 +1579,7 @@ def plot_energy_resource_multi():
     right_side.set_visible(False)
     top = ax[3,2].spines["top"]
     top.set_visible(False)
-    ax[3,2].set_title('Material demand'.format(S), fontsize=10)
+    ax[3,2].set_title('l) Material demand'.format(S), fontsize=10)
     ax[3,2].set_xlabel('Year',fontsize =10)
     ax[3,2].tick_params(axis='both', which='major', labelsize=10)
     ax[3,2].set_ylim(0,3)
@@ -1596,7 +1596,7 @@ def plot_energy_resource_multi():
     lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
     fig.legend(lines, labels, loc='lower center', ncol=6, fontsize=14)
     # Add title
-    fig.suptitle('Resource use per technology used to meet storage demand', fontsize=18)
+    fig.suptitle('Resource use per technology used to meet storage demand - High demand scenario', fontsize=18)
     fig.subplots_adjust(top=0.92, bottom=0.08)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/resource_multi'), dpi=300)
 
@@ -1684,6 +1684,56 @@ def plot_material_security():
     fig.tight_layout()
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/material_security_slowEV'))
 
+def plot_share_installed():
+    from cycler import cycler
+    import seaborn as sns
+    scen_cycler = (cycler(color=sns.color_palette('Accent', 6)) *
+            cycler(linestyle=['-','--',':']))    
+    z = 0 # Low, medium, high
+    s = 1 # Low, medium, high
+    a = 4 # NCX, LFP, Next_Gen, Roskill
+    R = 0 # LFP reused, no reuse, all reuse
+    E = 0 # Low, medium, high
+    fig, ax = plt.subplots(1,2,figsize=(17,7))
+    ax[0].set_prop_cycle(scen_cycler)
+    for v in range(1,4):
+        ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,:])[70::]*100)
+    v=0
+    for R in range(1,3):
+        ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])[70::]\
+            /np.einsum('gsbt->t', SLB_available[z,S,a,R,v,E,:,:,:,:])[70::]*100)
+    ax[0].set_ylabel('Share installed [%]',fontsize =18)
+    right_side = ax[0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[0].spines["top"]
+    top.set_visible(False)
+    ax[0].legend(loc='lower left',prop={'size':15})
+    ax[0].set_title('a) Share of installed capacity compared to available \n Low demand scenario', fontsize=18)
+    ax[0].set_xlabel('Year',fontsize =16)
+    ax[0].tick_params(axis='both', which='major', labelsize=18)
+    ax[0].set_ylim([0,105])
+
+    E=2
+    ax[1].set_prop_cycle(scen_cycler)
+    for v in range(1,4):
+        ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,S,a,v,:,:,:,:])[70::]*100, label=IndexTable.Classification[IndexTable.index.get_loc('V2G_Scenarios')].Items[v])
+    v=0
+    for R in range(1,3):
+        ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])[70::]\
+            /np.einsum('gsbt->t', SLB_available[z,S,a,R,v,E,:,:,:,:])[70::]*100, label=IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R])
+    ax[1].set_ylabel('Share installed [%]',fontsize =18)
+    right_side = ax[1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1].spines["top"]
+    top.set_visible(False)
+    ax[1].set_title('b) Share of installed capacity compared to available \n High demand scenario', fontsize=18)
+    ax[1].set_xlabel('Year',fontsize =16)
+    ax[1].tick_params(axis='both', which='major', labelsize=18)
+    ax[1].set_ylim([0,105])
+    fig.legend(loc='upper left',prop={'size':15}, bbox_to_anchor=(0.2,0), ncol=5, handletextpad = 2, handlelength = 2)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/shares_installed'), dpi=600)
 # %%
 ## Exporting P values Anna
 def export_P_values():
