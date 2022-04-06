@@ -781,7 +781,7 @@ def plot_capacity_scenarios():
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'), dpi=600)
     
 # Call plot_capacity_scenarios()
-plot_capacity_scenarios()
+#plot_capacity_scenarios()
 
 def plot_only_NSB():
     from cycler import cycler
