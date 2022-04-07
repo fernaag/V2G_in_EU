@@ -1598,7 +1598,7 @@ def plot_energy_resource_multi():
     # Add title
     fig.suptitle('Resource use per technology used to meet storage demand - High demand scenario', fontsize=18)
     fig.subplots_adjust(top=0.92, bottom=0.08)
-    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/resource_multi'), dpi=300)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/resource_multi'), dpi=600, bbox_inches = 'tight')
 
 def plot_material_security():
     from cycler import cycler
@@ -1735,7 +1735,7 @@ def plot_share_installed_demand():
     ax[1].tick_params(axis='both', which='major', labelsize=18)
     ax[1].set_ylim([0,105])
     fig.legend(loc='upper left',prop={'size':15}, bbox_to_anchor=(0.1,0), ncol=5, handletextpad = 1, handlelength = 1)
-    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/shares_installed_demand'), dpi=600)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/shares_installed_demand'), dpi=600, bbox_inches = 'tight')
 
 def plot_share_installed_ev():
     from cycler import cycler
