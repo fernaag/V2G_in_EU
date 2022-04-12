@@ -1,0 +1,19 @@
+
+----------
+
+The storage needs of electric vehicles are about three orders of magnitude higher than the storage needs of the grid in all scenarios.
+
+V2G and SLBs both have the potential to meet and exceed the demand for stationary energy storage by up to a factor three under most scenarios. 
+
+There is a considerable potential excess capacity of V2G and SLBs from 2035 onward, which may be used for strategic national electricity reserves to prevent blackouts and to mitigate vulnerability to fossil fuel supply shortages.
+
+V2G can reduce the primary material demand by about 10% in both EV penetration scenarios, which is similar to the difference in primary material demand between the two scenarios.
+
+An early and widespread adoption of V2G leads to the lowest peak primary material demand.
+
+SLBs reduce total material demand but increase primary material demand.
+----------
+
+Memento:
+
+In this case, reuse is thus less resource efficient than multifunctional use.
