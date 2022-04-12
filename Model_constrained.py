@@ -447,8 +447,8 @@ in driving patterns and other conditions that affect the time a battery can be u
 # lt_bat = np.array([12])
 # sd_bat = np.array([3])
 
-lt_car = np.array([12])
-sd_car = np.array([3])
+lt_car = np.array([15])
+sd_car = np.array([4])
 
 
 
@@ -547,11 +547,11 @@ in vehicles, since they are less intensively used.
 '''
 # Defining new battery lifetime and standard deviation
 # TODO: Do these values make sense? If we are choosing 12yrs in vehicles + 6yrs in second life, then 12 have a mean of 18yrs which is more than the 16 assumed here. Maybe we should go for 20 to remain consistent?
-Model_nsb = pcm.ProductComponentModel(t = range(0,Nt),  lt_pr = {'Type': 'Normal', 'Mean': np.array([16]), 'StdDev': np.array([4])})
+Model_nsb = pcm.ProductComponentModel(t = range(0,Nt),  lt_pr = {'Type': 'Normal', 'Mean': np.array([20]), 'StdDev': np.array([4])})
 Model_nsb.compute_sf_pr()
 
 # Defining second life battery lifetime
-lt_slb                               = np.array([6]) 
+lt_slb                               = np.array([5]) 
 sd_slb                               = np.array([2]) 
 slb_model                        = dsm.DynamicStockModel(t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
 slb_model.compute_sf()
@@ -664,10 +664,10 @@ for z in range(1):
                         # TODO: Check if this line is okay and implement degradation
                         MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,a,R,v,E,2,1:]               = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,1:] - np.diff(MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:], n=1,axis=0)
                         # Calculate real share that got reused
-                        MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = np.einsum('gsbtc, t->gsbtc', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:], share_reused[z,S,a,R,v,E,:])/0.8
+                        MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = np.einsum('gsbtc, t->gsbtc', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:], share_reused[z,S,a,R,v,E,:])
                         for t in range(1,Nt):
                             for c in range(t):
-                                MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = np.einsum('gsb->sb', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,c]) * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
+                                MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,t] * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
                         MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:] = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
 #                         # # Calculate outflow volume of SLBs
 # %%
