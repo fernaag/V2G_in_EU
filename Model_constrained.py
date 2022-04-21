@@ -22,7 +22,6 @@ import time
 import matplotlib
 import product_component_model as pcm
 xlrd.xlsx.Element_has_iter = True
-
 mpl_logger = log.getLogger("matplotlib")
 mpl_logger.setLevel(log.WARNING)  
 # For Ipython Notebook only
@@ -337,9 +336,9 @@ MaTrace_System.StockDict['dB_3']  = msc.Stock(Name = 'LIBs in EV stock change', 
                                               Indices = 'z,S,a,g,s,b,t,c', Values=None)
 # Initializing stocks of SLBs at stationary storage stage
 MaTrace_System.StockDict['B_5_SLB']   = msc.Stock(Name = 'SLBs in stationary storage', P_Res = 5, Type = 0,
-                                              Indices = 'z,S,a,R,g,s,b,t', Values=None)
+                                              Indices = 'z,S,a,R,v,E,g,s,b,t', Values=None)
 MaTrace_System.StockDict['B_C_5_SLB']   = msc.Stock(Name = 'SLBs in stationary storage', P_Res = 5, Type = 0,
-                                              Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
+                                              Indices = 'z,S,a,R,v,E,g,s,b,t,c', Values=None)
 MaTrace_System.StockDict['dB_5_SLB']  = msc.Stock(Name = 'Stock change of SLBs in stationary storage', P_Res = 5, Type = 1,
                                               Indices = 'z,S,a,R,g,s,b,t,c', Values=None)
 # Initializing stocks of NSB at stationary storage stage
@@ -447,7 +446,7 @@ in driving patterns and other conditions that affect the time a battery can be u
 # lt_bat = np.array([12])
 # sd_bat = np.array([3])
 
-lt_car = np.array([15])
+lt_car = np.array([16])
 sd_car = np.array([4])
 
 
@@ -556,6 +555,8 @@ sd_slb                               = np.array([2])
 slb_model                        = dsm.DynamicStockModel(t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
 slb_model.compute_sf()
 
+
+slb_model_hz = pcm.ProductComponentModel(t=range(0,Nt), lt_pr={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
 # Aggregate all cohorts for reuse under the assumption that they are in similar SOH
 inflows = np.einsum('zSaRvEgsbtc->zSaRvEgsbt',MaTrace_System.FlowDict['B_4_5'].Values[:,:,:,:,:,:,:,:,:,:,:])
 # Calculate the capacity that is available according to this under the assumption that 80% of the initial capacity is still available
@@ -665,11 +666,18 @@ for z in range(1):
                         MaTrace_System.FlowDict['C_5_6_NSB'].Values[z,S,a,R,v,E,2,1:]               = MaTrace_System.FlowDict['C_1_5'].Values[z,S,a,R,v,E,2,1:] - np.diff(MaTrace_System.StockDict['C_5_NSB'].Values[z,S,a,R,v,E,:], n=1,axis=0)
                         # Calculate real share that got reused
                         MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:]              = np.einsum('gsbtc, t->gsbtc', MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:], share_reused[z,S,a,R,v,E,:])
-                        for t in range(1,Nt):
-                            for c in range(t):
-                                MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,t] * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
-                        MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:] = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
+                        MaTrace_System.StockDict['B_C_5_SLB'].Values[z,S,a,R,v,E,:,:,:,:,:]         = np.einsum('gsbc,tc->gsbtc',MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1), slb_model.sf[:,:])# z,S,a,R,v,E,g,s,b,t
+                        MaTrace_System.StockDict['B_5_SLB'].Values[z,S,a,R,v,E,:,:,:,:]             = MaTrace_System.StockDict['B_C_5_SLB'].Values[z,S,a,R,v,E,:,:,:,:].sum(axis=-1)
+                        MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:]           = np.maximum(-np.diff(MaTrace_System.StockDict['B_C_5_SLB'].Values[z,S,a,R,v,E,:,:,:,:,:],axis=-2,prepend=0),0)
+                        MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:]                = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
+                        # for t in range(1,Nt):
+                        #     for c in range(t):
+                        #         #FIXME: Is the assumption for B_4_5 correct?
+                        #         MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,t,c]           = MaTrace_System.FlowDict['B_4_5'].Values[z,S,a,R,v,E,:,:,:,t,:].sum(axis=-1) * abs((slb_model.sf[t,c] - slb_model.sf[t-1,c]))
+                        # MaTrace_System.FlowDict['B_5_6'].Values[z,S,a,R,v,E,:,:,:,:] = MaTrace_System.FlowDict['B_5_6_tc'].Values[z,S,a,R,v,E,:,:,:,:,:].sum(axis=-1)
 #                         # # Calculate outflow volume of SLBs
+# plt.plot(np.einsum('sbtc->t',MaTrace_System.FlowDict['B_4_5'].Values[0,0,4,2,0,2,1,:,:,:,:]))
+# plt.plot(np.einsum('sbtc->t',MaTrace_System.FlowDict['B_5_6_tc'].Values[0,0,4,2,0,2,1,:,:,:,:]))
 # %%
 # for z in range(1):
 #     for S in range(NS):
