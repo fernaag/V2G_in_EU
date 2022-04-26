@@ -18,3 +18,7 @@ Define model classifications and select items for model classifications accordin
 
 Define index table dataframe.
 
+No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+
+No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+

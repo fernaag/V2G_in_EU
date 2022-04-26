@@ -1789,7 +1789,8 @@ def plot_share_installed_ev():
 ## Exporting P values Anna
 def export_P_values():
     results = os.path.join(os.getcwd(), 'results')
-    np.save(results+'/arrays/P_demand_vehicles',np.einsum('zSasbt->zSat',MaTrace_System.FlowDict['E_1_2'].Values[:,:,:,:,:,2,:]), allow_pickle=True)# z,S,a,s,b,e,t
+    np.save(results+'/arrays/P_demand_primary',np.einsum('zSabht->zSaht',MaTrace_System.FlowDict['E_0_1'].Values[:,:,:,0,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
+    np.save(results+'/arrays/P_demand_recycled',np.einsum('zSabht->zSaht',MaTrace_System.FlowDict['E_6_1'].Values[:,:,:,0,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
 
 def plot_P_Anna():
     from cycler import cycler
