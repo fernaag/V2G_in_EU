@@ -433,22 +433,21 @@ could still be useful for stationary appplications. We could choose a smaller ta
 excludes broken batteries and allows for all others to be theoretically useful. Then we can combine that with 
 the reuse scenarios to prioritize other chemistries and so on. 
 '''
-lt_bat = np.array([12])
-sd_bat = np.array([3])
+lt_bat = np.array([15])
+sd_bat = np.array([5])
 
-lt_car = np.array([12])
-sd_car = np.array([3])
+lt_car = np.array([15])
+sd_car = np.array([5])
 # Define minimum amount of useful time
 tau_bat = 5
 # Define SLB model
 Model_slb                                                       = pcm.ProductComponentModel(t = range(0,Nt),  lt_cm = {'Type': 'Normal', 'Mean': lt_bat, 'StdDev': sd_bat}, tau_cm=tau_bat)
 # Compute the survival curve of the batteries with the additional lenght for the last tau years
-Model_slb.compute_sf_cm_tau()
 '''
 Define the SLB model in advance. We do not compute everything using the dsm as it only takes i as input
 and takes too long to compute. Instead, we define the functions ourselves using the sf computed with dsm. 
 '''
-lt_slb                               = np.array([6]) # We could have different lifetimes for the different chemistries
+lt_slb                               = np.array([5]) # We could have different lifetimes for the different chemistries
 sd_slb                               = np.array([2]) 
 slb_model                        = dsm.DynamicStockModel(t=range(0,Nt), lt={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
 slb_model.compute_sf()
@@ -561,9 +560,6 @@ for z in range(Nz):
                             MaTrace_System.StockDict['B_C_6_SLB'].Values[z,S,a,R,g,s,b,:,:] = slb_model.s_c.copy()
                             MaTrace_System.FlowDict['B_6_7'].Values[z,S,a,R,g,s,b,:,:] = slb_model.o_c.copy()
 
-#fig.savefig(results+'/{}/{}/Stock_per_DT'.format(z,S))       
-            # Elements layer: \
-            # TODO: P content still missing in data sheet
 
 '''
 Now we define the energy layer, where we need to calculate the capacity in the fleet as a whole, 
@@ -1107,5 +1103,35 @@ def plot_flows():
         ax.set_xlabel('Year',fontsize =16)
         ax.tick_params(axis='both', which='major', labelsize=18)
         plt.ylim(0,30)
+
+## Exporting P values Anna
+def export_P_values():
+    results = os.path.join(os.getcwd(), 'results')
+    np.save(results+'/arrays/P_demand_primary_EU',np.einsum('SaRbht->SaRht',MaTrace_System.FlowDict['E_0_1'].Values[0,:,:,:,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
+    np.save(results+'/arrays/P_demand_recycled_EU',np.einsum('SaRbht->SaRht',MaTrace_System.FlowDict['E_8_1'].Values[0,:,:,:,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
+
+def plot_P_Anna():
+    from cycler import cycler
+    import seaborn as sns
+    scen_cycler = (cycler(color=['r','g', 'b']) *
+            cycler(linestyle=['-','--','-.',':'])) 
+    fig, ax = plt.subplots(figsize=(8,7))
+    ax.set_prop_cycle(scen_cycler)
+    legend = []
+    z=1
+    for S in range(NS):
+        for a in range(Na):
+            ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('sbt->t',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,55::]))
+            ax.set_ylabel('Material weight [kt]',fontsize =18)
+            right_side = ax.spines["right"]
+            right_side.set_visible(False)
+            top = ax.spines["top"]
+            top.set_visible(False)
+            ax.set_title('Material demand'.format(S), fontsize=20)
+            ax.set_xlabel('Year',fontsize =16)
+            ax.tick_params(axis='both', which='major', labelsize=18)
+            legend.append(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+' '+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
+            ax.legend(legend, loc='upper left',prop={'size':15})
+            #ax.text(2045, np.einsum('sb->',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,-1]),IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+' '+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
 
 # %%

@@ -458,6 +458,14 @@ print('Running model')
 for z in range(1):
     for g in range(0,Ng):
         for S in range(NS):
+            '''
+            Stock is given in millions of vehicles, which means the vehcle layer is calculated in Millions of vehicles. (labeled with a V)
+            
+            The battery layer is also in millions of batteries, as we multiply only with shares. (labeled with B)
+            
+            We calculate the capacity layer by multiplying the B layer with the amount of kWh per batteries. Therefore, the capacity layer 
+            is in GWh, since #batteries 10e6 and material content 1e3 so.
+            '''
             Model                                                     = pcm.ProductComponentModel(t = range(0,Nt), s_pr = MaTrace_System.ParameterDict['Vehicle_stock'].Values[z,:]/1000, \
                 lt_pr = {'Type': 'Normal', 'Mean': lt_car, 'StdDev': sd_car })
             Model.case_1()
@@ -567,7 +575,7 @@ SLB_available = np.einsum('zSaRvEgsbt, gst->zSaRvEgsbt',inflows, MaTrace_System.
 MaTrace_System.FlowDict['C_2_3_max'].Values[:,:,:,:,:,:,:,:]         = np.einsum('vgc, zSagsbc->zSavgsbc',MaTrace_System.ParameterDict['V2G_rate'].Values[:,:,:], \
                 np.einsum('zSagsbc, gsc->zSagsbc', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:])) *0.25
 # Calculate total capacity needed for vehicle fleet
-ev_fleet_capacity = np.einsum('zSagsbt, gsc->zSat', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:])
+ev_fleet_capacity = np.einsum('zSagsbc, gsc->zSac', MaTrace_System.FlowDict['B_2_3'].Values[:,:,:,:,:,:,:], MaTrace_System.ParameterDict['Capacity'].Values[:,:,:])
 '''
 Since the flows have been adjusted to the demand, we need to update the values of SLBs as not
 all batteries available are actually reused. V2G has a similar issue, as we would like to 
@@ -1785,35 +1793,10 @@ def plot_share_installed_ev():
     ax[1].grid()
     fig.legend(loc='upper left',prop={'size':15}, bbox_to_anchor=(0.1,0), ncol=5, handletextpad = 1, handlelength = 1)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/shares_installed_ev'), dpi=600, bbox_inches = 'tight')
-# %%
 ## Exporting P values Anna
 def export_P_values():
     results = os.path.join(os.getcwd(), 'results')
-    np.save(results+'/arrays/P_demand_primary',np.einsum('zSabht->zSaht',MaTrace_System.FlowDict['E_0_1'].Values[:,:,:,0,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
-    np.save(results+'/arrays/P_demand_recycled',np.einsum('zSabht->zSaht',MaTrace_System.FlowDict['E_6_1'].Values[:,:,:,0,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
-
-def plot_P_Anna():
-    from cycler import cycler
-    import seaborn as sns
-    scen_cycler = (cycler(color=['r','g', 'b']) *
-            cycler(linestyle=['-','--','-.',':'])) 
-    fig, ax = plt.subplots(figsize=(8,7))
-    ax.set_prop_cycle(scen_cycler)
-    legend = []
-    z=1
-    for S in range(NS):
-        for a in range(Na):
-            ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('sbt->t',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,55::]))
-            ax.set_ylabel('Material weight [kt]',fontsize =18)
-            right_side = ax.spines["right"]
-            right_side.set_visible(False)
-            top = ax.spines["top"]
-            top.set_visible(False)
-            ax.set_title('Material demand'.format(S), fontsize=20)
-            ax.set_xlabel('Year',fontsize =16)
-            ax.tick_params(axis='both', which='major', labelsize=18)
-            legend.append(IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+' '+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
-            ax.legend(legend, loc='upper left',prop={'size':15})
-            #ax.text(2045, np.einsum('sb->',MaTrace_System.FlowDict['E_1_2'].Values[z,S,a,:,:,2,-1]),IndexTable.Classification[IndexTable.index.get_loc('EV_penetration_scenario')].Items[S]+' '+IndexTable.Classification[IndexTable.index.get_loc('Chemistry_Scenarios')].Items[a])
+    np.save(results+'/arrays/P_demand_primary_EU',np.einsum('SaRbht->SaRht',MaTrace_System.FlowDict['E_0_1'].Values[0,:,:,:,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
+    np.save(results+'/arrays/P_demand_recycled_EU',np.einsum('SaRbht->SaRht',MaTrace_System.FlowDict['E_6_1'].Values[0,:,:,:,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
 
 # %%
