@@ -434,7 +434,7 @@ excludes broken batteries and allows for all others to be theoretically useful. 
 the reuse scenarios to prioritize other chemistries and so on. 
 '''
 lt_bat = np.array([15])
-sd_bat = np.array([5])
+sd_bat = np.array([4])
 
 lt_car = np.array([15])
 sd_car = np.array([5])
@@ -714,16 +714,17 @@ def plot_capacity_scenarios():
           cycler(linestyle=['-','--',':']))    
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
-    R = 1 # LFP reused, no reuse, all reuse
+    a = 3 # NCX, LFP, Next_Gen, Roskill
+    R = 2 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
     fig, ax = plt.subplots(1,2,figsize=(16,7))
     ax[0].set_prop_cycle(scen_cycler)
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, '--k')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, 'xk')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, 'k')
-    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,1,:,70::].sum(axis=0)/1000, 'orangered', linestyle='-')
+    ax[0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 0,MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, color='lightgrey', alpha=0.6)
+    ax[0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, color='darkgrey', alpha=0.6)
+    ax[0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, color='grey', alpha=0.6)
+    
+    ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,1,:,70::].sum(axis=0)/1000)
     ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,2,:,70::].sum(axis=0)/1000)
     ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,0,a,3,:,70::].sum(axis=0)/1000)
     ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.StockDict['C_3'].Values[z,1,a,1,:,70::].sum(axis=0)/1000)
@@ -738,7 +739,7 @@ def plot_capacity_scenarios():
     ax[0].set_title('a) Available V2G capacity by scenario'.format(S), fontsize=20)
     ax[0].set_xlabel('Year',fontsize =16)
     ax[0].tick_params(axis='both', which='major', labelsize=18)
-    ax[0].set_ylim(0,6)
+    ax[0].set_ylim(0,5)
     ax[0].set_xlim(2020,2050)
 
     from cycler import cycler
@@ -747,16 +748,17 @@ def plot_capacity_scenarios():
           cycler(linestyle=['-','--'])) 
     z = 1 # Low, medium, high
     s = 0 # Low, medium, high
-    a = 1 # NCX, LFP, Next_Gen, Roskill, BNEF, Faraday
-    R = 1 # LFP reused, no reuse, all reuse
+    a = 3 # NCX, LFP, Next_Gen, Roskill, BNEF, Faraday
+    R = 0 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
     ax[1].set_prop_cycle(scen_cycler)
-    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, '--k')
-    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, 'xk')
-    ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, 'k')
+    ax[1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 0,MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, color='lightgrey', alpha=0.6)
+    ax[1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, color='darkgrey', alpha=0.6)
+    ax[1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, MaTrace_System.ParameterDict['Storage_demand'].Values[2,70::]/1000, color='grey', alpha=0.6)
+    
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
-                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,1,:,70::].sum(axis=0)/1000, 'orangered', linestyle='-')
+                MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,1,:,70::].sum(axis=0)/1000)
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
                 MaTrace_System.StockDict['C_6_SLB'].Values[z,0,a,2,:,70::].sum(axis=0)/1000)
     ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 
@@ -773,7 +775,7 @@ def plot_capacity_scenarios():
     ax[1].set_xlabel('Year',fontsize =16)
     ax[1].tick_params(axis='both', which='major', labelsize=18)
     ax[1].set_xlim(2020,2050)
-    plt.ylim(0,6)
+    plt.ylim(0,5)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'), dpi=600)
     
 # Call plot_capacity_scenarios()
@@ -785,7 +787,7 @@ def plot_only_NSB():
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 0 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
@@ -846,7 +848,7 @@ def plot_energy_resource_graphs():
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g, early
     e = 3 # Low, medium, high, CP4All
@@ -901,7 +903,7 @@ def plot_energy_resource_graphs():
 
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 3 # Low, medium, high, v2g mandate, no v2g, early
     e = 3# Low, medium, high, CP4All
@@ -954,7 +956,7 @@ def plot_energy_resource_graphs():
 
     z = 1 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, V2G mandate, No V2G, early
     e = 3 # Low, medium, high, CP4All

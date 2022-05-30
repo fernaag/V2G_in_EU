@@ -596,7 +596,7 @@ stock_max = np.zeros((Nz, NS, Na, Nv, Nt,Nt))
 stock_total = np.zeros((Nz, NS, Na, Nv, Nt))
 
 # Do not compute all chemistry scenarios
-a = 4 # Only BNEF as baseline
+a = 3 # Only BNEF as baseline
 print('Calculating energy layer')
 for z in range(1):
     for S in range(NS):
@@ -784,7 +784,7 @@ what is insightful and meaningful as a figure and can create those figures for t
 ## Exporting table with key indicators
 def export_table():
     import seaborn as sns
-    a = 4 # BNEF chemistry scenario
+    a = 3 # BNEF chemistry scenario
     h = 1 # Hydrometallurgical recycling
     table = []
     # Exporting primary material use
@@ -872,7 +872,7 @@ def export_table():
        
 def export_capacity_table():
     import seaborn as sns
-    a = 4 # BNEF chemistry scenario
+    a = 3 # BNEF chemistry scenario
     table = []
     # Exporting V2G capacity
     z = 0
@@ -967,7 +967,7 @@ def plot_V2G_scenarios():
           cycler(linestyle=['-','--',':']))    
     z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
@@ -1036,7 +1036,7 @@ def plot_energy_resource_graphs():
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 0 # Low, medium, high
     s = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high
     e = 3 # Low, medium, high, CP4All
@@ -1091,7 +1091,7 @@ def plot_energy_resource_graphs():
 
     z = 0 # Low, medium, high
     s = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 3 # Low, medium, high, v2g mandate, no v2g, early
     e = 3 # Low, medium, high, CP4All
@@ -1144,7 +1144,7 @@ def plot_energy_resource_graphs():
 
     z = 0 # Low, medium, high
     s = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, V2G mandate, No V2G, early
     e = 3 # Low, medium, high, CP4All
@@ -1201,7 +1201,7 @@ def plot_energy_resource_aggregated():
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g, early
     e = 3 # Low, medium, high, CP4All
@@ -1247,7 +1247,7 @@ def plot_energy_resource_aggregated():
 
     z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 1 # LFP reused, no reuse, all reuse
     v = 3 # Low, medium, high, v2g mandate, no v2g, early
     e = 3 # Low, medium, high, CP4All
@@ -1291,7 +1291,7 @@ def plot_energy_resource_aggregated():
 
     z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, V2G mandate, No V2G, early
     e = 3 # Low, medium, high, CP4All
@@ -1342,7 +1342,7 @@ def plot_energy_resource_multi():
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 0 # Low, medium, high
     s = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
     e =2 # Low, medium, high, CP4All
@@ -1363,6 +1363,7 @@ def plot_energy_resource_multi():
     ax[0,0].set_xlabel('Year',fontsize =10)
     ax[0,0].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
+    ax[0,0].set_xlim(2010,2050)
     material_cycler = cycler(color=sns.color_palette('Paired', 6))
 
     # Resource figure for this scenario
@@ -1381,7 +1382,8 @@ def plot_energy_resource_multi():
     ax[1,0].set_xlabel('Year',fontsize =10)
     ax[1,0].tick_params(axis='both', which='major', labelsize=10)
     # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left')
-    ax[1,0].set_ylim(0,3)
+    ax[1,0].set_ylim(0,2.5)
+    ax[1,0].set_xlim(2010,2050)
     ax[1,0].grid()
 
     v = 3 # Low, medium, high, v2g mandate, no v2g, early
@@ -1402,6 +1404,7 @@ def plot_energy_resource_multi():
     ax[0,1].tick_params(axis='both', which='major', labelsize=10)
     # ax[0,1].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
     plt.ylim(0,1300)
+    ax[0,1].set_xlim(2010,2050)
     # Resource figure for this scenario
     
     ax[1,1].set_prop_cycle(material_cycler)
@@ -1417,7 +1420,8 @@ def plot_energy_resource_multi():
     ax[1,1].set_title('e) Material demand'.format(S), fontsize=10)
     ax[1,1].set_xlabel('Year',fontsize =10)
     ax[1,1].tick_params(axis='both', which='major', labelsize=10)
-    ax[1,1].set_ylim(0,3)
+    ax[1,1].set_ylim(0,2.5)
+    ax[1,1].set_xlim(2010,2050)
     ax[1,1].grid()
     
     R = 2 # LFP reused, no reuse, all reuse
@@ -1440,6 +1444,7 @@ def plot_energy_resource_multi():
     # ax[0,2].set_ylim([0,5])
     ax[0,2].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
+    ax[0,2].set_xlim(2010,2050)
 
     # Resource figure for this scenario
     ax[1,2].set_prop_cycle(material_cycler)
@@ -1456,14 +1461,15 @@ def plot_energy_resource_multi():
     ax[1,2].set_xlabel('Year',fontsize =10)
     ax[1,2].tick_params(axis='both', which='major', labelsize=10)
     # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
-    ax[1,2].set_ylim(0,3)
+    ax[1,2].set_ylim(0,2.5)
+    ax[1,2].set_xlim(2010,2050)
     ax[1,2].grid()
         
     ## Plot second EV penetration scenario
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 0 # Low, medium, high, v2g mandate, no v2g, early
     e = 2 # Low, medium, high, CP4All
@@ -1483,6 +1489,7 @@ def plot_energy_resource_multi():
     ax[2,0].set_xlabel('Year',fontsize =10)
     ax[2,0].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
+    ax[2,0].set_xlim(2010,2050)
     material_cycler = cycler(color=sns.color_palette('Paired', 6))
 
     # Resource figure for this scenario
@@ -1500,12 +1507,13 @@ def plot_energy_resource_multi():
     ax[3,0].set_title('j) Material demand'.format(S), fontsize=10)
     ax[3,0].set_xlabel('Year',fontsize =10)
     ax[3,0].tick_params(axis='both', which='major', labelsize=10)
-    ax[3,0].set_ylim(0,3)
+    ax[3,0].set_ylim(0,2.5)
+    ax[3,0].set_xlim(2010,2050)
     ax[3,0].grid()
     
     z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     v = 3 # Low, medium, high, v2g mandate, no v2g, early
     e = 2 # Low, medium, high, CP4All
@@ -1525,6 +1533,7 @@ def plot_energy_resource_multi():
     ax[2,1].set_xlabel('Year',fontsize =10)
     ax[2,1].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
+    ax[2,1].set_xlim(2010,2050)
     # Resource figure for this scenario
     h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[3,1].set_prop_cycle(material_cycler)
@@ -1540,12 +1549,13 @@ def plot_energy_resource_multi():
     ax[3,1].set_title('k) Material demand'.format(S), fontsize=10)
     ax[3,1].set_xlabel('Year',fontsize =10)
     ax[3,1].tick_params(axis='both', which='major', labelsize=10)
-    ax[3,1].set_ylim(0,3)
+    ax[3,1].set_ylim(0,2.5)
+    ax[3,1].set_xlim(2010,2050)
     ax[3,1].grid()
     
     z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 2 # LFP reused, no reuse, all reuse
     v = 0 # Low, medium, high, V2G mandate, No V2G, early
 
@@ -1565,6 +1575,7 @@ def plot_energy_resource_multi():
     ax[2,2].set_title('i) All reuse - No V2G'.format(S), fontsize=10)
     ax[2,2].set_xlabel('Year',fontsize =10)
     # ax[0,2].set_ylim([0,5])
+    ax[2,2].set_xlim(2010,2050)
     ax[2,2].tick_params(axis='both', which='major', labelsize=10)
     
     plt.ylim(0,1300)
@@ -1582,7 +1593,8 @@ def plot_energy_resource_multi():
     ax[3,2].set_title('l) Material demand'.format(S), fontsize=10)
     ax[3,2].set_xlabel('Year',fontsize =10)
     ax[3,2].tick_params(axis='both', which='major', labelsize=10)
-    ax[3,2].set_ylim(0,3)
+    ax[3,2].set_ylim(0,2.5)
+    ax[3,2].set_xlim(2010,2050)
     ax[3,2].grid()
     # Add separator style
     line = plt.Line2D([0,1],[0.5,0.5], transform=fig.transFigure, color="black")
@@ -1606,7 +1618,7 @@ def plot_material_security():
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z=0
     h=1 # Hydrometallurgical efficiencies
-    a=4 # Faraday chemistries
+    a=3 # Faraday chemistries
     e=3 # Low demand
     width = 0.35
     labels = ['LFP reused, \n no V2G', 'All reused,\n no V2G', 'No reuse,\n no V2G', \
@@ -1691,7 +1703,7 @@ def plot_share_installed_demand():
             cycler(linestyle=['-','--',':']))    
     z = 0 # Low, medium, high
     S = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     E = 0 # Low, medium, high
     fig, ax = plt.subplots(1,2,figsize=(17,7))
@@ -1744,7 +1756,7 @@ def plot_share_installed_ev():
             cycler(linestyle=['-','--',':']))    
     z = 0 # Low, medium, high
     S = 0 # Low, medium, high
-    a = 4 # NCX, LFP, Next_Gen, Roskill
+    a = 3 # NCX, LFP, Next_Gen, Roskill
     R = 0 # LFP reused, no reuse, all reuse
     E = 2 # Low, medium, high
     fig, ax = plt.subplots(1,2,figsize=(17,7))
@@ -1756,7 +1768,7 @@ def plot_share_installed_ev():
     for R in range(1,3):
         ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[75::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])[75::]\
             /np.einsum('gsbt->t', SLB_available[z,S,a,R,v,E,:,:,:,:])[75::]*100)
-    ax[0].set_ylabel('Ratio of installed to available capacity [%]',fontsize =18)
+    ax[0].set_ylabel('Ratio of installed to potential capacity [%]',fontsize =18)
     right_side = ax[0].spines["right"]
     right_side.set_visible(False)
     top = ax[0].spines["top"]
@@ -1780,7 +1792,7 @@ def plot_share_installed_ev():
     for R in range(1,3):
         ax[1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[75::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])[75::]\
             /np.einsum('gsbt->t', SLB_available[z,S,a,R,v,E,:,:,:,:])[75::]*100, label=IndexTable.Classification[IndexTable.index.get_loc('Reuse_Scenarios')].Items[R]+' - No V2G')
-    ax[1].set_ylabel('Ratio of installed to available capacity [%]',fontsize =18)
+    ax[1].set_ylabel('Ratio of installed to potential capacity [%]',fontsize =18)
     right_side = ax[1].spines["right"]
     right_side.set_visible(False)
     top = ax[1].spines["top"]
