@@ -718,7 +718,7 @@ def plot_capacity_scenarios():
     R = 2 # LFP reused, no reuse, all reuse
     v = 4 # Low, medium, high, v2g mandate, no v2g
     e = 2 # Low, medium, high
-    fig, ax = plt.subplots(1,2,figsize=(16,7))
+    fig, ax = plt.subplots(1,2,figsize=(20,7))
     ax[0].set_prop_cycle(scen_cycler)
     ax[0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], 0,MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, color='lightgrey', alpha=0.6)
     ax[0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.ParameterDict['Storage_demand'].Values[0,70::]/1000, MaTrace_System.ParameterDict['Storage_demand'].Values[1,70::]/1000, color='darkgrey', alpha=0.6)
@@ -739,8 +739,9 @@ def plot_capacity_scenarios():
     ax[0].set_title('a) Available V2G capacity by scenario'.format(S), fontsize=20)
     ax[0].set_xlabel('Year',fontsize =16)
     ax[0].tick_params(axis='both', which='major', labelsize=18)
-    ax[0].set_ylim(0,5)
+    ax[0].set_ylim(0,4)
     ax[0].set_xlim(2020,2050)
+    ax[0].grid()
 
     from cycler import cycler
     import seaborn as sns
@@ -775,7 +776,8 @@ def plot_capacity_scenarios():
     ax[1].set_xlabel('Year',fontsize =16)
     ax[1].tick_params(axis='both', which='major', labelsize=18)
     ax[1].set_xlim(2020,2050)
-    plt.ylim(0,5)
+    ax[1].grid()
+    plt.ylim(0,4)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'), dpi=600)
     
 # Call plot_capacity_scenarios()
