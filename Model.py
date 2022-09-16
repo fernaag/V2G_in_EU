@@ -735,7 +735,7 @@ def plot_capacity_scenarios():
     right_side.set_visible(False)
     top = ax[0].spines["top"]
     top.set_visible(False)
-    ax[0].legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low, STEP', 'V2G medium, STEP', 'V2G mandate, STEP', 'V2G low, SD', 'V2G medium, SD', 'V2G mandate, SD'], loc='upper left',prop={'size':15})
+    ax[0].legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low, Projected', 'V2G medium, Projected', 'V2G mandate, Projected', 'V2G low, Accelerated', 'V2G medium, Accelerated', 'V2G mandate, Accelerated'], loc='upper left',prop={'size':15})
     ax[0].set_title('a) Available V2G capacity by scenario'.format(S), fontsize=20)
     ax[0].set_xlabel('Year',fontsize =16)
     ax[0].tick_params(axis='both', which='major', labelsize=18)
@@ -771,7 +771,7 @@ def plot_capacity_scenarios():
     right_side.set_visible(False)
     top = ax[1].spines["top"]
     top.set_visible(False)
-    ax[1].legend(['Low storage demand','Medium storage demand','High storage demand', 'LFP reused - STEP', 'All reused - STEP', 'LFP reused - SD', 'All reused - SD'], loc='upper left',prop={'size':15})
+    ax[1].legend(['Low storage demand','Medium storage demand','High storage demand', 'LFP reused - Projected', 'All reused - Projected', 'LFP reused - Accelerated', 'All reused - Accelerated'], loc='upper left',prop={'size':15})
     ax[1].set_title('b) Available SLB capacity by scenario'.format(S), fontsize=20)
     ax[1].set_xlabel('Year',fontsize =16)
     ax[1].tick_params(axis='both', which='major', labelsize=18)
@@ -780,8 +780,6 @@ def plot_capacity_scenarios():
     plt.ylim(0,4)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/capacity_scenarios'), dpi=600)
     
-# Call plot_capacity_scenarios()
-#plot_capacity_scenarios()
 
 def plot_only_NSB():
     from cycler import cycler
@@ -1013,11 +1011,11 @@ def plot_resource_range():
     from cycler import cycler
     import seaborn as sns
     resource_cycler = cycler(color=['slategrey', 'lightsteelblue', 'cornflowerblue', 'royalblue', 'navy', 'k', 'pink','lightcoral', 'indianred', 'r', 'brown', 'maroon']) #'Set2', 'Paired', 'YlGnBu'
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    R = 1 # LFP reused, no reuse, all reuse
-    v = 5 # Low, medium, high, V2G mandate, No V2G, early
-    e = 0 # Low, medium, high, CP4All
+    R = 0 # LFP reused, no reuse, all reuse
+    v = 0 # Low, medium, high, V2G mandate, No V2G, early
+    e = 2 # Low, medium, high, CP4All
     h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
     for m in range(Ne):
         fig, ax = plt.subplots(figsize=(8,7))
@@ -1025,7 +1023,7 @@ def plot_resource_range():
         ax.set_title('{} demand - {}'.format(IndexTable.Classification[IndexTable.index.get_loc('Element')].Items[m], IndexTable.Classification[IndexTable.index.get_loc('Recycling_Process')].Items[h]), fontsize=20)
         for a in range(Na):
             ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
-                            MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0) + MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0))
+                            np.einsum('bt->t',MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,m,h,55:]) + np.einsum('bt->t',MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,m,h,55:]))
             #ax.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
             #                MaTrace_System.FlowDict['E_8_1'].Values[z,s,a,R,v,e,:,m,h,55:].sum(axis=0))
                             
@@ -1042,10 +1040,10 @@ def plot_rec_resource_range():
     from cycler import cycler
     import seaborn as sns
     resource_cycler = cycler(color=['pink','lightcoral', 'indianred', 'r', 'brown', 'maroon']) #'Set2', 'Paired', 'YlGnBu'
-    z = 1 # Low, medium, high
+    z = 0 # Low, medium, high
     s = 1 # Low, medium, high
-    R = 1 # LFP reused, no reuse, all reuse
-    v = 5 # Low, medium, high, V2G mandate, No V2G, early
+    R = 0 # LFP reused, no reuse, all reuse
+    v = 0 # Low, medium, high, V2G mandate, No V2G, early
     e = 0 # Low, medium, high, CP4All
     h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
     for m in range(Ne):

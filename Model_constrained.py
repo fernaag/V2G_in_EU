@@ -1695,8 +1695,8 @@ def plot_energy_resource_multi():
     fig.add_artist(line)
     line2 = plt.Line2D([0.945,0.945],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.95, 0.3, 'SD ', fontsize=16)
-    plt.gcf().text(0.95, 0.7, 'STEP ', fontsize=16)
+    plt.gcf().text(0.95, 0.3, 'Accelerated ', fontsize=16, rotation=90)
+    plt.gcf().text(0.95, 0.7, 'Projected ', fontsize=16, rotation=90)
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
     lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
@@ -1705,6 +1705,886 @@ def plot_energy_resource_multi():
     fig.suptitle('Resource use per technology used to meet storage demand - High demand scenario', fontsize=18)
     fig.subplots_adjust(top=0.92, bottom=0.08)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/resource_multi'), dpi=600, bbox_inches = 'tight')
+
+def plot_competition():
+    from cycler import cycler
+    import seaborn as sns
+    v2g_col = 'green'
+    slb_col = 'mediumpurple'
+    custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
+    z = 0 # Low, medium, high
+    s = 0 # Low, medium, high
+    a = 3 # NCX, LFP, Next_Gen, Roskill
+    R = 1 # LFP reused, no reuse, all reuse
+    v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
+    e =2 # Low, medium, high, CP4All
+    fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
+    ax[0,0].set_prop_cycle(custom_cycler)
+    ax[0,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]], labels=['V2G', 'SLB', 'New batteries'])
+    ax[0,0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k', label='Storage demand')
+    ax[0,0].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[0,0].spines["right"]
+    right_side.set_visible(False)
+    # ax[0,0].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[0,0].set_title('a) LFP reused - No V2G'.format(S), fontsize=10)
+    ax[0,0].set_xlabel('Year',fontsize =10)
+    ax[0,0].tick_params(axis='both', which='major', labelsize=10)
+    plt.ylim(0,1300)
+    ax[0,0].set_xlim(2020,2050)
+    ax2 = ax[0,0].twinx()
+    top = ax[0,0].spines["top"]
+    top.set_visible(False)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col, label='Share installed V2G')
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col, label='Share installed SLB')
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    
+    material_cycler = cycler(color=sns.color_palette('Paired', 6))
+
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    ax[1,0].set_prop_cycle(material_cycler)
+    ax[1,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000, labels=['Primary materials', 'Recycled materials'])
+    # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
+    ax2 = ax[1,0].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+
+
+    ax[1,0].set_ylabel('Material weight [Mt]',fontsize =10)
+    right_side = ax[1,0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1,0].spines["top"]
+    top.set_visible(False)
+    ax[1,0].set_title('d) LFP reused - No V2G'.format(S), fontsize=10)
+    ax[1,0].set_xlabel('Year',fontsize =10)
+    ax[1,0].tick_params(axis='both', which='major', labelsize=10)
+    # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left')
+    ax[1,0].set_ylim(0,2.5)
+    ax[1,0].set_xlim(2020,2050)
+    ax[1,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[1,0].grid()
+
+    v = 1 # Low, medium, high, v2g mandate, no v2g, early
+    ax[0,1].set_prop_cycle(custom_cycler)
+    ax[0,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[0,1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    #ax[0,1].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[0,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[0,1].spines["top"]
+    top.set_visible(False)
+    # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[0,1].set_title('b) LFP reused - Low V2G'.format(S), fontsize=10)
+    ax[0,1].set_xlabel('Year',fontsize =10)
+    ax[0,1].tick_params(axis='both', which='major', labelsize=10)
+    # ax[0,1].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
+    #ax[0,1].set_ylim(0,1300)
+    ax[0,1].set_xlim(2020,2050)
+    
+    ax2 = ax[0,1].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    
+    ax[1,1].set_prop_cycle(material_cycler)
+    ax[1,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    ax2 = ax[1,1].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+
+    right_side = ax[1,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1,1].spines["top"]
+    top.set_visible(False)
+    ax[1,1].set_title('e) LFP reused - Low V2G'.format(S), fontsize=10)
+    ax[1,1].set_xlabel('Year',fontsize =10)
+    ax[1,1].tick_params(axis='both', which='major', labelsize=10)
+    ax[1,1].set_ylim(0,2.5)
+    ax[1,1].set_xlim(2020,2050)
+    ax[1,1].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[1,1].grid()
+    
+    v = 2 # Low, medium, high, V2G mandate, No V2G, early
+    ax[0,2].set_prop_cycle(custom_cycler)
+    ax[0,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[0,2].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    #ax[0,2].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[0,2].spines["right"]
+    right_side.set_visible(False)
+    top = ax[0,2].spines["top"]
+    top.set_visible(False)
+    # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[0,2].set_title('c) LFP reused - Medium V2G'.format(S), fontsize=10)
+    ax[0,2].set_xlabel('Year',fontsize =10)
+    # ax[0,2].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
+    # ax[0,2].set_ylim([0,5])
+    ax[0,2].tick_params(axis='both', which='major', labelsize=10)
+    #plt.ylim(0,1300)
+    ax[0,2].set_xlim(2020,2050)
+    ax2 = ax[0,2].twinx()
+    top = ax[0,2].spines["top"]
+    top.set_visible(False)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='b', labelcolor='b')
+    ax2.set_ylabel('Share installed [%]', fontsize=10, color='b')
+
+    # Resource figure for this scenario
+    ax[1,2].set_prop_cycle(material_cycler)
+    ax[1,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    ax2 = ax[1,2].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(True)
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='r', labelcolor='r')
+    ax2.set_ylabel('Recycled content [%]', fontsize=10, color='r')
+    right_side = ax[1,2].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1,2].spines["top"]
+    top.set_visible(False)
+    ax[1,2].set_title('f) LFP reused - Medium V2G'.format(S), fontsize=10)
+    ax[1,2].set_xlabel('Year',fontsize =10)
+    ax[1,2].tick_params(axis='both', which='major', labelsize=10)
+    # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
+    ax[1,2].set_ylim(0,2.5)
+    ax[1,2].set_xlim(2020,2050)
+    ax[1,2].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[1,2].grid()
+        
+    ## Plot second EV penetration scenario
+    custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
+    z = 0 # Low, medium, high
+    s = 1 # Low, medium, high
+    a = 3 # NCX, LFP, Next_Gen, Roskill
+    R = 1 # LFP reused, no reuse, all reuse
+    v = 0 # Low, medium, high, v2g mandate, no v2g, early
+    e = 2 # Low, medium, high, CP4All
+    ax[2,0].set_prop_cycle(custom_cycler)
+    ax[2,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[2,0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    ax[2,0].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[2,0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[2,0].spines["top"]
+    top.set_visible(False)
+    # ax[0,0].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[2,0].set_title('g) LFP reused - No V2G'.format(S), fontsize=10)
+    ax[2,0].set_xlabel('Year',fontsize =10)
+    ax[2,0].tick_params(axis='both', which='major', labelsize=10)
+    #plt.ylim(0,1300)
+    ax[2,0].set_xlim(2020,2050)
+    ax2 = ax[2,0].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    
+    material_cycler = cycler(color=sns.color_palette('Paired', 6))
+
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    ax[3,0].set_prop_cycle(material_cycler)
+    ax[3,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
+    ax[3,0].set_ylabel('Material weight [Mt]',fontsize =10)
+    ax2 = ax[3,0].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+
+    right_side = ax[3,0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[3,0].spines["top"]
+    top.set_visible(False)
+    ax[3,0].set_title('j) LFP reused - No V2G'.format(S), fontsize=10)
+    ax[3,0].set_xlabel('Year',fontsize =10)
+    ax[3,0].tick_params(axis='both', which='major', labelsize=10)
+    ax[3,0].set_ylim(0,2.5)
+    ax[3,0].set_xlim(2020,2050)
+    ax[3,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[3,0].grid()
+    
+    v = 1 # Low, medium, high, v2g mandate, no v2g, early
+
+    ax[2,1].set_prop_cycle(custom_cycler)
+    ax[2,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[2,1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    #ax[2,1].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[2,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[2,1].spines["top"]
+    top.set_visible(False)
+    # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[2,1].set_title('h) LFP reused - Low V2G'.format(S), fontsize=10)
+    ax[2,1].set_xlabel('Year',fontsize =10)
+    ax[2,1].tick_params(axis='both', which='major', labelsize=10)
+    #plt.ylim(0,1300)
+    ax[2,1].set_xlim(2020,2050)
+    ax2 = ax[2,1].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False) 
+    
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    ax[3,1].set_prop_cycle(material_cycler)
+    ax[3,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    ax2 = ax[3,1].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+
+    right_side = ax[3,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[3,1].spines["top"]
+    top.set_visible(False)
+    ax[3,1].set_title('k) LFP reused - Low V2G'.format(S), fontsize=10)
+    ax[3,1].set_xlabel('Year',fontsize =10)
+    ax[3,1].tick_params(axis='both', which='major', labelsize=10)
+    ax[3,1].set_ylim(0,2.5)
+    ax[3,1].set_xlim(2020,2050)
+    ax[3,1].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[3,1].grid()
+    
+
+    v = 2 # Low, medium, high, V2G mandate, No V2G, early
+
+    e = 2 # Low, medium, high, CP4All
+    ax[2,2].set_prop_cycle(custom_cycler)
+    ax[2,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[2,2].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    #ax[2,2].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[2,2].spines["right"]
+    right_side.set_visible(False)
+    top = ax[2,2].spines["top"]
+    top.set_visible(False)
+    # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[2,2].set_title('i) LFP reused - Medium V2G'.format(S), fontsize=10)
+    ax[2,2].set_xlabel('Year',fontsize =10)
+    # ax[0,2].set_ylim([0,5])
+    ax[2,2].set_xlim(2020,2050)
+    ax[2,2].tick_params(axis='both', which='major', labelsize=10)
+    ax2 = ax[2,2].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='b', labelcolor='b')
+    ax2.set_ylabel('Share installed [%]', fontsize=10, color='b')
+    #plt.ylim(0,1300)
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    ax[3,2].set_prop_cycle(material_cycler)
+    ax[3,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    ax2 = ax[3,2].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(True)
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='r', labelcolor='r')
+    ax2.set_ylabel('Recycled content [%]', fontsize=10, color='r')
+    right_side = ax[3,2].spines["right"]
+    right_side.set_visible(False)
+    top = ax[3,2].spines["top"]
+    top.set_visible(False)
+    ax[3,2].set_title('l) LFP reused - Medium V2G'.format(S), fontsize=10)
+    ax[3,2].set_xlabel('Year',fontsize =10)
+    ax[3,2].tick_params(axis='both', which='major', labelsize=10)
+    ax[3,2].set_ylim(0,2.5)
+    ax[3,2].set_xlim(2020,2050)
+    ax[3,2].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[3,2].grid()
+    # Add separator style
+    line = plt.Line2D([0.04,0.95],[0.5,0.5], transform=fig.transFigure, color="black")
+    fig.add_artist(line)
+    line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
+    fig.add_artist(line2)
+    plt.gcf().text(0.04, 0.3, 'Accelerated ', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.7, 'Projected ', fontsize=16, rotation=90)
+    # Add legend
+    lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
+    lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+    fig.legend(lines, labels, loc='lower center', ncol=4, fontsize=14)
+    # Add title
+    fig.suptitle('Resource use per technology used to meet storage demand - High demand scenario', fontsize=18)
+    fig.subplots_adjust(top=0.92, bottom=0.08)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/competition_LFP_reused'), dpi=600, bbox_inches = 'tight')
+
+def plot_competition_all_reused():
+    from cycler import cycler
+    import seaborn as sns
+    v2g_col = 'green'
+    slb_col = 'mediumpurple'
+    custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
+    z = 0 # Low, medium, high
+    s = 0 # Low, medium, high
+    a = 3 # NCX, LFP, Next_Gen, Roskill
+    R = 2 # LFP reused, no reuse, all reuse
+    v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
+    e =2 # Low, medium, high, CP4All
+    fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
+    ax[0,0].set_prop_cycle(custom_cycler)
+    ax[0,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]], labels=['V2G', 'SLB', 'New batteries'])
+    ax[0,0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k', label='Storage demand')
+    ax[0,0].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[0,0].spines["right"]
+    right_side.set_visible(False)
+    # ax[0,0].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[0,0].set_title('a) All reused - No V2G'.format(S), fontsize=10)
+    ax[0,0].set_xlabel('Year',fontsize =10)
+    ax[0,0].tick_params(axis='both', which='major', labelsize=10)
+    plt.ylim(0,1300)
+    ax[0,0].set_xlim(2020,2050)
+    ax2 = ax[0,0].twinx()
+    top = ax[0,0].spines["top"]
+    top.set_visible(False)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col, label='Share installed V2G')
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col, label='Share installed SLB')
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    
+    material_cycler = cycler(color=sns.color_palette('Paired', 6))
+
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    ax[1,0].set_prop_cycle(material_cycler)
+    ax[1,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000, labels=['Primary materials', 'Recycled materials'])
+    # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
+    ax2 = ax[1,0].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+
+
+    ax[1,0].set_ylabel('Material weight [Mt]',fontsize =10)
+    right_side = ax[1,0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1,0].spines["top"]
+    top.set_visible(False)
+    ax[1,0].set_title('d) All reused - No V2G'.format(S), fontsize=10)
+    ax[1,0].set_xlabel('Year',fontsize =10)
+    ax[1,0].tick_params(axis='both', which='major', labelsize=10)
+    # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left')
+    ax[1,0].set_ylim(0,2.5)
+    ax[1,0].set_xlim(2020,2050)
+    ax[1,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[1,0].grid()
+
+    v = 1 # Low, medium, high, v2g mandate, no v2g, early
+    ax[0,1].set_prop_cycle(custom_cycler)
+    ax[0,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[0,1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    #ax[0,1].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[0,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[0,1].spines["top"]
+    top.set_visible(False)
+    # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[0,1].set_title('b) All reused - Low V2G'.format(S), fontsize=10)
+    ax[0,1].set_xlabel('Year',fontsize =10)
+    ax[0,1].tick_params(axis='both', which='major', labelsize=10)
+    # ax[0,1].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
+    #ax[0,1].set_ylim(0,1300)
+    ax[0,1].set_xlim(2020,2050)
+    
+    ax2 = ax[0,1].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    
+    ax[1,1].set_prop_cycle(material_cycler)
+    ax[1,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    ax2 = ax[1,1].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+
+    right_side = ax[1,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1,1].spines["top"]
+    top.set_visible(False)
+    ax[1,1].set_title('e) All reused - Low V2G'.format(S), fontsize=10)
+    ax[1,1].set_xlabel('Year',fontsize =10)
+    ax[1,1].tick_params(axis='both', which='major', labelsize=10)
+    ax[1,1].set_ylim(0,2.5)
+    ax[1,1].set_xlim(2020,2050)
+    ax[1,1].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[1,1].grid()
+    
+    v = 2 # Low, medium, high, V2G mandate, No V2G, early
+    ax[0,2].set_prop_cycle(custom_cycler)
+    ax[0,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[0,2].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    #ax[0,2].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[0,2].spines["right"]
+    right_side.set_visible(False)
+    top = ax[0,2].spines["top"]
+    top.set_visible(False)
+    # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[0,2].set_title('c) All reused - Medium V2G'.format(S), fontsize=10)
+    ax[0,2].set_xlabel('Year',fontsize =10)
+    # ax[0,2].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
+    # ax[0,2].set_ylim([0,5])
+    ax[0,2].tick_params(axis='both', which='major', labelsize=10)
+    #plt.ylim(0,1300)
+    ax[0,2].set_xlim(2020,2050)
+    ax2 = ax[0,2].twinx()
+    top = ax[0,2].spines["top"]
+    top.set_visible(False)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='b', labelcolor='b')
+    ax2.set_ylabel('Share installed [%]', fontsize=10, color='b')
+
+    # Resource figure for this scenario
+    ax[1,2].set_prop_cycle(material_cycler)
+    ax[1,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    ax2 = ax[1,2].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(True)
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='r', labelcolor='r')
+    ax2.set_ylabel('Recycled content [%]', fontsize=10, color='r')
+    right_side = ax[1,2].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1,2].spines["top"]
+    top.set_visible(False)
+    ax[1,2].set_title('f) All reused - Medium V2G'.format(S), fontsize=10)
+    ax[1,2].set_xlabel('Year',fontsize =10)
+    ax[1,2].tick_params(axis='both', which='major', labelsize=10)
+    # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
+    ax[1,2].set_ylim(0,2.5)
+    ax[1,2].set_xlim(2020,2050)
+    ax[1,2].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[1,2].grid()
+        
+    ## Plot second EV penetration scenario
+    custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
+    z = 0 # Low, medium, high
+    s = 1 # Low, medium, high
+    a = 3 # NCX, LFP, Next_Gen, Roskill
+    R = 2 # LFP reused, no reuse, all reuse
+    v = 0 # Low, medium, high, v2g mandate, no v2g, early
+    e = 2 # Low, medium, high, CP4All
+    ax[2,0].set_prop_cycle(custom_cycler)
+    ax[2,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[2,0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    ax[2,0].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[2,0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[2,0].spines["top"]
+    top.set_visible(False)
+    # ax[0,0].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[2,0].set_title('g) All reused - No V2G'.format(S), fontsize=10)
+    ax[2,0].set_xlabel('Year',fontsize =10)
+    ax[2,0].tick_params(axis='both', which='major', labelsize=10)
+    #plt.ylim(0,1300)
+    ax[2,0].set_xlim(2020,2050)
+    ax2 = ax[2,0].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    
+    material_cycler = cycler(color=sns.color_palette('Paired', 6))
+
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    ax[3,0].set_prop_cycle(material_cycler)
+    ax[3,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left',prop={'size':15})
+    ax[3,0].set_ylabel('Material weight [Mt]',fontsize =10)
+    ax2 = ax[3,0].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+
+    right_side = ax[3,0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[3,0].spines["top"]
+    top.set_visible(False)
+    ax[3,0].set_title('j) All reused - No V2G'.format(S), fontsize=10)
+    ax[3,0].set_xlabel('Year',fontsize =10)
+    ax[3,0].tick_params(axis='both', which='major', labelsize=10)
+    ax[3,0].set_ylim(0,2.5)
+    ax[3,0].set_xlim(2020,2050)
+    ax[3,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[3,0].grid()
+    
+    v = 1 # Low, medium, high, v2g mandate, no v2g, early
+
+    ax[2,1].set_prop_cycle(custom_cycler)
+    ax[2,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[2,1].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    #ax[2,1].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[2,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[2,1].spines["top"]
+    top.set_visible(False)
+    # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[2,1].set_title('h) All reused - Low V2G'.format(S), fontsize=10)
+    ax[2,1].set_xlabel('Year',fontsize =10)
+    ax[2,1].tick_params(axis='both', which='major', labelsize=10)
+    #plt.ylim(0,1300)
+    ax[2,1].set_xlim(2020,2050)
+    ax2 = ax[2,1].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False) 
+    
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    ax[3,1].set_prop_cycle(material_cycler)
+    ax[3,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    ax2 = ax[3,1].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+
+    right_side = ax[3,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[3,1].spines["top"]
+    top.set_visible(False)
+    ax[3,1].set_title('k) All reused - Low V2G'.format(S), fontsize=10)
+    ax[3,1].set_xlabel('Year',fontsize =10)
+    ax[3,1].tick_params(axis='both', which='major', labelsize=10)
+    ax[3,1].set_ylim(0,2.5)
+    ax[3,1].set_xlim(2020,2050)
+    ax[3,1].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[3,1].grid()
+    
+
+    v = 2 # Low, medium, high, V2G mandate, No V2G, early
+
+    e = 2 # Low, medium, high, CP4All
+    ax[2,2].set_prop_cycle(custom_cycler)
+    ax[2,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,55::], \
+                    MaTrace_System.StockDict['C_5_SLB'].Values[z,s,a,R,v,e,55::],\
+                        MaTrace_System.StockDict['C_5_NSB'].Values[z,s,a,R,v,e,55::]])
+    ax[2,2].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], MaTrace_System.ParameterDict['Storage_demand'].Values[e,55::], 'k')
+    #ax[2,2].set_ylabel('Capacity [GWh]',fontsize =10)
+    right_side = ax[2,2].spines["right"]
+    right_side.set_visible(False)
+    top = ax[2,2].spines["top"]
+    top.set_visible(False)
+    # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
+    ax[2,2].set_title('i) All reused - Medium V2G'.format(S), fontsize=10)
+    ax[2,2].set_xlabel('Year',fontsize =10)
+    # ax[0,2].set_ylim([0,5])
+    ax[2,2].set_xlim(2020,2050)
+    ax[2,2].tick_params(axis='both', which='major', labelsize=10)
+    ax2 = ax[2,2].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
+            /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
+            /np.einsum('gsbt->t', SLB_available[z,s,a,R,v,e,:,:,:,55::])*100, color=slb_col)
+    ax2.set_ylim(0,105)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(False)
+    ax2.tick_params(axis='y', which='major', labelsize=0)
+    top = ax2.spines["top"]
+    top.set_visible(False)
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='b', labelcolor='b')
+    ax2.set_ylabel('Share installed [%]', fontsize=10, color='b')
+    #plt.ylim(0,1300)
+    # Resource figure for this scenario
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    ax[3,2].set_prop_cycle(material_cycler)
+    ax[3,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
+                    np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)
+    ax2 = ax[3,2].twinx()
+    ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                        np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
+                        (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+    ax2.set_ylim(0,100)
+    right_side2 = ax2.spines["right"]
+    right_side2.set_visible(True)
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='r', labelcolor='r')
+    ax2.set_ylabel('Recycled content [%]', fontsize=10, color='r')
+    right_side = ax[3,2].spines["right"]
+    right_side.set_visible(False)
+    top = ax[3,2].spines["top"]
+    top.set_visible(False)
+    ax[3,2].set_title('l) All reused - Medium V2G'.format(S), fontsize=10)
+    ax[3,2].set_xlabel('Year',fontsize =10)
+    ax[3,2].tick_params(axis='both', which='major', labelsize=10)
+    ax[3,2].set_ylim(0,2.5)
+    ax[3,2].set_xlim(2020,2050)
+    ax[3,2].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+                     xycoords='data', 
+                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                    arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    
+    ax[3,2].grid()
+    # Add separator style
+    line = plt.Line2D([0.04,0.95],[0.5,0.5], transform=fig.transFigure, color="black")
+    fig.add_artist(line)
+    line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
+    fig.add_artist(line2)
+    plt.gcf().text(0.04, 0.3, 'Accelerated ', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.7, 'Projected ', fontsize=16, rotation=90)
+    # Add legend
+    lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
+    lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+    fig.legend(lines, labels, loc='lower center', ncol=4, fontsize=14)
+    # Add title
+    
+    fig.suptitle('Resource use per technology used to meet storage demand - High demand scenario', fontsize=18)
+    fig.subplots_adjust(top=0.92, bottom=0.08)
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/competition_all_reused'), dpi=600, bbox_inches = 'tight')
+
 
 def plot_material_security():
     from cycler import cycler
@@ -1808,7 +2688,7 @@ def plot_share_installed_demand():
     v=0
     for R in range(1,3):
         ax[0].plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,:,:,:,:])[70::]\
-            /np.einsum('gsbt->t', SLB_available[z,S,a,R,v,E,:,:,:,:])[70::]*100)
+            /np.einsum('gsbt->t', SLB_available[z,S,a,R,v,E,:,:,:,70::])*100)
     ax[0].set_ylabel('Share installed [%]',fontsize =18)
     right_side = ax[0].spines["right"]
     right_side.set_visible(False)
