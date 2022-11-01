@@ -21,6 +21,7 @@ from tqdm import tqdm
 import time
 import matplotlib
 import product_component_model as pcm
+xlrd.xlsx.ensure_elementtree_imported(False, None)
 xlrd.xlsx.Element_has_iter = True
 mpl_logger = log.getLogger("matplotlib")
 mpl_logger.setLevel(log.WARNING)  
@@ -1367,7 +1368,7 @@ def plot_energy_resource_multi():
     material_cycler = cycler(color=sns.color_palette('Paired', 6))
 
     # Resource figure for this scenario
-    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[1,0].set_prop_cycle(material_cycler)
     ax[1,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
@@ -1539,7 +1540,7 @@ def plot_energy_resource_multi():
     material_cycler = cycler(color=sns.color_palette('Paired', 6))
 
     # Resource figure for this scenario
-    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    #h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[3,0].set_prop_cycle(material_cycler)
     ax[3,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
@@ -1598,7 +1599,7 @@ def plot_energy_resource_multi():
     #plt.ylim(0,1300)
     ax[2,1].set_xlim(2010,2050)
     # Resource figure for this scenario
-    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    #h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[3,1].set_prop_cycle(material_cycler)
     ax[3,1].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
@@ -1658,7 +1659,7 @@ def plot_energy_resource_multi():
     
     #plt.ylim(0,1300)
     # Resource figure for this scenario
-    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
+    #h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[3,2].set_prop_cycle(material_cycler)
     ax[3,2].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
@@ -1691,12 +1692,12 @@ def plot_energy_resource_multi():
     
     ax[3,2].grid()
     # Add separator style
-    line = plt.Line2D([0,1],[0.5,0.5], transform=fig.transFigure, color="black")
+    line = plt.Line2D([0.04,0.95],[0.5,0.5], transform=fig.transFigure, color="black")
     fig.add_artist(line)
-    line2 = plt.Line2D([0.945,0.945],[0.1,0.9], transform=fig.transFigure, color="black")
+    line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.95, 0.3, 'Accelerated ', fontsize=16, rotation=90)
-    plt.gcf().text(0.95, 0.7, 'Projected ', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.65, 'Projected EV penetration', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.2, 'Accelerated EV penetration', fontsize=16, rotation=90)
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
     lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
@@ -2134,8 +2135,8 @@ def plot_competition():
     fig.add_artist(line)
     line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.04, 0.3, 'Accelerated ', fontsize=16, rotation=90)
-    plt.gcf().text(0.04, 0.7, 'Projected ', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.65, 'Projected EV penetration', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.2, 'Accelerated EV penetration', fontsize=16, rotation=90)
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
     lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
@@ -2573,8 +2574,8 @@ def plot_competition_all_reused():
     fig.add_artist(line)
     line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.04, 0.3, 'Accelerated ', fontsize=16, rotation=90)
-    plt.gcf().text(0.04, 0.7, 'Projected ', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.65, 'Projected EV penetration', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.2, 'Accelerated EV penetration', fontsize=16, rotation=90)
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
     lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
@@ -2584,7 +2585,6 @@ def plot_competition_all_reused():
     fig.suptitle('Resource use per technology used to meet storage demand - High demand scenario', fontsize=18)
     fig.subplots_adjust(top=0.92, bottom=0.08)
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/competition_all_reused'), dpi=600, bbox_inches = 'tight')
-
 
 def plot_material_security():
     from cycler import cycler
@@ -2784,5 +2784,169 @@ def export_P_values():
     results = os.path.join(os.getcwd(), 'results')
     np.save(results+'/arrays/P_demand_primary_EU',np.einsum('SaRbht->SaRht',MaTrace_System.FlowDict['E_0_1'].Values[0,:,:,:,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
     np.save(results+'/arrays/P_demand_recycled_EU',np.einsum('SaRbht->SaRht',MaTrace_System.FlowDict['E_6_1'].Values[0,:,:,:,3,0,:,2,:,:]), allow_pickle=True)# 'z,S,a,R,v,E,b,e,h,t'
+
+def plot_impacts():
+    from cycler import cycler
+    import seaborn as sns
+    # creating arrays for GWP
+    impacts_array = np.zeros((Ne))
+    impacts = pd.read_excel('/Users/fernaag/Library/CloudStorage/Box-Box/BATMAN/Data/Database/data/01_raw_data/environmental_impacts/Results_short_FAL.xlsx', sheet_name='GWP', skiprows=1)
+    for m in range(0, len(impacts.GWP.values)):
+        try:
+            ElementPosition= IndexTable.Classification[IndexTable.index.get_loc('Element')].Items.index(impacts.Material.iloc[m])
+            impacts_array[ElementPosition] = impacts.GWP.iloc[m]
+        except ValueError: # This is just to ignore elements that are not included in the model
+            pass
+    # creating arrays for energy use
+    energy_array = np.zeros((Nb))
+    energy = pd.read_excel('/Users/fernaag/Library/CloudStorage/Box-Box/BATMAN/Data/Database/data/01_raw_data/environmental_impacts/Results_short_FAL.xlsx', sheet_name='Energy', skiprows=1)
+    for m in range(0, len(impacts.GWP.values)):
+        try:
+            ChemistryPosition= IndexTable.Classification[IndexTable.index.get_loc('Battery_Chemistry')].Items.index(energy.Chemistry.iloc[m])
+            energy_array[ChemistryPosition] = energy.Energy.iloc[m]
+        except ValueError: # This is just to ignore elements that are not included in the model
+            pass
+    custom_cycler = cycler(color=sns.color_palette('Pastel2', 6)) #'Set2', 'Paired', 'YlGnBu'
+    z = 0 # Low, medium, high
+    s = 0 # Low, medium, high
+    a = 3 # NCX, LFP, Next_Gen, Roskill
+    R = 0 # no reuse, LFP reused, all reuse
+    v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
+    e = 2 # Low, medium, high, CP4All
+    h = 0 # pyrometallurgical, hydrometallurgical, Direct recycling
+    alpha = 1
+    # define impacts for selected scenarios (related to materials)
+    NSB_base_pyro_mat = np.einsum('bmt->mt', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + np.einsum('bmt->mt', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000
+    NSB_base_pyro_imp = np.einsum('mt, m->t', NSB_base_pyro_mat, impacts_array)
+    
+    NSB_base_pyro_cap = MaTrace_System.FlowDict['C_1_5'].Values[z,s,a,R,v,E,:,55:]/1000 # MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,55:]/1000 
+    NSB_base_pyro_engy = np.einsum('bt, b->t', NSB_base_pyro_cap, energy_array)
+    # All SLB, no V2G
+    R = 2
+    SLB_base_pyro_mat = np.einsum('bmt->mt', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + np.einsum('bmt->mt', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000
+    SLB_base_pyro_imp = np.einsum('mt, m->t', SLB_base_pyro_mat, impacts_array) 
+    
+    SLB_base_pyro_cap = MaTrace_System.FlowDict['C_1_5'].Values[z,s,a,R,v,E,:,55:]/1000 # MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,55:]/1000 
+    SLB_base_pyro_engy = np.einsum('bt, b->t', SLB_base_pyro_cap, energy_array)
+    # All V2G, no SLB
+    R = 0
+    v = 3
+    V2G_base_pyro_mat = np.einsum('bmt->mt', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + np.einsum('bmt->mt', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000
+    V2G_base_pyro_imp = np.einsum('mt, m->t', V2G_base_pyro_mat, impacts_array) 
+    
+    V2G_base_pyro_cap = MaTrace_System.FlowDict['C_1_5'].Values[z,s,a,R,v,E,:,55:]/1000 # MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,55:]/1000 
+    V2G_base_pyro_engy = np.einsum('bt, b->t', V2G_base_pyro_cap, energy_array)
+    
+    fig, ax = plt.subplots(2,2,figsize=(13,16), sharex=True)
+    ax[0,0].set_prop_cycle(custom_cycler)
+    ax[0,0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    V2G_base_pyro_imp, alpha = alpha)
+    ax[0,0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    SLB_base_pyro_imp, V2G_base_pyro_imp, alpha = alpha)
+    ax[0,0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    NSB_base_pyro_imp, SLB_base_pyro_imp, alpha = alpha)
+    ax[0,0].set_ylabel('GWP [Mt CO2 eq.]',fontsize =14)
+    right_side = ax[0,0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[0,0].spines["top"]
+    top.set_visible(False)
+    #ax[0,0].legend(loc='lower right',prop={'size':15})
+    ax[0,0].set_title('a) GWP - Base EV penetration'.format(S), fontsize=14)
+    ax[0,0].set_xlabel('Year',fontsize =14)
+    ax[0,0].tick_params(axis='both', which='major', labelsize=14)
+    ax[0,0].set_xlim(2020,2050)
+    
+    # Add energy use
+    ax[1,0].set_prop_cycle(custom_cycler)
+    ax[1,0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    V2G_base_pyro_engy, alpha = alpha)
+    ax[1,0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    SLB_base_pyro_engy, V2G_base_pyro_engy, alpha = alpha)
+    ax[1,0].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    NSB_base_pyro_engy, SLB_base_pyro_engy, alpha = alpha)
+    ax[1,0].set_ylabel('Energy use [MWh]',fontsize =14)
+    right_side = ax[1,0].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1,0].spines["top"]
+    top.set_visible(False)
+    #ax[1,0].legend(loc='lower right',prop={'size':15})
+    ax[1,0].set_title('c) Energy use - Base EV penetration'.format(S), fontsize=14)
+    ax[1,0].set_xlabel('Year',fontsize =14)
+    ax[1,0].tick_params(axis='both', which='major', labelsize=14)
+    ax[1,0].set_xlim(2020,2050)
+    
+    # Add Energy use
+    z = 0 # Low, medium, high
+    s = 1 # Low, medium, high
+    a = 3 # NCX, LFP, Next_Gen, Roskill
+    R = 0 # no reuse, LFP reused, all reuse
+    v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
+    e = 2 # Low, medium, high, CP4All
+    h = 0 # pyrometallurgical, hydrometallurgical, Direct recycling
+    alpha = 1
+    # define impacts for selected scenarios (related to materials)
+    NSB_base_pyro_mat = np.einsum('bmt->mt', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + np.einsum('bmt->mt', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000
+    NSB_base_pyro_imp = np.einsum('mt, m->t', NSB_base_pyro_mat, impacts_array)
+    
+    NSB_base_pyro_cap = MaTrace_System.FlowDict['C_1_5'].Values[z,s,a,R,v,E,:,55:]/1000 # MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,55:]/1000 
+    NSB_base_pyro_engy = np.einsum('bt, b->t', NSB_base_pyro_cap, energy_array)
+    # All SLB, no V2G
+    R = 2
+    SLB_base_pyro_mat = np.einsum('bmt->mt', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + np.einsum('bmt->mt', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000
+    SLB_base_pyro_imp = np.einsum('mt, m->t', SLB_base_pyro_mat, impacts_array) 
+    
+    SLB_base_pyro_cap = MaTrace_System.FlowDict['C_1_5'].Values[z,s,a,R,v,E,:,55:]/1000 # MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,55:]/1000 
+    SLB_base_pyro_engy = np.einsum('bt, b->t', SLB_base_pyro_cap, energy_array)
+    # All V2G, no SLB
+    R = 0
+    v = 3
+    V2G_base_pyro_mat = np.einsum('bmt->mt', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + np.einsum('bmt->mt', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000
+    V2G_base_pyro_imp = np.einsum('mt, m->t', V2G_base_pyro_mat, impacts_array) 
+    
+    V2G_base_pyro_cap = MaTrace_System.FlowDict['C_1_5'].Values[z,s,a,R,v,E,:,55:]/1000 # MaTrace_System.FlowDict['C_2_3_real'].Values[z,S,a,R,v,E,:,55:]/1000 
+    V2G_base_pyro_engy = np.einsum('bt, b->t', V2G_base_pyro_cap, energy_array)
+    
+    ax[0,1].set_prop_cycle(custom_cycler)
+    ax[0,1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    V2G_base_pyro_imp, alpha = alpha)
+    ax[0,1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    SLB_base_pyro_imp, V2G_base_pyro_imp, alpha = alpha)
+    ax[0,1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    NSB_base_pyro_imp, SLB_base_pyro_imp, alpha = alpha)
+    ax[0,1].set_ylabel('GWP [Mt CO2 eq.]',fontsize =14)
+    right_side = ax[0,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[0,1].spines["top"]
+    top.set_visible(False)
+    #ax[0,1].legend(loc='lower right',prop={'size':15})
+    ax[0,1].set_title('b) GWP - Fast EV penetration'.format(S), fontsize=14)
+    ax[0,1].set_xlabel('Year',fontsize =14)
+    ax[0,1].tick_params(axis='both', which='major', labelsize=14)
+    ax[0,1].set_xlim(2020,2050)
+    
+    ax[1,1].set_prop_cycle(custom_cycler)
+    ax[1,1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    V2G_base_pyro_engy, label='V2G mandate', alpha = alpha)
+    ax[1,1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    SLB_base_pyro_engy, V2G_base_pyro_engy, label='All reuse', alpha = alpha)
+    ax[1,1].fill_between(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
+                    NSB_base_pyro_engy, SLB_base_pyro_engy, label='Only new batteries', alpha = alpha)
+    ax[1,1].set_ylabel('Energy use [MWh]',fontsize =14)
+    right_side = ax[1,1].spines["right"]
+    right_side.set_visible(False)
+    top = ax[1,1].spines["top"]
+    top.set_visible(False)
+    #ax[1,1].legend(loc='lower right',prop={'size':15})
+    ax[1,1].set_title('d) Energy use - Fast EV penetration'.format(S), fontsize=14)
+    ax[1,1].set_xlabel('Year',fontsize =14)
+    ax[1,1].tick_params(axis='both', which='major', labelsize=14)
+    ax[1,1].set_xlim(2020,2050)
+    lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
+    lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
+    fig.legend(lines, labels, loc='lower center', ncol=4, fontsize=14)
+    # Add title
+    plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/impacts'), dpi=600, bbox_inches = 'tight')
+
+# %%
 
 # %%
