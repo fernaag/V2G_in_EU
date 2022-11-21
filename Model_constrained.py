@@ -569,6 +569,7 @@ slb_model.compute_sf()
 
 slb_model_hz = pcm.ProductComponentModel(t=range(0,Nt), lt_pr={'Type': 'Normal', 'Mean': lt_slb, 'StdDev': sd_slb})
 # Aggregate all cohorts for reuse under the assumption that they are in similar SOH
+# TODO: Probably can delete this step
 inflows = np.einsum('zSaRvEgsbtc->zSaRvEgsbt',MaTrace_System.FlowDict['B_4_5'].Values[:,:,:,:,:,:,:,:,:,:,:])
 # Calculate the capacity that is available according to this under the assumption that 80% of the initial capacity is still available
 SLB_available = np.einsum('zSaRvEgsbt, gst->zSaRvEgsbt',inflows, MaTrace_System.ParameterDict['Capacity'].Values[:,:,:]) * 0.8 
@@ -627,7 +628,7 @@ for z in range(1):
                                                     for g in [1,2]:
                                                         for s in range(Ns):
                                                             for b in range(Nb):
-                                                                MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t] /0.8
+                                                                MaTrace_System.StockDict['C_5_SLB_tc'].Values[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] * MaTrace_System.ParameterDict['Degradation_slb'].Values[b,t::,t] / 0.8
                                                                 # Define this to convert back to mass layer later
                                                                 #capacity_stock[z,S,a,R,v,E,g,s,b,t::,t]  = MaTrace_System.FlowDict['C_4_5'].Values[z,S,a,R,v,E,g,s,b,t] * slb_model.sf[t::,t] /0.8
                                                     share_reused[z,S,a,R,v,E,t] = 1
@@ -1368,7 +1369,7 @@ def plot_energy_resource_multi():
     material_cycler = cycler(color=sns.color_palette('Paired', 6))
 
     # Resource figure for this scenario
-    h = 0 # Direct recycling, hydrometallurgical, pyrometallurgical
+    h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[1,0].set_prop_cycle(material_cycler)
     ax[1,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                     np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000,\
@@ -2947,6 +2948,3 @@ def plot_impacts():
     # Add title
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/impacts'), dpi=600, bbox_inches = 'tight')
 
-# %%
-
-# %%
