@@ -1367,7 +1367,6 @@ def plot_energy_resource_multi():
     plt.ylim(0,1300)
     ax[0,0].set_xlim(2010,2050)
     material_cycler = cycler(color=sns.color_palette('Paired', 6))
-
     # Resource figure for this scenario
     h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[1,0].set_prop_cycle(material_cycler)
@@ -1396,11 +1395,19 @@ def plot_energy_resource_multi():
     # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,0].set_ylim(0,2.5)
     ax[1,0].set_xlim(2010,2050)
-    ax[1,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+    ax[1,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
                                                 max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
                      xycoords='data', 
                      xytext=(0.8, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[1,0].annotate(f"Cumm. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(0.63, 0.54), textcoords='axes fraction',
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[1,0].annotate(f"Cumm. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(0.555, 0.47), textcoords='axes fraction',          
                     horizontalalignment='right', verticalalignment='top',)
     ax[1,0].grid()
 
@@ -1448,11 +1455,19 @@ def plot_energy_resource_multi():
     ax[1,1].tick_params(axis='both', which='major', labelsize=10)
     ax[1,1].set_ylim(0,2.5)
     ax[1,1].set_xlim(2010,2050)
-    ax[1,1].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+    ax[1,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
                                                 max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
                      xycoords='data', 
                      xytext=(0.8, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[1,1].annotate(f"Cumm. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(0.63, 0.54), textcoords='axes fraction',
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[1,1].annotate(f"Cumm. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(0.555, 0.47), textcoords='axes fraction',          
                     horizontalalignment='right', verticalalignment='top',)
     
     ax[1,1].grid()
@@ -1504,11 +1519,19 @@ def plot_energy_resource_multi():
     # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,2].set_ylim(0,2.5)
     ax[1,2].set_xlim(2010,2050)
-    ax[1,2].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+    ax[1,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
                                                 max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
                      xycoords='data', 
                      xytext=(0.8, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[1,2].annotate(f"Cumm. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(0.63, 0.54), textcoords='axes fraction',
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[1,2].annotate(f"Cumm. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(0.555, 0.47), textcoords='axes fraction',          
                     horizontalalignment='right', verticalalignment='top',)
     
     ax[1,2].grid()
@@ -1567,11 +1590,19 @@ def plot_energy_resource_multi():
     ax[3,0].tick_params(axis='both', which='major', labelsize=10)
     ax[3,0].set_ylim(0,2.5)
     ax[3,0].set_xlim(2010,2050)
-    ax[3,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+    ax[3,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
                                                 max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
                      xycoords='data', 
                      xytext=(0.8, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[3,0].annotate(f"Cumm. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(0.63, 0.54), textcoords='axes fraction',
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[3,0].annotate(f"Cumm. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(0.555, 0.47), textcoords='axes fraction',          
                     horizontalalignment='right', verticalalignment='top',)
     
     ax[3,0].grid()
@@ -1624,11 +1655,19 @@ def plot_energy_resource_multi():
     ax[3,1].tick_params(axis='both', which='major', labelsize=10)
     ax[3,1].set_ylim(0,2.5)
     ax[3,1].set_xlim(2010,2050)
-    ax[3,1].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+    ax[3,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
                                                 max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
                      xycoords='data', 
                      xytext=(0.8, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[3,1].annotate(f"Cumm. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(0.63, 0.54), textcoords='axes fraction',
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[3,1].annotate(f"Cumm. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(0.555, 0.47), textcoords='axes fraction',          
                     horizontalalignment='right', verticalalignment='top',)
     
     ax[3,1].grid()
@@ -1684,11 +1723,19 @@ def plot_energy_resource_multi():
     ax[3,2].tick_params(axis='both', which='major', labelsize=10)
     ax[3,2].set_ylim(0,2.5)
     ax[3,2].set_xlim(2010,2050)
-    ax[3,2].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+    ax[3,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
                                                 max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
                      xycoords='data', 
                      xytext=(0.8, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[3,2].annotate(f"Cumm. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(0.63, 0.54), textcoords='axes fraction',
+                    horizontalalignment='right', verticalalignment='top',)
+    ax[3,2].annotate(f"Cumm. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(0.555, 0.47), textcoords='axes fraction',          
                     horizontalalignment='right', verticalalignment='top',)
     
     ax[3,2].grid()
@@ -2948,3 +2995,5 @@ def plot_impacts():
     # Add title
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/impacts'), dpi=600, bbox_inches = 'tight')
 
+
+# %%
