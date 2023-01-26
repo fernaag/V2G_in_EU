@@ -1769,7 +1769,7 @@ def plot_energy_resource_multi_new():
     v = 0 # No V2G, Low,  medium, high, v2g mandate,  early
     e =2 # Low, medium, high, CP4All
     x_text = 0.05
-    fig, ax = plt.subplots(4,3,figsize=(13,16), sharex=True)
+    fig, ax = plt.subplots(4,3,figsize=(15,16), sharex=True)
     ax[0,0].set_prop_cycle(custom_cycler)
     ax[0,0].stackplot(MaTrace_System.IndexTable['Classification']['Time'].Items[t::], 
                 [MaTrace_System.StockDict['C_3'].Values[z,s,a,R,v,e,t::], \
@@ -1787,6 +1787,7 @@ def plot_energy_resource_multi_new():
     ax[0,0].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
     ax[0,0].set_xlim(year,2050)
+    ax[0,0].grid()
     material_cycler = cycler(color=sns.color_palette('Paired', 6))
     # Resource figure for this scenario
     h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
@@ -1803,7 +1804,7 @@ def plot_energy_resource_multi_new():
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(False)
-    ax2.tick_params(axis='y', which='major', labelsize=0)
+    ax2.tick_params(axis='y', which='major', labelright=False)
     top = ax2.spines["top"]
     top.set_visible(False)
     ax[1,0].set_ylabel('Material weight [Mt]',fontsize =10)
@@ -1820,16 +1821,16 @@ def plot_energy_resource_multi_new():
     ax[1,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
                                                 max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)), 
                      xycoords='data', 
-                     xytext=(0.05, 0.95), textcoords='axes fraction',
+                     xytext=(0.04, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,0].annotate(f"Cum. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[1,0].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
-                    xytext=(0.05, 0.54), textcoords='axes fraction',
+                    xytext=(0.04, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,0].annotate(f"Cum. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[1,0].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
-                     xytext=(0.05, 0.47), textcoords='axes fraction',          
+                     xytext=(0.04, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
     ax[1,0].grid()
 
@@ -1848,7 +1849,7 @@ def plot_energy_resource_multi_new():
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(False)
-    ax2.tick_params(axis='y', which='major', labelsize=0) 
+    ax2.tick_params(axis='y', which='major', labelright=False)
     top = ax2.spines["top"]
     top.set_visible(False)
     right_side = ax[0,1].spines["right"]
@@ -1857,8 +1858,9 @@ def plot_energy_resource_multi_new():
     top.set_visible(False)
     ax[0,1].set_title('b) V2G Mandate - No Reuse'.format(S), fontsize=10)
     ax[0,1].set_xlabel('Year',fontsize =10)
-    ax[0,1].tick_params(axis='both', which='major', labelsize=10)
-
+    ax[0,1].tick_params(axis='x', which='major', labelsize=10)
+    ax[0,1].tick_params(axis='y', which='major',  labelleft=False)
+    ax[0,1].grid()
     ax[0,1].set_xlim(year,2050)
     # Resource figure for this scenario
     
@@ -1874,7 +1876,7 @@ def plot_energy_resource_multi_new():
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(False)
-    ax2.tick_params(axis='y', which='major', labelsize=0)
+    ax2.tick_params(axis='y', which='major', labelright=False)
     top = ax2.spines["top"]
     top.set_visible(False)
     right_side = ax[1,1].spines["right"]
@@ -1883,7 +1885,8 @@ def plot_energy_resource_multi_new():
     top.set_visible(False)
     ax[1,1].set_title('e) Material demand - No reuse'.format(S), fontsize=10)
     ax[1,1].set_xlabel('Year',fontsize =10)
-    ax[1,1].tick_params(axis='both', which='major', labelsize=10)
+    ax[1,1].tick_params(axis='x', which='major', labelsize=10)
+    ax[1,1].tick_params(axis='y', which='major',  labelleft=False)
     ax[1,1].set_ylim(0,2.5)
     ax[1,1].set_xlim(year,2050)
     ax[1,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
@@ -1892,11 +1895,11 @@ def plot_energy_resource_multi_new():
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,1].annotate(f"Cum. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[1,1].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,1].annotate(f"Cum. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[1,1].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -1933,9 +1936,11 @@ def plot_energy_resource_multi_new():
     ax[0,2].set_xlabel('Year',fontsize =10)
     # ax[0,2].legend(['High storage demand','V2G', 'SLB', 'New batteries'])
     # ax[0,2].set_ylim([0,5])
-    ax[0,2].tick_params(axis='both', which='major', labelsize=10)
+    ax[0,2].tick_params(axis='x', which='major', labelsize=10)
+    ax[0,2].tick_params(axis='y', which='major',  labelleft=False)
     #plt.ylim(0,1300)
     ax[0,2].set_xlim(year,2050)
+    ax[0,2].grid()
 
     # Resource figure for this scenario
     ax[1,2].set_prop_cycle(material_cycler)
@@ -1960,7 +1965,8 @@ def plot_energy_resource_multi_new():
     top.set_visible(False)
     ax[1,2].set_title('f) Material demand - No V2G'.format(S), fontsize=10)
     ax[1,2].set_xlabel('Year',fontsize =10)
-    ax[1,2].tick_params(axis='both', which='major', labelsize=10)
+    ax[1,2].tick_params(axis='x', which='major', labelsize=10)
+    ax[1,2].tick_params(axis='y', which='major',  labelleft=False)
     # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,2].set_ylim(0,2.5)
     ax[1,2].set_xlim(year,2050)
@@ -1970,11 +1976,11 @@ def plot_energy_resource_multi_new():
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,2].annotate(f"Cum. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[1,2].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,2].annotate(f"Cum. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[1,2].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -2006,6 +2012,7 @@ def plot_energy_resource_multi_new():
     ax[2,0].tick_params(axis='both', which='major', labelsize=10)
     #plt.ylim(0,1300)
     ax[2,0].set_xlim(year,2050)
+    ax[2,0].grid()
     material_cycler = cycler(color=sns.color_palette('Paired', 6))
 
     # Resource figure for this scenario
@@ -2024,7 +2031,7 @@ def plot_energy_resource_multi_new():
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(False)
-    ax2.tick_params(axis='y', which='major', labelsize=0)
+    ax2.tick_params(axis='y', which='major', labelright=False)
     top = ax2.spines["top"]
     top.set_visible(False)
     right_side = ax[3,0].spines["right"]
@@ -2042,11 +2049,11 @@ def plot_energy_resource_multi_new():
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,0].annotate(f"Cum. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[3,0].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,0].annotate(f"Cum. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[3,0].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -2074,7 +2081,7 @@ def plot_energy_resource_multi_new():
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(False)
-    ax2.tick_params(axis='y', which='major', labelsize=0) 
+    ax2.tick_params(axis='y', which='major', labelright=False)
     top = ax2.spines["top"]
     top.set_visible(False)
     right_side = ax[2,1].spines["right"]
@@ -2084,9 +2091,10 @@ def plot_energy_resource_multi_new():
     # ax[0,1].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
     ax[2,1].set_title('h) V2G Mandate - No reuse'.format(S), fontsize=10)
     ax[2,1].set_xlabel('Year',fontsize =10)
-    ax[2,1].tick_params(axis='both', which='major', labelsize=10)
-    #plt.ylim(0,1300)
+    ax[2,1].tick_params(axis='x', which='major', labelsize=10)
+    ax[2,1].tick_params(axis='y', which='major',  labelleft=False)
     ax[2,1].set_xlim(year,2050)
+    ax[2,1].grid()
     # Resource figure for this scenario
     #h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
     ax[3,1].set_prop_cycle(material_cycler)
@@ -2101,7 +2109,7 @@ def plot_energy_resource_multi_new():
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(False)
-    ax2.tick_params(axis='y', which='major', labelsize=0)
+    ax2.tick_params(axis='y', which='major', labelright=False)
     top = ax2.spines["top"]
     top.set_visible(False)
     right_side = ax[3,1].spines["right"]
@@ -2110,7 +2118,8 @@ def plot_energy_resource_multi_new():
     top.set_visible(False)
     ax[3,1].set_title('k) Material demand - No reuse'.format(S), fontsize=10)
     ax[3,1].set_xlabel('Year',fontsize =10)
-    ax[3,1].tick_params(axis='both', which='major', labelsize=10)
+    ax[3,1].tick_params(axis='x', which='major', labelsize=10)
+    ax[3,1].tick_params(axis='y', which='major',  labelleft=False)
     ax[3,1].set_ylim(0,2.5)
     ax[3,1].set_xlim(year,2050)
     ax[3,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
@@ -2119,11 +2128,11 @@ def plot_energy_resource_multi_new():
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,1].annotate(f"Cum. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[3,1].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,1].annotate(f"Cum. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[3,1].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -2164,8 +2173,9 @@ def plot_energy_resource_multi_new():
     ax[2,2].set_xlabel('Year',fontsize =10)
     # ax[0,2].set_ylim([0,5])
     ax[2,2].set_xlim(year,2050)
-    ax[2,2].tick_params(axis='both', which='major', labelsize=10)
-    
+    ax[2,2].tick_params(axis='x', which='major', labelsize=10)
+    ax[2,2].tick_params(axis='y', which='major',  labelleft=False)
+    ax[2,2].grid()
     #plt.ylim(0,1300)
     # Resource figure for this scenario
     #h = 1 # Direct recycling, hydrometallurgical, pyrometallurgical
@@ -2191,7 +2201,8 @@ def plot_energy_resource_multi_new():
     top.set_visible(False)
     ax[3,2].set_title('l) Material demand - No V2G'.format(S), fontsize=10)
     ax[3,2].set_xlabel('Year',fontsize =10)
-    ax[3,2].tick_params(axis='both', which='major', labelsize=10)
+    ax[3,2].tick_params(axis='x', which='major', labelsize=10)
+    ax[3,2].tick_params(axis='y', which='major',  labelleft=False)
     ax[3,2].set_ylim(0,2.5)
     ax[3,2].set_xlim(year,2050)
     ax[3,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
@@ -2200,11 +2211,11 @@ def plot_energy_resource_multi_new():
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,2].annotate(f"Cum. primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[3,2].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,2].annotate(f"Cum. total: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[3,2].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
