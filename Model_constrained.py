@@ -757,7 +757,7 @@ what is insightful and meaningful as a figure and can create those figures for t
 # # %%
 # print('Exporting results')
 # # Exporting vehicle flows
-# results = os.path.join(os.getcwd(), 'results')
+results = os.path.join(os.getcwd(), 'results')
 # #np.save('/Users/fernaag/Box/BATMAN/Coding/Global_model/results/arrays/inflows/inflow_array', np.einsum('zSrgt->zSrt', MaTrace_System.FlowDict['Inflows'].Values[:,:,:,:,:]), allow_pickle=True)
 # np.save(results+'/arrays/vehicle_stock_array', np.einsum('zSgst->zSgt', MaTrace_System.StockDict['S_3'].Values[:,:,:,:,:]), allow_pickle=True)
 # np.save(results+'/arrays/vehicle_outflow_array', np.einsum('zSgstc->zSgt', MaTrace_System.FlowDict['V_3_4'].Values[:,:,:,:,:,:]), allow_pickle=True)
@@ -784,6 +784,9 @@ what is insightful and meaningful as a figure and can create those figures for t
 #%%
 
 ## Exporting table with key indicators
+def export_stock_composition():
+    np.save(results+'/arrays/stock_composition', np.einsum('Sgstc->Sgt',MaTrace_System.StockDict['S_C_3'].Values[0,:,:,:,:,:])) # z, S, g, s, t, c)
+
 def export_table():
     import seaborn as sns
     a = 3 # BNEF chemistry scenario

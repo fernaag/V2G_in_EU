@@ -91,7 +91,7 @@ class ProductComponentModel(object):
                  sc_cm=None, oc_pr=None, oc_cm=None, name='PCM', pdf_pr=None, 
                  pdf_cm=None, sf_pr=None, sf_cm=None, reuse_coeff=None,
                  replacement_coeff=None, tau_cm=None, tau_pr=None, d=None, b=None, 
-                 hz_cm=None, hz_pr = None):
+                 hz_cm: int  = None, hz_pr = None):
         """ Init function. Assign the input data to the instance of the object."""
         self.t = t  # optional
 
@@ -109,6 +109,7 @@ class ProductComponentModel(object):
 
         self.o_cm = o_cm  # optional
         self.oc_cm = oc_cm  # optional
+        self.hz_cm = "vlad"
 
         if lt_pr is not None:
             for ThisKey in lt_pr.keys():
