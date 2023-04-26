@@ -268,7 +268,7 @@ ParameterDict['Storage_demand']= msc.Parameter(Name = 'Storage_demand',
                                                              P_Res = None,
                                                              MetaData = None,
                                                              Indices = 'E,t', #t=time, h=units
-                                                             Values = np.load(os.getcwd()+'/data/scenario_data/Energy_storage_demand.npy'),
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/230426_new_storage_scenarios.npy'), #  Energy_storage_demand
                                                              Uncert=None,
                                                              Unit = 'GWh')
 
@@ -786,6 +786,10 @@ results = os.path.join(os.getcwd(), 'results')
 ## Exporting table with key indicators
 def export_stock_composition():
     np.save(results+'/arrays/stock_composition', np.einsum('Sgstc->Sgt',MaTrace_System.StockDict['S_C_3'].Values[0,:,:,:,:,:])) # z, S, g, s, t, c)
+    plt.plot(np.einsum('Sgstc->Sgt',MaTrace_System.StockDict['S_C_3'].Values[0,:,:,:,:,:])[1,0,60:])
+    plt.plot(np.einsum('Sgstc->Sgt',MaTrace_System.StockDict['S_C_3'].Values[0,:,:,:,:,:])[1,1,60:])
+    plt.plot(np.einsum('Sgstc->Sgt',MaTrace_System.StockDict['S_C_3'].Values[0,:,:,:,:,:])[1,2,60:])
+    plt.plot(np.einsum('Sgstc->Sgt',MaTrace_System.StockDict['S_C_3'].Values[0,:,:,:,:,:])[1,3,60:])
 
 def export_table():
     import seaborn as sns
@@ -1762,7 +1766,7 @@ def plot_energy_resource_multi():
 def plot_energy_resource_multi_new():
     from cycler import cycler
     import seaborn as sns
-    t = 70
+    t = 55
     year = 2020
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
     z = 0 # Low, medium, high
@@ -1821,17 +1825,17 @@ def plot_energy_resource_multi_new():
     # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,0].set_ylim(0,2.5)
     ax[1,0].set_xlim(year,2050)
-    ax[1,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)), 
+    ax[1,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
                      xytext=(0.04, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,0].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[1,0].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(0.04, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,0].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[1,0].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(0.04, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -1892,17 +1896,17 @@ def plot_energy_resource_multi_new():
     ax[1,1].tick_params(axis='y', which='major',  labelleft=False)
     ax[1,1].set_ylim(0,2.5)
     ax[1,1].set_xlim(year,2050)
-    ax[1,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)), 
+    ax[1,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,1].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[1,1].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,1].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[1,1].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -1973,17 +1977,17 @@ def plot_energy_resource_multi_new():
     # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,2].set_ylim(0,2.5)
     ax[1,2].set_xlim(year,2050)
-    ax[1,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)), 
+    ax[1,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,2].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[1,2].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[1,2].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[1,2].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -2046,17 +2050,17 @@ def plot_energy_resource_multi_new():
     ax[3,0].tick_params(axis='both', which='major', labelsize=10)
     ax[3,0].set_ylim(0,2.5)
     ax[3,0].set_xlim(year,2050)
-    ax[3,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)), 
+    ax[3,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,0].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[3,0].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,0].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[3,0].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -2125,17 +2129,17 @@ def plot_energy_resource_multi_new():
     ax[3,1].tick_params(axis='y', which='major',  labelleft=False)
     ax[3,1].set_ylim(0,2.5)
     ax[3,1].set_xlim(year,2050)
-    ax[3,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)), 
+    ax[3,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,1].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[3,1].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,1].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[3,1].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -2208,17 +2212,17 @@ def plot_energy_resource_multi_new():
     ax[3,2].tick_params(axis='y', which='major',  labelleft=False)
     ax[3,2].set_ylim(0,2.5)
     ax[3,2].set_xlim(year,2050)
-    ax[3,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)), 
+    ax[3,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
                      xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,2].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2035,1), 
+    ax[3,2].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
                      xycoords='data', 
                     xytext=(x_text, 0.54), textcoords='axes fraction',
                     horizontalalignment='left', verticalalignment='top',)
-    ax[3,2].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+    ax[3,2].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
                      xycoords='data', 
                      xytext=(x_text, 0.47), textcoords='axes fraction',          
                     horizontalalignment='left', verticalalignment='top',)
@@ -2556,6 +2560,8 @@ def plot_energy_resource_multi_disagregated():
 def plot_competition():
     from cycler import cycler
     import seaborn as sns
+    t = 55
+    x_text = 0.05
     v2g_col = 'green'
     slb_col = 'mediumpurple'
     custom_cycler = cycler(color=sns.color_palette('Accent', 6)) #'Set2', 'Paired', 'YlGnBu'
@@ -2581,6 +2587,7 @@ def plot_competition():
     ax[0,0].tick_params(axis='both', which='major', labelsize=10)
     plt.ylim(0,1300)
     ax[0,0].set_xlim(2020,2050)
+    ax[0,0].grid()
     ax2 = ax[0,0].twinx()
     top = ax[0,0].spines["top"]
     top.set_visible(False)
@@ -2626,12 +2633,26 @@ def plot_competition():
     # ax[1,0].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,0].set_ylim(0,2.5)
     ax[1,0].set_xlim(2020,2050)
-    ax[1,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+    # ax[1,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+    #                                             max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+    #                  xycoords='data', 
+    #                  xytext=(0.8, 0.95), textcoords='axes fraction',
+    #                 arrowprops=dict(facecolor='black', shrink=0.1),
+    #                 horizontalalignment='right', verticalalignment='top',)
+    ax[1,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
-                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                     xytext=(0.04, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
-                    horizontalalignment='right', verticalalignment='top',)
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[1,0].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(0.04, 0.54), textcoords='axes fraction',
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[1,0].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(0.04, 0.47), textcoords='axes fraction',          
+                    horizontalalignment='left', verticalalignment='top',)    
     ax[1,0].grid()
 
     v = 1 # Low, medium, high, v2g mandate, no v2g, early
@@ -2655,6 +2676,8 @@ def plot_competition():
     ax[0,1].set_xlim(2020,2050)
     
     ax2 = ax[0,1].twinx()
+    ax[0,1].grid()
+
     ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
             /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
     ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
@@ -2689,12 +2712,20 @@ def plot_competition():
     ax[1,1].tick_params(axis='both', which='major', labelsize=10)
     ax[1,1].set_ylim(0,2.5)
     ax[1,1].set_xlim(2020,2050)
-    ax[1,1].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+    ax[1,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
-                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                     xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
-                    horizontalalignment='right', verticalalignment='top',)
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[1,1].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(x_text, 0.54), textcoords='axes fraction',
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[1,1].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(x_text, 0.47), textcoords='axes fraction',          
+                    horizontalalignment='left', verticalalignment='top',)
     
     ax[1,1].grid()
     
@@ -2718,6 +2749,8 @@ def plot_competition():
     ax[0,2].tick_params(axis='both', which='major', labelsize=10)
     #plt.ylim(0,1300)
     ax[0,2].set_xlim(2020,2050)
+    ax[0,2].grid()
+
     ax2 = ax[0,2].twinx()
     top = ax[0,2].spines["top"]
     top.set_visible(False)
@@ -2759,12 +2792,20 @@ def plot_competition():
     # ax[1,2].legend(['Primary materials', 'Recycled materials'], loc='upper left')
     ax[1,2].set_ylim(0,2.5)
     ax[1,2].set_xlim(2020,2050)
-    ax[1,2].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+    ax[1,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
-                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                     xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
-                    horizontalalignment='right', verticalalignment='top',)
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[1,2].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(x_text, 0.54), textcoords='axes fraction',
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[1,2].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(x_text, 0.47), textcoords='axes fraction',          
+                    horizontalalignment='left', verticalalignment='top',)
     
     ax[1,2].grid()
         
@@ -2793,6 +2834,8 @@ def plot_competition():
     ax[2,0].tick_params(axis='both', which='major', labelsize=10)
     #plt.ylim(0,1300)
     ax[2,0].set_xlim(2020,2050)
+    ax[2,0].grid()
+
     ax2 = ax[2,0].twinx()
     ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
             /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
@@ -2834,12 +2877,20 @@ def plot_competition():
     ax[3,0].tick_params(axis='both', which='major', labelsize=10)
     ax[3,0].set_ylim(0,2.5)
     ax[3,0].set_xlim(2020,2050)
-    ax[3,0].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+    ax[3,0].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
-                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                     xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
-                    horizontalalignment='right', verticalalignment='top',)
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[3,0].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(x_text, 0.54), textcoords='axes fraction',
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[3,0].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(x_text, 0.47), textcoords='axes fraction',          
+                    horizontalalignment='left', verticalalignment='top',)
     
     ax[3,0].grid()
     
@@ -2862,6 +2913,7 @@ def plot_competition():
     ax[2,1].tick_params(axis='both', which='major', labelsize=10)
     #plt.ylim(0,1300)
     ax[2,1].set_xlim(2020,2050)
+    ax[2,1].grid()
     ax2 = ax[2,1].twinx()
     ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
             /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
@@ -2899,12 +2951,20 @@ def plot_competition():
     ax[3,1].tick_params(axis='both', which='major', labelsize=10)
     ax[3,1].set_ylim(0,2.5)
     ax[3,1].set_xlim(2020,2050)
-    ax[3,1].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+    ax[3,1].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
-                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                     xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
-                    horizontalalignment='right', verticalalignment='top',)
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[3,1].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(x_text, 0.54), textcoords='axes fraction',
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[3,1].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(x_text, 0.47), textcoords='axes fraction',          
+                    horizontalalignment='left', verticalalignment='top',)
     
     ax[3,1].grid()
     
@@ -2930,6 +2990,8 @@ def plot_competition():
     ax[2,2].set_xlim(2020,2050)
     ax[2,2].tick_params(axis='both', which='major', labelsize=10)
     ax2 = ax[2,2].twinx()
+    ax[2,2].grid()
+
     ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[70::], MaTrace_System.FlowDict['C_2_3_real'].Values[z,s,a,R,v,e,:,:].sum(axis=0)[70::]\
             /np.einsum('gsbt->t', MaTrace_System.FlowDict['C_2_3_max'].Values[z,s,a,v,:,:,:,:])[70::]*100, color=v2g_col)
     ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], np.einsum('gsbt->t',MaTrace_System.FlowDict['C_4_5'].Values[z,s,a,R,v,e,:,:,:,:])[55::]\
@@ -2968,12 +3030,20 @@ def plot_competition():
     ax[3,2].tick_params(axis='both', which='major', labelsize=10)
     ax[3,2].set_ylim(0,2.5)
     ax[3,2].set_xlim(2020,2050)
-    ax[3,2].annotate(f"({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))},{format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000),'.2f')})", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
-                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)), 
+    ax[3,2].annotate(f"Peak primary: ({1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]))}, {format(max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000),'.2f')} Mt)", xy=(1950 + np.argmax(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])), 
+                                                max(np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:])/1000)), 
                      xycoords='data', 
-                     xytext=(0.8, 0.95), textcoords='axes fraction',
+                     xytext=(x_text, 0.95), textcoords='axes fraction',
                     arrowprops=dict(facecolor='black', shrink=0.1),
-                    horizontalalignment='right', verticalalignment='top',)
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[3,2].annotate(f"Cumulative primary: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2035,1), 
+                     xycoords='data', 
+                    xytext=(x_text, 0.54), textcoords='axes fraction',
+                    horizontalalignment='left', verticalalignment='top',)
+    ax[3,2].annotate(f"Cumulative primary + recycled: {format(np.einsum('bmt->', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000)+np.einsum('bmt->', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,:]/1000),'.2f')} Mt", xy=(2040,1.75), 
+                     xycoords='data', 
+                     xytext=(x_text, 0.47), textcoords='axes fraction',          
+                    horizontalalignment='left', verticalalignment='top',)
     
     ax[3,2].grid()
     # Add separator style
