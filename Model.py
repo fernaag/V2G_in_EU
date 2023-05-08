@@ -259,7 +259,7 @@ ParameterDict['Storage_demand']= msc.Parameter(Name = 'Storage_demand',
                                                              P_Res = None,
                                                              MetaData = None,
                                                              Indices = 'E,t', #t=time, h=units
-                                                             Values = np.load(os.getcwd()+'/data/scenario_data/Energy_storage_demand.npy'),
+                                                             Values = np.load(os.getcwd()+'/data/scenario_data/230426_new_storage_scenarios.npy'),
                                                              Uncert=None,
                                                              Unit = 'GWh')
 
