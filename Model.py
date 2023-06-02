@@ -735,7 +735,7 @@ def plot_capacity_scenarios():
     right_side.set_visible(False)
     top = ax[0].spines["top"]
     top.set_visible(False)
-    ax[0].legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low, Projected', 'V2G medium, Projected', 'V2G mandate, Projected', 'V2G low, Accelerated', 'V2G medium, Accelerated', 'V2G mandate, Accelerated'], loc='upper left',prop={'size':15})
+    ax[0].legend(['Low storage demand','Medium storage demand','High storage demand', 'V2G low, Baseline', 'V2G medium, Baseline', 'V2G mandate, Baseline', 'V2G low, Accelerated', 'V2G medium, Accelerated', 'V2G mandate, Accelerated'], loc='upper left',prop={'size':15})
     ax[0].set_title('a) Available V2G capacity by scenario'.format(S), fontsize=20)
     ax[0].set_xlabel('Year',fontsize =16)
     ax[0].tick_params(axis='both', which='major', labelsize=18)
@@ -771,7 +771,7 @@ def plot_capacity_scenarios():
     right_side.set_visible(False)
     top = ax[1].spines["top"]
     top.set_visible(False)
-    ax[1].legend(['Low storage demand','Medium storage demand','High storage demand', 'LFP reused - Projected', 'All reused - Projected', 'LFP reused - Accelerated', 'All reused - Accelerated'], loc='upper left',prop={'size':15})
+    ax[1].legend(['Low storage demand','Medium storage demand','High storage demand', 'LFP reused - Baseline', 'All reused - Baseline', 'LFP reused - Accelerated', 'All reused - Accelerated'], loc='upper left',prop={'size':15})
     ax[1].set_title('b) Available SLB capacity by scenario'.format(S), fontsize=20)
     ax[1].set_xlabel('Year',fontsize =16)
     ax[1].tick_params(axis='both', which='major', labelsize=18)

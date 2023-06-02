@@ -1752,7 +1752,7 @@ def plot_energy_resource_multi():
     fig.add_artist(line)
     line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.04, 0.65, 'Projected EV penetration', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.65, 'Baseline EV penetration', fontsize=16, rotation=90)
     plt.gcf().text(0.04, 0.2, 'Accelerated EV penetration', fontsize=16, rotation=90)
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
@@ -1930,8 +1930,8 @@ def plot_energy_resource_multi_new():
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(False)
-    ax2.tick_params(axis='both', which='major', labelsize=10, color='g', labelcolor='g')
-    ax2.set_ylabel('Share installed [%]', fontsize=10, color='g')    
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='b', labelcolor='b')
+    ax2.set_ylabel('Share installed [%]', fontsize=10, color='b')    
     top = ax2.spines["top"]
     top.set_visible(False)
     right_side = ax[0,2].spines["right"]
@@ -2171,8 +2171,8 @@ def plot_energy_resource_multi_new():
     ax2.tick_params(axis='y', which='major', labelsize=0) 
     top = ax2.spines["top"]
     top.set_visible(False)
-    ax2.tick_params(axis='both', which='major', labelsize=10, color='g', labelcolor='g')
-    ax2.set_ylabel('Share installed [%]', fontsize=10, color='g')
+    ax2.tick_params(axis='both', which='major', labelsize=10, color='b', labelcolor='b')
+    ax2.set_ylabel('Share installed [%]', fontsize=10, color='b')
     top = ax[2,2].spines["top"]
     top.set_visible(False)
     # ax[0,2].legend(['Storage demand', 'V2G', 'SLB', 'New batteries'], loc='upper left',prop={'size':15})
@@ -2233,7 +2233,7 @@ def plot_energy_resource_multi_new():
     fig.add_artist(line)
     line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.04, 0.65, 'Projected EV penetration', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.65, 'Baseline EV penetration', fontsize=16, rotation=90)
     plt.gcf().text(0.04, 0.2, 'Accelerated EV penetration', fontsize=16, rotation=90)
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
@@ -2520,7 +2520,7 @@ def plot_energy_resource_multi_disagregated():
     fig.add_artist(line)
     line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.04, 0.65, 'Projected EV penetration', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.65, 'Baseline EV penetration', fontsize=16, rotation=90)
     plt.gcf().text(0.04, 0.2, 'Accelerated EV penetration', fontsize=16, rotation=90)
     # Add legend
     material_lines = [
@@ -3051,7 +3051,7 @@ def plot_competition():
     fig.add_artist(line)
     line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.04, 0.65, 'Projected EV penetration', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.65, 'Baseline EV penetration', fontsize=16, rotation=90)
     plt.gcf().text(0.04, 0.2, 'Accelerated EV penetration', fontsize=16, rotation=90)
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
@@ -3490,7 +3490,7 @@ def plot_competition_all_reused():
     fig.add_artist(line)
     line2 = plt.Line2D([0.06,0.06],[0.1,0.9], transform=fig.transFigure, color="black")
     fig.add_artist(line2)
-    plt.gcf().text(0.04, 0.65, 'Projected EV penetration', fontsize=16, rotation=90)
+    plt.gcf().text(0.04, 0.65, 'Baseline EV penetration', fontsize=16, rotation=90)
     plt.gcf().text(0.04, 0.2, 'Accelerated EV penetration', fontsize=16, rotation=90)
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
@@ -3664,7 +3664,7 @@ def plot_share_installed_ev():
     top = ax[0].spines["top"]
     top.set_visible(False)
     ax[0].legend(loc='lower left',prop={'size':15})
-    ax[0].set_title('a) Projected EV penetration', fontsize=18)
+    ax[0].set_title('a) Baseline EV penetration', fontsize=18)
     ax[0].set_xlabel('Year',fontsize =16)
     ax[0].tick_params(axis='both', which='major', labelsize=18)
     ax[0].set_ylim([0,105])
