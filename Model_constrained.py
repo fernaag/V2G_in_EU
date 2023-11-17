@@ -2187,7 +2187,7 @@ def plot_energy_resource_multi_new():
     ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[t::], 
                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000/
                         (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000 + 
-                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)*100, color='r')
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,t:])/1000)*100, color='r',label='Recycled content')
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(True)
@@ -2231,7 +2231,7 @@ def plot_energy_resource_multi_new():
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
     lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
-    fig.legend(lines, labels, loc='lower center', ncol=4, fontsize=14)
+    fig.legend(lines, labels, loc='lower center', ncol=5, fontsize=14)
     # Add title
     fig.suptitle('Resource use per technology used to meet storage demand - High demand scenario', fontsize=18)
     fig.subplots_adjust(top=0.92, bottom=0.08)
@@ -3061,7 +3061,7 @@ def plot_competition():
     ax2.plot(MaTrace_System.IndexTable['Classification']['Time'].Items[55::], 
                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000/
                         (np.einsum('bmt->t', MaTrace_System.FlowDict['E_6_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000 + 
-                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r')
+                         np.einsum('bmt->t', MaTrace_System.FlowDict['E_0_1'].Values[z,s,a,R,v,e,:,:,h,55:])/1000)*100, color='r', label='Recycled content')
     ax2.set_ylim(0,100)
     right_side2 = ax2.spines["right"]
     right_side2.set_visible(False)
@@ -3502,7 +3502,7 @@ def plot_competition():
     # Add legend
     lines_labels = [ax.get_legend_handles_labels() for ax in fig.axes]
     lines, labels = [sum(lol, []) for lol in zip(*lines_labels)]
-    fig.legend(lines, labels, loc='lower center', ncol=4, fontsize=14)
+    fig.legend(lines, labels, loc='lower center', ncol=5, fontsize=14)
     # Add title
     fig.suptitle('Resource use per technology used to meet storage demand - High demand scenario', fontsize=18)
     fig.subplots_adjust(top=0.92, bottom=0.08)
@@ -4309,5 +4309,40 @@ def plot_impacts():
     # Add title
     plt.savefig(os.path.join(os.getcwd(), 'results/Manuscript/impacts'), dpi=600, bbox_inches = 'tight')
 
+def compute_rc():
+    # Li RC for hydromet and direct recycling efficiencies
+    year = 81 # 2030
+    li = 0
+    # Range with direct: 
+    print(np.min(np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,0,year])/(np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,li,0,year]) + np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,0,year]))))
+    print(np.max(np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,0,year])/(np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,li,0,year]) + np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,0,year]))))
+    # Range with hydromet:
+    print(np.min(np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,1,year])/(np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,li,1,year]) + np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,1,year]))))
+    print(np.max(np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,1,year])/(np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,li,1,year]) + np.einsum('sRveb->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,1,year]))))
+    
+    # Aggregated RC for hydromet and direct recycling efficiencies
+    # Range with direct: 
+    print(np.min(np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,0,year])/(np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,:,0,year]) + np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,0,year]))))
+    print(np.max(np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,0,year])/(np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,:,0,year]) + np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,0,year]))))
+    # Range with hydromet:
+    print(np.min(np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,1,year])/(np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,:,1,year]) + np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,1,year]))))
+    print(np.max(np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,1,year])/(np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,:,1,year]) + np.einsum('sRvebm->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,1,year]))))
 
+def compute_material_reduction():
+    # Cummulative material demand reduction for Li
+    li = 0
+    # Range with direct: 
+    print(np.min(np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,0,:])/(np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,li,0,:]) + np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,0,:]))))
+    print(np.max(np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,0,:])/(np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,li,0,:]) + np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,0,:]))))
+    # Range with hydromet:
+    print(np.min(np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,1,:])/(np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,li,1,:]) + np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,1,:]))))
+    print(np.max(np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,1,:])/(np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,li,1,:]) + np.einsum('sRvebt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,li,1,:]))))
+    
+    # Aggregated material demand reductions
+    # Range with direct: 
+    print(np.min(np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,0,:])/(np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,:,0,:]) + np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,0,:]))))
+    print(np.max(np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,0,:])/(np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,:,0,:]) + np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,0,:]))))
+    # Range with hydromet:
+    print(np.min(np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,1,:])/(np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,:,1,:]) + np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,1,:]))))
+    print(np.max(np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,1,:])/(np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_0_1'].Values[z,:,a,:,:,:,:,:,1,:]) + np.einsum('sRvebmt->sRve', MaTrace_System.FlowDict['E_6_1'].Values[z,:,a,:,:,:,:,:,1,:]))))
 # %%
