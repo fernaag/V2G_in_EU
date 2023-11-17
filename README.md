@@ -13,8 +13,10 @@ Folder odym contains further modules needed for odym
 
 Folder results contains the model output for all scenario with the most relevant graphs for each combination.
 
-sankey.py provides a locally hosted web-application where one can interactively view the flows throughout the system for all years and scenarios.
+Model.py main file for the model used to generate the non-constrained model related to Figure 1 in the manuscript. 
 
-scenario_visualizations.py provides an overview of the key figures that can interactively be assessed via a locally hosted web-application
+Model_constrained.py is the main file for the model on the competition of V2G, SLBs, and NSBs in a limited energy market related to all other figures in the manuscript. 
 
-Model.py main file for the model
+The Requirements.txt files specify the packages needed to run this code. 
+
+Demo: Once the requirements are installed and the file paths accordingly adjusted, you should be able to successfully run the code. Running the Model.py and Model_constrained.py files should compute all the scenario values for all the variables. Executing the corresponding plot functions specified at the end of the files should generate the relevant figures. Doing so without altering the underlying data should fully reproduce the results presented in the manuscript. 
